@@ -3,13 +3,14 @@
 SRCS = \
 	Makefile \
 	geeoh.html \
+	geeoh.css \
 	geeoh.js \
 
 TGZ = /tmp/geeoh.tgz
 
 
 lgeeoh.html: Makefile geeoh.html
-	sed -e 's=http://ajax.googleapis.com/ajax/libs/jquery.*/1.7.2/==g' \
+	sed -e 's=http://ajax.googleapis.com/ajax/libs/=jq/=g' \
 	  < geeoh.html > $@
 
 tgz: ${TGZ}

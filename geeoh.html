@@ -2,11 +2,14 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Gee Oh!</title>
+    <link rel="stylesheet" type="text/css" href="geeoh.css"/>
+    <link rel="stylesheet" 
+        href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/base/jquery-ui.css" />
     <script type="text/javascript" 
       src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js">
     </script>
     <script type="text/javascript" 
-      src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/jquery-ui.min.js">
+      src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js">
     </script>
     <script type="text/javascript" src="geeoh.js"></script>
   </head>
@@ -16,5 +19,49 @@
     <center>
       <canvas id="geeoh-canvas" width="90%" height="90%"></canvas>
     </center>
+    <div id="pointer">XY</div>
+    <table id="elements-box">
+      <tr><th>Elements</th></tr>
+      <tr><td><button id="add">Add</button></td></tr>
+      <tr><td><button id="add-point">+ Point</button></td></tr>
+      <tr><td><button id="add-line">+ Line</button></td></tr>
+      <tr><td><button id="add-circle">+ Circle</button></td></tr>
+      <tr>
+	<td>
+	  <table id="elements">
+	    <tr><th>Name</th><th>Value</th></tr>
+	  </table>
+    </table>
+    <div id="dlg-point">
+      <table>
+	<tr><td>Name</td>
+	  <td title="Upper-Case followed by optional digits">
+	    <input id="pt-name-input">
+	  </td>
+	  <td>
+	    <span id="pt-name-error"
+	       class="ui-icon ui-icon-alert" 
+	       style="float: left; margin-right:.3em;">
+	    </span>
+	  </td>
+	</tr>
+	<tr><td>X</td><td><input id="x-input"></td>
+	  <td>
+	    <span id="x-error"
+	       class="ui-icon ui-icon-alert" 
+	       style="float: left; margin-right:.3em;">
+	    </span>
+	  </td>
+	</tr>
+	<tr><td>Y</td><td><input id="y-input"></td>
+	  <td>
+	    <span id="y-error"
+	       class="ui-icon ui-icon-alert" 
+	       style="float: left; margin-right:.3em;">
+	    </span>
+	  </td>
+	</tr>
+      </table>
+    </div>
   </body>
 </html>
