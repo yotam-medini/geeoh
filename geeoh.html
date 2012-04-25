@@ -63,5 +63,34 @@
 	</tr>
       </table>
     </div>
+    <div id="dlg-line">
+      <table id="tbl-line2pt-input">
+	<tr><td>Name</td>
+	  <td title="lower-case followed by optional digits">
+	    <input id="line-name-input">
+	  </td>
+	  <td>
+	    <span id="line-name-error"
+	       class="ui-icon ui-icon-alert" 
+	       style="float: left; margin-right:.3em;">
+	    </span>
+	  </td>
+	</tr>
+	<tr><td>Point</td>
+	  <td><select id="pt0-input" class="pt-select"></select></td>
+	</tr>
+	<tr><td>Point</td>
+	  <td><select id="pt1-input" class="pt-select"></select></td>
+	</tr>
+      </table>
+    </div>
+    <div style="display:none" id="div-dialog-error">
+      <p>
+	<span class="ui-icon ui-icon-alert" 
+	      style="float:left; margin:0 7px 20px 0;">
+	</span>
+	<span id="errormsg"></span>
+      </p>
+    </div>
   </body>
 </html>

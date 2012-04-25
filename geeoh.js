@@ -34,6 +34,38 @@ var epsilon = 1./128.;
 var epsilon2 = epsilon*epsilon;
 
 $(document).ready(function () {
+
+    var error = function(error_msg) {
+        $("#errormsg").html(error_msg);
+        $("#div-dialog-error").dialog({
+            title: "Error",
+            resizable: false,
+            width: 3*$(window).width()/5,
+            height: 3*$(window).height()/5,
+            modal: true,
+            buttons: {
+                "Ok" : function () {
+                    $(this).dialog("close");
+                }
+            }
+        }).parent().addClass("ui-state-error");
+        $("#div-dialog-error").dialog("open");
+    };
+
+    var digits_sub = function(s) {
+        var ns = "";
+        for (var i = 0; i < s.length; i++)
+        {
+            var c = s.charAt(i);
+            var digit = "0123456789".indexOf(c);
+            if (digit >= 0) {
+                c = "₀₁₂₃₄₅₆₇₈₉".charAt(digit);
+            }
+            ns += c;
+        }
+        return ns;
+    };
+
     debug_log("my geeoh ready begin");
     var w = $(window).width();
     var h = $(window).height();
@@ -51,11 +83,16 @@ $(document).ready(function () {
     var pointer = $("#pointer").draggable();
     $("#elements-box").draggable();
 
-    var point = {
+    var element = {
         name: "",
-        xy: [1., 1.],
         valid: true,
         name_set: function(s) { this.name = s; return this; },
+        is_point: function() { return false; }
+    };
+
+    var point = $.extend(true, {}, element, {
+        xy: [1., 1.],
+        is_point: function() { return true; },
         xy_set: function(x, y) {
             this.xy[0] = x;
             this.xy[1] = y;
@@ -69,11 +106,10 @@ $(document).ready(function () {
         draw: function(canvas, ctx) {
             canvas.point_draw(ctx, this);
         }
-    };
+    });
 
-    var line = {
+    var line = $.extend(true, {}, element, {
         abc: [1., 0., 0.],  // Always (if valid): a^2 + b^2 = 1
-        valid: true,
         ok: function() { return this.abc !== undefined; },
         point_distance: function(pt) {
            return Math.abs(this.abc[0]*pt[0] + this.abc[1]*pt[1] + this.abc[2]);
@@ -93,19 +129,23 @@ $(document).ready(function () {
             }
             return this;
         },
+        str: function() { return this.str3(); },
         str3: function() { 
             return "["+this.abc[0].toFixed(3) + ", " + this.abc[1].toFixed(3) +
                 ", " + this.abc[2].toFixed(3) + "]";
         },
-    };
+        draw: function(canvas, ctx) {
+            canvas.line_draw(ctx, this);
+        }
+    });
 
-    var circle = {
+    var circle = $.extend(true, {}, element, {
         center: $.extend(true, {}, point),
         radius: 1.
-    };
+    });
 
     //    {pts: [$.extend({}, point), $.extend({}, point)]}, line);
-    var line_2points = $.extend(true, {
+    var line_2points = $.extend(true, {}, line, {
         pts: [null, null],
         points_set: function(pt0, pt1) {
             debug_log("L2Ps set: p0="+pt0.str3() + ", pt1="+pt1.str3());
@@ -138,10 +178,13 @@ $(document).ready(function () {
 	        ", low="+low.toFixed(3) + ", high="+high.toFixed(3) +
 		", inside="+inside);
             return inside;
-        }
-    }, line);
+        },
+        str: function() { 
+            return "-(" + digits_sub(this.pts[0].name) + ", " + 
+                digits_sub(this.pts[1].name) + ")-"; }
+    });
     
-    var point_2lines = $.extend(true, {
+    var point_2lines = $.extend(true, {}, point, {
         lines: [null, null],
         lines_set: function(l0, l1) {
             debug_log("point_2lines.lines_set: l0="+l0.str3() + 
@@ -179,7 +222,7 @@ $(document).ready(function () {
                 debug_log("p2l: update: l0||l1 not valid");
             }
         }
-    }, point);    
+    });    
 
     var p34 = $.extend(true, {}, point).xy_set(3, 4);
     var p56 = $.extend(true, {}, point).xy_set(5, 6);
@@ -197,6 +240,9 @@ $(document).ready(function () {
     debug_log("line3456="+line3456.str3());
 
     var elements = [];
+    var enames = function() { 
+        return elements.map(function(e) { return e.name; }) 
+    };
     var etable = function() {
         return {
             redraw: function() {
@@ -210,7 +256,7 @@ $(document).ready(function () {
                     var e = elements[i];
                     tbl.append($('<tr>')
                         .append($('<td>')
-                            .text(e.name))
+                            .text(digits_sub(e.name)))
                         .append($('<td>')
                             .text(e.str())));
                 }
@@ -430,7 +476,8 @@ $(document).ready(function () {
                 var ok = true;
                 var xy = [];
                 var name = $("#pt-name-input").val().trim();
-                var ok = /^[A-Z][0-9]*$/.test(name);
+                var ok = /^[A-Z][0-9]*$/.test(name) && 
+                    ($.inArray(name, enames()) < 0);
                 $("#pt-name-error").css('display', ok ? 'none' : 'block');
 		for (var i = 0; i < 2; i++) {
                     var s =  $("#" + sxy[i] + "-input").val().trim();
@@ -452,12 +499,44 @@ $(document).ready(function () {
 	}
     });
 
+    var dlg_line = $("#dlg-line");
+    dlg_line.dialog({
+        autoOpen: false,
+	title: "Add Line",
+        width: $(window).width()/2,
+        height: $(window).height()/2,
+        modal: true,
+        buttons: {
+            "OK": function() {
+                var $this = this;
+                var ok = true;
+                var xy = [];
+                var name = $("#line-name-input").val().trim();
+                var ok = /^[a-z][0-9]*$/.test(name);
+                $("#line-name-error").css('display', ok ? 'none' : 'block');
+                if (ok) {
+                    var pt01 = [0, 1].map(function (n) {
+                        var pt_name = $("#pt" + n + "-input").val();
+                        return elements.filter(function (e) { 
+                            return e.name == pt_name; })[0]; });
+                    debug_log("pt0="+pt01[0].str() + ", pt1="+pt01[1].str());
+                    var ln = $.extend(true, {}, line_2points)
+                        .name_set(name)
+                        .points_set(pt01[0], pt01[1]);
+                    if (ln.valid) {
+                        $(this).data('cb')(ln);
+                        $(this).dialog("close"); 
+                    }
+                }
+            },
+	    Cancel: function() { $(this).dialog("close"); }
+	}
+    });
+
     for (var i = 0; i < 3; i++) {
         $("#" + name_xy[i] + "-error").css('display', 'none');
         $("#" + name_xy[i] + "-input").keypress(function (k) {
-            // debug_log("Out-key-pressed i="+i);
             return function() {
-               debug_log("In-key-pressed k="+k);
                $("#" + name_xy[k] + "-error").css('display', 'none'); 
             }}(i));
     }
@@ -479,6 +558,37 @@ $(document).ready(function () {
             etable.redraw();
         });
 	dlg_point.dialog("open");
+    });
+
+    $("#add-line").click(function() {
+        debug_log("add-line");
+        var pt_elements = elements.filter(
+            function (e) { return e.is_point(); });
+        debug_log("np="+pt_elements.length);
+        if (pt_elements.length < 2) {
+            error("For line, 2 points must be defined");
+        } else {
+            var pt_select = $(".pt-select").empty();
+            for (var i = 0; i < pt_elements.length; i++) {
+                 var name = pt_elements[i].name;
+                 debug_log("Adding option: "+name);
+                 pt_select
+                     .append($("<option></option>")
+                         .attr("value", name)
+                         .text(name)); 
+            }
+            dlg_line.data('cb', function(ln) { 
+                debug_log("pushing line:"+ln.str3());
+                elements.push(ln);
+                canvas.redraw();
+                etable.redraw();
+            });
+            dlg_line.dialog("open");
+        }
+    });
+    $("#line-name-error").css('display', 'none');
+    $("#line-name-input").keypress(function() { 
+        $("#line-name-error").css('display', 'none');
     });
 
 });
