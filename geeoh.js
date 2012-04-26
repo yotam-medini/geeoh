@@ -347,9 +347,11 @@ $(document).ready(function () {
                     var lbdy = lines[i];
                     var pt = $.extend(true, {}, point_2lines)
                         .lines_set(l, lbdy);
-                    debug_log("pt="+pt.str3() + ", lbdy="+lbdy.str3());
-                    if (lbdy.point_inside_segment(pt)) {
-                        bdy_pts.push(pt);
+                    if (pt.valid) {
+                        debug_log("pt="+pt.str3() + ", lbdy="+lbdy.str3());
+                        if (lbdy.point_inside_segment(pt)) {
+                            bdy_pts.push(pt);
+                        }
                     }
                 }
                 debug_log("|bdy_pts|="+bdy_pts.length);
@@ -516,7 +518,7 @@ $(document).ready(function () {
                 $("#line-name-error").css('display', ok ? 'none' : 'block');
                 if (ok) {
                     var pt01 = [0, 1].map(function (n) {
-                        var pt_name = $("#pt" + n + "-input").val();
+                        var pt_name = $("#pt" + n + "-select").val();
                         return elements.filter(function (e) { 
                             return e.name == pt_name; })[0]; });
                     debug_log("pt0="+pt01[0].str() + ", pt1="+pt01[1].str());
