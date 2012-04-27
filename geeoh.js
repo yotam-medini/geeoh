@@ -87,7 +87,8 @@ $(document).ready(function () {
         name: "",
         valid: true,
         name_set: function(s) { this.name = s; return this; },
-        is_point: function() { return false; }
+        is_point: function() { return false; },
+        is_segment: function() { return false; }
     };
 
     var point = $.extend(true, {}, element, {
@@ -98,15 +99,29 @@ $(document).ready(function () {
             this.xy[1] = y;
             return this;
         },
-        str: function() { return this.str3(); },
+        str: function() { return this.str2(); },
+        str2: function() { 
+           return "("+this.xy[0].toFixed(2) +
+               ", " + this.xy[1].toFixed(2) + ")";
+        },
         str3: function() { 
-           return "["+this.xy[0].toFixed(3) +
-               ", " + this.xy[1].toFixed(3) + "]";
+           return "("+this.xy[0].toFixed(3) +
+               ", " + this.xy[1].toFixed(3) + ")";
         },
         draw: function(canvas, ctx) {
             canvas.point_draw(ctx, this);
         }
     });
+
+    var distance2 = function(pt0, pt1) {
+        var dx = pt1.xy[0] - pt0.xy[0];
+        var dy = pt1.xy[1] - pt0.xy[1];
+        return dx*dx + dy*dy;
+    };
+
+    var distance = function(pt0, pt1) {
+        return Math.sqrt(distance2(pt0, pt1));
+    };
 
     var line = $.extend(true, {}, element, {
         abc: [1., 0., 0.],  // Always (if valid): a^2 + b^2 = 1
@@ -139,12 +154,6 @@ $(document).ready(function () {
         }
     });
 
-    var circle = $.extend(true, {}, element, {
-        center: $.extend(true, {}, point),
-        radius: 1.
-    });
-
-    //    {pts: [$.extend({}, point), $.extend({}, point)]}, line);
     var line_2points = $.extend(true, {}, line, {
         pts: [null, null],
         points_set: function(pt0, pt1) {
@@ -184,6 +193,17 @@ $(document).ready(function () {
                 digits_sub(this.pts[1].name) + ")-"; }
     });
     
+    var line_segment = $.extend(true, {}, line_2points, {
+        is_segment: function() { return true; },
+        str: function() { 
+            return "[" + digits_sub(this.pts[0].name) + ", " + 
+                digits_sub(this.pts[1].name) + "]"; },
+        draw: function(canvas, ctx) {
+            canvas.segment_draw(ctx, this.pts[0], this.pts[1]);
+        }
+    });
+
+
     var point_2lines = $.extend(true, {}, point, {
         lines: [null, null],
         lines_set: function(l0, l1) {
@@ -224,20 +244,36 @@ $(document).ready(function () {
         }
     });    
 
-    var p34 = $.extend(true, {}, point).xy_set(3, 4);
-    var p56 = $.extend(true, {}, point).xy_set(5, 6);
-    debug_log("p34="+p34.str3() + ", p56="+p56.str3());
+    var circle = $.extend(true, {}, element, {
+        center: $.extend(true, {}, point).xy_set(0, 0),
+        radius: 1,
+        str: function() { 
+           return "Circle(" + this.center.str() + ", r="+this.radius + ")";
+        },
+        draw: function(canvas, ctx) {
+            canvas.circle_draw(ctx, this);
+        }
+    });
 
-    var line345 = $.extend(true, {}, line).abc_set(3, 4, 5);
-    var line876 = $.extend(true, {}, line);
-    line876.abc_set(8, 7, 6);
-    debug_log("line345="+line345.str3() + ", line876="+line876.str3());
-
-    // var line3456 = $.extend({}, line_2points).set(p34, p56);
-    var line3456 = $.extend(true, {}, line_2points)
-    debug_log("line3456 [default]="+line3456.str3());
-    line3456.points_set(p34, p56);
-    debug_log("line3456="+line3456.str3());
+    var circle_center_segment = $.extend(true, {}, circle, {
+        center_segment_set: function(c, pt0, pt1) {
+            this.center = c;
+            this.pt0 = pt0;
+            this.pt1 = pt1;
+            return this.update();
+        },
+        update: function() {
+            this.radius = distance(this.pt0, this.pt1);
+            this.valid = (this.radius > epsilon);
+            return this;
+        },
+        pt0: $.extend(true, {}, point).xy_set(0, 0),
+        pt1: $.extend(true, {}, point).xy_set(1, 0),
+        str: function() { 
+           return "⊙(" + this.center.name + ", [" +
+               this.pt0.name + ", " + this.pt1.name + "])";
+        }
+    });
 
     var elements = [];
     var enames = function() { 
@@ -279,25 +315,11 @@ $(document).ready(function () {
                 ctx.fillRect(0, 0, w, h);
                 this.minmax_set();
                 this.axis_draw(ctx);
-               if (false) {
-                this.pt_cdraw(ctx, [this.x2canvas(1), this.y2canvas(1)]);
-                var abc = "ABC123abc456";
-                debug_log(abc +" --> " + this.digits_sub(abc));
-                this.seg_draw(ctx, [3, 3], [4, 4]);
-                this.seg_draw(ctx, [-4, -3], [8, 7]);
-		var pt00 = $.extend(true, {}, point).xy_set(0, 0);
-		var pt11 = $.extend(true, {}, point).xy_set(1, 1);
-		var lxy = $.extend(true, {}, line_2points)
-		    .points_set(pt00, pt11);
-		debug_log("lxy="+lxy.str3());
-                this.line_draw(ctx, lxy);
-               }
                 debug_log("|elements|="+elements.length);
                 for (var i = 0; i < elements.length; i++) {
                     debug_log("e["+i+"]=" + elements[i]);
                     elements[i].draw(this, ctx);
                 }
-                // this.line_draw(ctx, line3456);
             },
             axis_draw: function(ctx) {
                 ctx.fillStyle = "#111";
@@ -359,6 +381,16 @@ $(document).ready(function () {
 		   this.segment_draw(ctx, bdy_pts[0], bdy_pts[1]);
 		}
             },
+            circle_draw: function(ctx, circ) {
+                var p = circ.center;
+	        var cxy = [this.x2canvas(p.xy[0]), this.y2canvas(p.xy[1])];
+                var rg = distance(circ.pt0, circ.pt1);
+                var rc = this.g2canvas(rg);
+                debug_log("rg="+rg + ", rc="+rc);
+                ctx.beginPath();
+                ctx.arc(cxy[0], cxy[1], rc, 0., 2*Math.PI);
+                ctx.stroke();
+            },
             minmax_set: function() {
                 debug_log("minmax_set called");
                 var rr = rect_required; // abbreviation
@@ -400,6 +432,7 @@ $(document).ready(function () {
             canvas2pt: function(cpt) { 
                 return [this.canvas2x(cpt[0]), this.canvas2y(cpt[1])];
             },
+            g2canvas: function(d) { return (c.width * d) / dx; },
             x2canvas: function(x) { return (c.width * (x - x0)) / dx; },
             y2canvas: function(y) { return (c.height * (y0 + dy - y)) / dy; },
             canvas2x: function(cx) { return x0 + (cx * dx)/c.width; },
@@ -429,43 +462,16 @@ $(document).ready(function () {
 	pointer.text("("+xy[0].toFixed(3) + ", " + xy[1].toFixed(3)+")");
 	});
 
-    var create_editor = function() {
-        debug_log("add");
-	var editor = el("div", "popup-editor");
-	var tbl = el("table");
-	var tr = el("tr");
-	var td = el("td");
-	var tabs = el("td");
-	var label_point = document.createElement("Point");
-	tabs.appendChild(label_point);
-	var label_line = document.createElement("Line");
-	tabs.appendChild(label_line);
-	$(tabs).tabs().tabs('option', 'selected', 0);
-	td.appendChild(tabs);
-	tr.appendChild(td);
-	tbl.appendChild(tr);
-	editor.appendChild(tbl);
-        $("body").append(editor);
-
-
-        $(editor).dialog({
-            autoOpen: false,
-            modal: true,
-            buttons: {
-                "OK": function() {
-                    var $this = this;
-                    // editor_ok($this);
-                    $(this).dialog("close"); 
-                },
-                Cancel: function() { $(this).dialog("close"); }
-            }
-
-        });
-	return editor;
-    };
-
-    var name_xy = ["pt-name", "x", "y"];
+    var name_xy = ["pt-name", "line-name", "circle-name", "x", "y"];
     var sxy = ["x", "y"];
+
+    for (var i = 0; i < name_xy.length; i++) {
+        $("#" + name_xy[i] + "-error").css('display', 'none');
+        $("#" + name_xy[i] + "-input").keypress(function (k) {
+            return function() {
+               $("#" + name_xy[k] + "-error").css('display', 'none'); 
+            }}(i));
+    }
 
     var dlg_point = $("#dlg-point");
     dlg_point.dialog({
@@ -517,12 +523,15 @@ $(document).ready(function () {
                 var ok = /^[a-z][0-9]*$/.test(name);
                 $("#line-name-error").css('display', ok ? 'none' : 'block');
                 if (ok) {
+                    var is_seg = dlg_line.data('segment');
+                    debug_log("segment?=" + is_seg);
                     var pt01 = [0, 1].map(function (n) {
                         var pt_name = $("#pt" + n + "-select").val();
                         return elements.filter(function (e) { 
                             return e.name == pt_name; })[0]; });
                     debug_log("pt0="+pt01[0].str() + ", pt1="+pt01[1].str());
-                    var ln = $.extend(true, {}, line_2points)
+                    var ln = $.extend(true, {}, 
+                        (is_seg ? line_segment : line_2points))
                         .name_set(name)
                         .points_set(pt01[0], pt01[1]);
                     if (ln.valid) {
@@ -535,21 +544,45 @@ $(document).ready(function () {
 	}
     });
 
-    for (var i = 0; i < 3; i++) {
-        $("#" + name_xy[i] + "-error").css('display', 'none');
-        $("#" + name_xy[i] + "-input").keypress(function (k) {
-            return function() {
-               $("#" + name_xy[k] + "-error").css('display', 'none'); 
-            }}(i));
-    }
-
-    var add_editor = create_editor();
-    debug_log("add_editor="+add_editor);
-
-    $("#add").click(function() {
-        debug_log("add");
-	$(add_editor).dialog("open");
+    var dlg_circle = $("#dlg-circle");
+    dlg_circle.dialog({
+        autoOpen: false,
+	title: "Add Circle",
+        width: 3*$(window).width()/5,
+        height: 3*$(window).height()/5,
+        modal: true,
+        buttons: {
+            "OK": function() {
+                var name = $("#circle-name-input").val().trim();
+                var ok = /^[A-Z][0-9]*$/.test(name) && 
+                    ($.inArray(name, enames()) < 0);
+                $("#circle-name-error").css('display', ok ? 'none' : 'block');
+                if (ok) {
+                    var sel_pfx = $.merge(["#center"],
+                        [0,1].map(function(n) { return "#circle-pt" + n; }));
+                    debug_log("sel_pfx="+sel_pfx);
+                    var c_pt01 = sel_pfx.map(function (pfxn) { 
+                        var pt_name = $(pfxn + "-select").val();
+                        debug_log("pt_name="+pt_name);
+                        return elements.filter(function (e) { 
+                            return e.name == pt_name; })[0]; });
+                    debug_log("c="+c_pt01[0] + 
+                        ", pt0="+c_pt01[1].str() + ", pt1="+c_pt01[2].str());
+                    var circ = $.extend(true, {}, circle_center_segment)
+                        .name_set(name)
+                        .center_segment_set(c_pt01[0], c_pt01[0], c_pt01[2]);
+                    if (circ.valid) {
+                        $(this).data('cb')(circ);
+                        $(this).dialog("close"); 
+                    } else {
+                        error("Bad radius");
+                    }
+                }
+            },
+	    Cancel: function() { $(this).dialog("close"); }
+	}
     });
+
     $("#add-point").click(function() {
         debug_log("add-point");
 	dlg_point.data('cb', function(pt) { 
@@ -562,13 +595,49 @@ $(document).ready(function () {
 	dlg_point.dialog("open");
     });
 
-    $("#add-line").click(function() {
-        debug_log("add-line");
+    var line_seg_modes = [false, true];
+    for (var i = 0; i < 2; i++) {
+        var is_seg_out = (i == 1);
+        $(is_seg_out ? "#add-segment" : "#add-line").click(function(is_seg) {
+            return function() {
+                debug_log("add-line: is_seg="+is_seg);
+                var pt_elements = elements.filter(
+                    function (e) { return e.is_point(); });
+                debug_log("np="+pt_elements.length);
+                if (pt_elements.length < 2) {
+                    error("For line, 2 points must be defined");
+                } else {
+                    var pt_select = $(".pt-select").empty();
+                    for (var i = 0; i < pt_elements.length; i++) {
+                         var name = pt_elements[i].name;
+                         debug_log("Adding option: "+name);
+                         pt_select
+                             .append($("<option></option>")
+                                 .attr("value", name)
+                                 .text(name)); 
+                    }
+                    dlg_line.dialog("option", "title", 
+                        "Add " + (is_seg ? "Segment" : "Line"));
+                    dlg_line.data("segment", is_seg);
+                    dlg_line.data('cb', function(ln) { 
+                        debug_log("pushing line:"+ln.str3());
+                        elements.push(ln);
+                        canvas.redraw();
+                        etable.redraw();
+                    });
+                    dlg_line.dialog("open");
+                }
+            }
+        }(is_seg_out));
+    }
+
+    $("#add-circle").click(function() {
+        debug_log("add-circle");
         var pt_elements = elements.filter(
             function (e) { return e.is_point(); });
         debug_log("np="+pt_elements.length);
         if (pt_elements.length < 2) {
-            error("For line, 2 points must be defined");
+            error("For circle, 2 points must be defined");
         } else {
             var pt_select = $(".pt-select").empty();
             for (var i = 0; i < pt_elements.length; i++) {
@@ -579,18 +648,14 @@ $(document).ready(function () {
                          .attr("value", name)
                          .text(name)); 
             }
-            dlg_line.data('cb', function(ln) { 
-                debug_log("pushing line:"+ln.str3());
-                elements.push(ln);
+            dlg_circle.data('cb', function(circ) { 
+                debug_log("pushing circle:"+circ.str());
+                elements.push(circ);
                 canvas.redraw();
                 etable.redraw();
             });
-            dlg_line.dialog("open");
+            dlg_circle.dialog("open");
         }
-    });
-    $("#line-name-error").css('display', 'none');
-    $("#line-name-input").keypress(function() { 
-        $("#line-name-error").css('display', 'none');
     });
 
 });

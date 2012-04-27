@@ -15,22 +15,30 @@
   </head>
   <body>
     <h1>Geometry Exploration Environment &mdash; OH!</h1>
-    <p>Let's see...</p>
-    <center>
-      <canvas id="geeoh-canvas" width="90%" height="90%"></canvas>
-    </center>
-    <div id="pointer">XY</div>
-    <table id="elements-box">
-      <tr><th>Elements</th></tr>
-      <tr><td><button id="add-point">+ Point</button></td></tr>
-      <tr><td><button id="add-line">+ Line</button></td></tr>
-      <tr><td><button id="add-circle">+ Circle</button></td></tr>
+    <table>
       <tr>
 	<td>
-	  <table id="elements">
-	    <tr><th>Name</th><th>Value</th></tr>
+	  <table id="elements-box">
+	    <tr><th>Elements</th></tr>
+	    <tr><td><button id="add-point">+ Point</button></td></tr>
+	    <tr><td><button id="add-line">+ Line</button></td></tr>
+	    <tr><td><button id="add-segment">+ Segment</button></td></tr>
+	    <tr><td><button id="add-circle">+ Circle</button></td></tr>
+	    <tr>
+	      <td>
+		<table id="elements">
+		  <tr><th>Name</th><th>Value</th></tr>
+		</table>
 	  </table>
+	</td>
+	<td>
+	  <center>
+	    <canvas id="geeoh-canvas" width="90%" height="90%"></canvas>
+	  </center>
+	</td>
+      </tr>
     </table>
+    <div id="pointer">XY</div>
     <div id="dlg-point">
       <table>
 	<tr><td>Name</td>
@@ -76,12 +84,54 @@
 	  </td>
 	</tr>
 	<tr><td>Point</td>
-	  <td><select id="pt0-select" class="pt-select"></select></td>
+	  <td><select id="pt0-select" class="pt-select"/></td>
 	</tr>
 	<tr><td>Point</td>
-	  <td><select id="pt1-select" class="pt-select"></select></td>
+	  <td><select id="pt1-select" class="pt-select"/></td>
 	</tr>
       </table>
+    </div>
+    <div id="dlg-circle">
+      <center>
+	<table id="tbl-circle-input">
+	  <tr><td>Name</td>
+	    <td title="Upper-Case followed by optional digits">
+	      <input id="circle-name-input">
+	    </td>
+	    <td>
+	      <span id="circle-name-error"
+		 class="ui-icon ui-icon-alert" 
+		 style="float: left; margin-right:.3em;">
+	      </span>
+	    </td>
+	  </tr>
+	  <tr>
+	    <td>Center</td>
+	    <td><select id="center-select" class="pt-select"/></td>
+	  </tr>
+	  <tr>
+	     <td colspan="2">
+	       <center>
+		 <table>
+		   <tr><th colspan="2">Radius as segment:</th></tr>
+		   <tr>
+		     <td>Point</td>
+		     <td>
+		       <select id="circle-pt0-select" class="pt-select"/>
+		     </td>
+		   </tr>
+		   <tr>
+		     <td>Point</td>
+		     <td>
+		       <select id="circle-pt1-select" class="pt-select"/>
+		     </td>
+		   </tr>
+		 </table>
+	       </center>
+	     </td>
+	  </tr>
+	</table>
+      </center>
     </div>
     <div style="display:none" id="div-dialog-error">
       <p>
