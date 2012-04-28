@@ -24,14 +24,14 @@ function debug_log(message) {
     }
 }
 
-    function el(tag, id) { 
-        var e = document.createElement(tag);
-	if (id) { e.id = id; }
-	return e;
-    }
+function xy_add(p0, p1) {
+    return [p0[0] + p1[0], p0[1] + p1[1]];
+}
 
 var epsilon = 1./128.;
 var epsilon2 = epsilon*epsilon;
+
+
 
 $(document).ready(function () {
 
@@ -214,6 +214,33 @@ $(document).ready(function () {
         },
         candidate_label_points: function(rect, delta) { 
             var candidates = []; 
+            // We intersect this line with the 4 lines of the clipping rect.
+            // For each, if the intersection is withing the rect's segment
+            // we add appropriate candidates, avoiding this line.
+            var boundary_candidates = {
+                abc: [1., 0., 0.],
+                shifts: [[0., 0.]],
+                set: function(abc, shifts) {
+                    this.abc = abc;
+                    this.shifts = shifts;
+                    return this;
+                },
+                get: function(labc) {
+                    var c = []; // candidates
+                    var xy = solve_2linear(this.abc, labc);
+                    if (xy != null) {
+                        if (Math.abs(labc[0]) < Math.abs(labc[1])) {
+                            // 'vertical'-like line
+                            // candidates.push([xy[0] + shifts[0][0])
+                            ;
+                        } else {
+                            // 'horizontal'-like line
+                        }
+                        
+                    }
+                    return c;
+                },
+            }
             return candidates;
         },
     });
