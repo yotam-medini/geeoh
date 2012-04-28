@@ -83,12 +83,41 @@ $(document).ready(function () {
     var pointer = $("#pointer").draggable();
     $("#elements-box").draggable();
 
+    // solve 2x2 linear equations
+    var solve_2linear = function(abc0, abc1) {
+        var xy = null; // pessimistic
+        var a0 = abc0[0], b0 = abc0[1], c0 = abc0[2];
+        var a1 = abc1[0], b1 = abc1[1], c1 = abc1[2];
+        // a0x + b0y + c0 = 0
+        // a1x + b1y + c1 = 0
+        //   a0b1x + b0b1y + c0b1 = 0
+        //   a1b0x + b0b1y + b0c1 = 0
+        //     x = (b0c1 - c0b1) / (a0b1 - a1b0)
+        //   a0a1x + a1b0y + a1c0 = 0
+        //   a0a1x + a0b1y + a0c1 = 0
+        //     y = (a0c1 - a1c0) / (a1b0 - a0b1)
+        var det = a0*b1 - a1*b0;
+        if (Math.abs(det) > epsilon) {
+            xy = [(b0*c1 - c0*b1)/det, (a1*c0 - a0*c1)/det];
+        }
+        return xy;
+    };
+
     var element = {
         name: "",
         valid: true,
         name_set: function(s) { this.name = s; return this; },
         is_point: function() { return false; },
-        is_segment: function() { return false; }
+        is_segment: function() { return false; },
+        distance_to: function(xy) { return Math.sqrt(this.distance2_to(xy)); },
+        distance2_to: function(xy) { return 1.; },
+        candidate_label_points: function(rect, delta) { return []; },
+        best_label_point: function(elements, rect, delta) {
+            debug_log("blp: rect="+rect + ", delta="+delta);
+            for (var i = 0; i < elements.length; i++) {
+                if (this == elements[i]) { debug_log("blp: me! i="+i); }
+            }            
+        }
     };
 
     var point = $.extend(true, {}, element, {
@@ -110,7 +139,29 @@ $(document).ready(function () {
         },
         draw: function(canvas, ctx) {
             canvas.point_draw(ctx, this);
-        }
+        },
+        distance2_to: function(xy) { 
+            var dx = xy[0] - this.xy[0];
+            var dy = xy[1] - this.xy[1];
+            return dx*dx + dy*dy;
+        },
+        candidate_label_points: function(rect, delta) { 
+            var candidates = []; 
+            for (i = -1; i <= 1; i++) {
+                var x = this.xy[0] + (i * delta);
+                if ((rect[0][0] < x) && (x < rect[0][1])) {
+                    for (j = -1; j <= 1; j++) {
+                        if ((i != 0) || (j == 0)) {
+                            var y = this.xy[1] + (j * delta);
+                            if ((rect[1][0] < y) && (y < rect[1][1])) {
+                                candidates.push([x, y]);
+                            }
+                        }
+                    }
+                }
+            }
+            return candidates;
+        },
     });
 
     var distance2 = function(pt0, pt1) {
@@ -151,7 +202,20 @@ $(document).ready(function () {
         },
         draw: function(canvas, ctx) {
             canvas.line_draw(ctx, this);
-        }
+        },
+        distance2_to: function(xy) {
+            var d = this.distance_to(xy);
+            return d*d;
+        },
+        distance_to: function(xy) {
+            var abc = this.abc;
+            var v = abc[0]*xy[0] + abc[1]*xy[1] + abc[2];
+            return Math.abs(v);
+        },
+        candidate_label_points: function(rect, delta) { 
+            var candidates = []; 
+            return candidates;
+        },
     });
 
     var line_2points = $.extend(true, {}, line, {
@@ -217,26 +281,14 @@ $(document).ready(function () {
             this.valid = false;
             var l0 = this.lines[0], l1 = this.lines[1];
             if (l0.valid && l1.valid) {
-                var abc0 = l0.abc_get();
-                var abc1 = l1.abc_get();
-                var a0 = abc0[0], b0 = abc0[1], c0 = abc0[2];
-                var a1 = abc1[0], b1 = abc1[1], c1 = abc1[2];
-                // a0x + b0y + c0 = 0
-                // a1x + b1y + c1 = 0
-                //   a0b1x + b0b1y + c0b1 = 0
-                //   a1b0x + b0b1y + b0c1 = 0
-                //     x = (b0c1 - c0b1) / (a0b1 - a1b0)
-                //   a0a1x + a1b0y + a1c0 = 0
-                //   a0a1x + a0b1y + a0c1 = 0
-                //     y = (a0c1 - a1c0) / (a1b0 - a0b1)
-                var det = a0*b1 - a1*b0;
-                this.valid = (Math.abs(det) > epsilon);
+                var xy = solve_2linear(l0.abc_get(), l1.abc_get());
+                this.valid = (xy !== null);
                 if (!this.valid) {
                     debug_log("p2l: !valid: det="+det + 
                         ", l0="+l0.str3() + ", l1="+l1.str3());
                     this.xy = null;
                 } else {
-                    this.xy_set((b0*c1 - c0*b1)/det, (a1*c0 - a0*c1)/det);
+                    this.xy_set(xy[0], xy[1]);
                 }
             } else {
                 debug_log("p2l: update: l0||l1 not valid");
@@ -306,7 +358,7 @@ $(document).ready(function () {
         var x0, dx, y0, dy;
         var point_lb, point_rb, point_lt, point_rt;
         var line_left, line_right, line_bottom, line_top;
-        var dtag1, pt_rad;
+        var dtag1, pt_rad, delta_label;
         return {
             redraw: function() {
                 var ctx = c.getContext("2d");
@@ -316,9 +368,12 @@ $(document).ready(function () {
                 this.minmax_set();
                 this.axis_draw(ctx);
                 debug_log("|elements|="+elements.length);
+                var rect = [ [x0, x0 + dx], [y0, y0 + dy] ];
                 for (var i = 0; i < elements.length; i++) {
-                    debug_log("e["+i+"]=" + elements[i]);
-                    elements[i].draw(this, ctx);
+                    var e = elements[i];
+                    debug_log("canvas.redraw: e["+i+"]=" + e);
+                    e.draw(this, ctx);
+                    e.best_label_point(elements, rect, delta_label);
                 }
             },
             axis_draw: function(ctx) {
@@ -409,6 +464,8 @@ $(document).ready(function () {
                     dy = dnew;
                 }
                 dtag1 = Math.max(6, Math.min(c.width, c.height)/0x100);
+                this.delta_label = this.canvas2g(
+                    Math.max(8, Math.min(c.width, c.height)/0x80));
                 pt_rad = Math.max(3, Math.min(c.width, c.height)/0x200);
                 debug_log("x0="+x0 + ", y0="+y0 + ", dx="+dx + ", dy="+dy);
                 this.point_lb = $.extend(true, {}, point).xy_set(x0, y0);
@@ -433,6 +490,7 @@ $(document).ready(function () {
                 return [this.canvas2x(cpt[0]), this.canvas2y(cpt[1])];
             },
             g2canvas: function(d) { return (c.width * d) / dx; },
+            canvas2g: function(p) { return (dx * p) / c.width; },
             x2canvas: function(x) { return (c.width * (x - x0)) / dx; },
             y2canvas: function(y) { return (c.height * (y0 + dy - y)) / dy; },
             canvas2x: function(cx) { return x0 + (cx * dx)/c.width; },
@@ -452,6 +510,11 @@ $(document).ready(function () {
             }
         };
     }();
+
+    var redraw = function() {
+        canvas.redraw();
+        etable.redraw();
+    };
 
     canvas.redraw();
     ec.mousemove(function(e) {
