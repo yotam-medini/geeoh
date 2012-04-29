@@ -28,12 +28,30 @@ function xy_add(p0, p1) {
     return [p0[0] + p1[0], p0[1] + p1[1]];
 }
 
-var epsilon = 1./128.;
-var epsilon2 = epsilon*epsilon;
-
-
+function xy_xy_dist2(p0, p1) {
+    var dx = p1[0] - p0[0];
+    var dy = p1[1] - p0[1];
+    var d2 = dx*dx + dy*dy; 
+    return d2;
+}
 
 $(document).ready(function () {
+
+    // constants
+    var epsilon = 1./128.;
+    var epsilon2 = epsilon*epsilon;
+    var sqrt2 = Math.sqrt(2.);
+
+    var label_shift_factors = [
+        [1, 0],
+	[sqrt2, sqrt2],
+	[0, 1],
+	[-sqrt2, sqrt2], 
+	[-1, 0],
+	[-sqrt2, -sqrt2],
+	[0, -1],
+	[sqrt2, -sqrt2]
+    ];
 
     var error = function(error_msg) {
         $("#errormsg").html(error_msg);
@@ -213,33 +231,59 @@ $(document).ready(function () {
             return Math.abs(v);
         },
         candidate_label_points: function(rect, delta) { 
+            // rect == [[Xmin,Xmax], [Ymin,YMax]]
             var candidates = []; 
             // We intersect this line with the 4 lines of the clipping rect.
             // For each, if the intersection is withing the rect's segment
             // we add appropriate candidates, avoiding this line.
-            var boundary_candidates = {
-                abc: [1., 0., 0.],
-                shifts: [[0., 0.]],
-                set: function(abc, shifts) {
-                    this.abc = abc;
-                    this.shifts = shifts;
-                    return this;
-                },
-                get: function(labc) {
-                    var c = []; // candidates
-                    var xy = solve_2linear(this.abc, labc);
-                    if (xy != null) {
-                        if (Math.abs(labc[0]) < Math.abs(labc[1])) {
-                            // 'vertical'-like line
-                            // candidates.push([xy[0] + shifts[0][0])
-                            ;
-                        } else {
-                            // 'horizontal'-like line
-                        }
-                        
-                    }
-                    return c;
-                },
+            //
+            //  left:     abc = [1, 0, -rect[0][0]]
+            //    shift = 
+            //      line-vertical? = [[delta, 0]]
+            //      line-horizontal? = [ [delta, -delta], [delta, delta] ]
+            //  
+            //  right:    abc = [1, 0, -rect[0][1]]
+            //    shift = 
+            //      line-vertical? = [[-delta, 0]]
+            //      line-horizontal? = [ [-delta, -delta], [-delta, delta] ]
+            //  
+            //  bottom:   abc = [0, 1, -rect[1][0]]
+            //    shift = 
+            //      line-vertical? = [[-delta, delta], [delta, delta]]
+            //      line-horizontal? = [[0, delta]]
+            //  
+            //  top:      abc = [0, 1, -rect[1][1]]
+            //    shift = 
+            //      line-vertical? = [-delta, -delta], [delta, -delta]]
+            //      line-horizontal? = [[0, -delta]]
+            //  
+            var lrbt = [
+            //   abc            horizontal          vertical
+                [[1, 0, [0,0]], [[ 1,-1], [ 1, 1]], [[ 1, 0]] ],          // L
+                [[1, 0, [0,1]], [[-1,-1], [-1, 1]], [[-1, 0]] ],          // R
+                [[0, 1, [1,0]], [[ 0, 1]],          [[-1, 1], [ 1, 1]] ], // B
+                [[0, 1, [1,1]], [[ 0,-1]],          [[-1,-1], [ 1,-1]] ], // T
+            ];
+
+            var vertical_like = (Math.abs(labc[0]) < Math.abs(labc[1]));
+
+            for (var i = 0; i < 4; i++) {
+               var abchv = lrbt[i];
+               var f_abc = abchv[0];
+               var f_h = abchv[1];
+               var f_v = abchv[2];
+
+               var ij = f_abc[2]
+               var abc = [ f_abc[0], f_abc[1], -rect[ij[0]][ij[1]] ];
+               var xy = solve_2linear(this.abc, labc);
+               if (xy != null) {
+                   var shifts = (vertical_like ? f_v : f_h);
+                   for (var j = 0; j < shifts.length; j++) {
+                       var fs = shifts[i];
+                       var cxy = [xy[0] + fs[0]*delta, xy[1] + fs[1]*delta];
+                       candidates.push(xy_add(xy, shift));
+                   }
+               }
             }
             return candidates;
         },
@@ -291,7 +335,36 @@ $(document).ready(function () {
                 digits_sub(this.pts[1].name) + "]"; },
         draw: function(canvas, ctx) {
             canvas.segment_draw(ctx, this.pts[0], this.pts[1]);
-        }
+        },
+        candidate_label_points: function(rect, delta) {
+            var mid = $.extend(true, {}, point)
+                .xy_set(
+                    (this.pts[0].xy[0] + this.pts[1].xy[0])/2,
+                    (this.pts[0].xy[1] + this.pts[1].xy[1])/2);
+            return mid.candidate_label_points(rect, delta);
+        },
+	distance2_to: function(xy) {
+            // denom -- may be cached on update!
+            var p0 = this.pts[0]; 
+            var p1 = this.pts[1]; 
+            var dpx = p1[0] - p0[0];
+            var dpy = p1[1] - p0[1];
+	    var denom = dpx*dpx + dpy * dpy;
+            var m = p0;
+            var d2;
+            if (denom > epsilon2) {
+                var t = ((p0[0] - xy[0])*dpx + (p0[1] - xy[1])*dpy) / denom;
+                if (t <= 0) {
+                    m = p0;
+                } else if (t >= 1) {
+                    m = p1;
+                } else {
+                    m = [xy[0] + t*dpx, xy[1] + t*dpy];
+                }                
+            }
+            d2 = xy_xy_dist2(xy, m);
+            return d2;
+	}
     });
 
 
@@ -331,7 +404,30 @@ $(document).ready(function () {
         },
         draw: function(canvas, ctx) {
             canvas.circle_draw(ctx, this);
-        }
+        },
+	distance_to: function(xy) {
+            return Math.abs(this.center.distance_to(xy) - this.radius);
+	},
+        candidate_label_points: function(rect, delta) { 
+            // MUST BE FIXED - this was copied from ::::::::::::::::
+            // !!!!!!!!!!!!!!!!!!!! point.candidate_label_points
+            var candidates = []; 
+            var sqrt2 = Math.sqrt(2);
+            for (i = -1; i <= 1; i++) {
+                var x = this.xy[0] + (i * delta);
+                if ((rect[0][0] < x) && (x < rect[0][1])) {
+                    for (j = -1; j <= 1; j++) {
+                        if ((i != 0) || (j == 0)) {
+                            var y = this.xy[1] + (j * delta);
+                            if ((rect[1][0] < y) && (y < rect[1][1])) {
+                                candidates.push([x, y]);
+                            }
+                        }
+                    }
+                }
+            }
+            return candidates;
+        },
     });
 
     var circle_center_segment = $.extend(true, {}, circle, {
@@ -549,7 +645,7 @@ $(document).ready(function () {
 	var position = ec.position();
 	var cx = e.pageX - position.left, cy = e.pageY - position.top;
 	var xy = canvas.canvas2pt([cx, cy]);
-	pointer.text("("+xy[0].toFixed(3) + ", " + xy[1].toFixed(3)+")");
+	pointer.text("("+xy[0].toFixed(2) + ", " + xy[1].toFixed(2)+")");
 	});
 
     var name_xy = ["pt-name", "line-name", "circle-name", "x", "y"];
@@ -648,7 +744,7 @@ $(document).ready(function () {
                     ($.inArray(name, enames()) < 0);
                 $("#circle-name-error").css('display', ok ? 'none' : 'block');
                 if (ok) {
-                    var sel_pfx = $.merge(["#center"],
+                    var sel_pfx = $.merge($.merge([], ["#center"]),
                         [0,1].map(function(n) { return "#circle-pt" + n; }));
                     debug_log("sel_pfx="+sel_pfx);
                     var c_pt01 = sel_pfx.map(function (pfxn) { 
