@@ -6,6 +6,8 @@ SRCS = \
 	geeoh.css \
 	geeoh.js \
 
+SRCS += fslocal.html fslocal.js
+
 TGZ = /tmp/geeoh.tgz
 
 
