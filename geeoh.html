@@ -19,18 +19,28 @@
 <a href="#" id="fclear">Clear</a>
     <table>
       <tr>
+        <td colspan="2">
+          <table id="tool-box">
+            <tr>
+              <td><button id="add-point">+ Point</button></td>
+	      <td><button id="add-line">+ Line</button></td>
+	      <td><button id="add-segment">+ Segment</button></td>
+	      <td><button id="add-circle">+ Circle</button></td>
+	    </tr>
+          </table>
+	</td>
+      </tr>
+      <tr>
         <td>
           <table id="elements-box">
             <tr><th>Elements</th></tr>
-            <tr><td><button id="add-point">+ Point</button></td></tr>
-            <tr><td><button id="add-line">+ Line</button></td></tr>
-            <tr><td><button id="add-segment">+ Segment</button></td></tr>
-            <tr><td><button id="add-circle">+ Circle</button></td></tr>
             <tr>
               <td>
                 <table id="elements">
                   <tr><th>Name</th><th>Value</th></tr>
                 </table>
+	      </td>
+	    </tr>
           </table>
         </td>
         <td>
@@ -181,6 +191,14 @@
               style="float:left; margin:0 7px 20px 0;">
         </span>
         <span id="errormsg"></span>
+      </p>
+    </div>
+    <div style="display:none" id="div-dialog-warning">
+      <p>
+        <span class="ui-icon ui-icon-info" 
+              style="float:left; margin:0 7px 20px 0;">
+        </span>
+        <span id="warnmsg"></span>
       </p>
     </div>
   </body>

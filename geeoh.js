@@ -75,6 +75,23 @@ $(document).ready(function () {
         $("#div-dialog-error").dialog("open");
     };
 
+    var warning = function(msg) {
+        $("#warnmsg").html(msg);
+        $("#div-dialog-warning").dialog({
+            title: "Warning",
+            resizable: false,
+            width: 3*$(window).width()/5,
+            height: 3*$(window).height()/5,
+            modal: true,
+            buttons: {
+                "Ok" : function () {
+                    $(this).dialog("close");
+                }
+            }
+        }).parent().addClass("ui-state-error");
+        $("#div-dialog-warning").dialog("open");
+    };
+
     var xy_points_around = function(x, y, r) {
         var pts = []; 
         var f = label_shift_factors;
@@ -133,6 +150,7 @@ $("#fclear").click(function(event){
     c.width = w; c.height = h;
 
     var pointer = $("#pointer").draggable();
+    $("#tool-box").draggable();
     $("#elements-box").draggable();
 
     // solve 2x2 linear equations
@@ -158,7 +176,9 @@ $("#fclear").click(function(event){
     var element = {
         name: "",
         valid: true,
+        selected: false,
         name_set: function(s) { this.name = s; return this; },
+        needs: function(element_name) { return false; },
         is_point: function() { return false; },
         is_segment: function() { return false; },
         is_circle: function() { return false; },
@@ -167,7 +187,7 @@ $("#fclear").click(function(event){
         distance2_to: function(xy) { return 1.; },
         candidate_label_points: function(rect, delta) { return []; },
         best_label_point: function(elements, rect, delta) { // max-min
-            debug_log("BLP: e="+this.name);
+            // debug_log("BLP: e="+this.name);
             var candidates = this.candidate_label_points(rect, delta);
             debug_log("pre-clip #="+candidates.length);
             candidates = rect_xys_clip(rect, candidates);
@@ -182,8 +202,8 @@ $("#fclear").click(function(event){
                         if (d2_nearest > d2) { d2_nearest = d2; }
                     }
                 }
-                debug_log("  BLP: cpt="+xy2str(cpt) + 
-                    ", d2near="+d2_nearest.toFixed(2));
+                // debug_log("  BLP: cpt="+xy2str(cpt) + 
+                //    ", d2near="+d2_nearest.toFixed(2));
                 if (best_distance2 < d2_nearest) {
                     best_distance2 = d2_nearest;
                     best = cpt;
@@ -361,6 +381,10 @@ $("#fclear").click(function(event){
             this.abc_set(y1 - y0, x0 - x1, x1*y0 - x0*y1);
             return this;
         },
+        needs: function(element_name) {
+            return element_name === this.pts[0].name ||
+                 element_name === this.pts[1].name;
+        },
         point_inside_segment: function(pt) {
             // Assuming pt is in the line, but not necessarily within segment
             var p0 = this.pts[0], p1 = this.pts[1];
@@ -458,9 +482,20 @@ $("#fclear").click(function(event){
                 debug_log("p2l: update: l0||l1 not valid");
             }
         },
+        needs: function(element_name) {
+            return element_name === this.lines[0].name ||
+                 element_name === this.lines[1].name;
+        },
         str: function() {
             return "⨉(" + this.lines[0].name + ", " + this.lines[1].name + ")";
-        }
+        },
+        toJSON: function() {
+            return {
+                'type': "point_2lines",
+                'name': this.name,
+                'lines': [this.lines[0].name, this.lines[1].name]
+            };
+        },
     });    
 
     var circle = $.extend(true, {}, element, {
@@ -497,13 +532,84 @@ $("#fclear").click(function(event){
         },
         pt0: $.extend(true, {}, point).xy_set(0, 0),
         pt1: $.extend(true, {}, point).xy_set(1, 0),
+        needs: function(element_name) {
+            return element_name === this.center.name ||
+                 element_name === this.pt0.name ||
+                 element_name === this.pt1.name;
+        },
         str: function() { 
            return "⊙(" + this.center.name + ", [" +
                this.pt0.name + ", " + this.pt1.name + "])";
-        }
+        },
+        toJSON: function() {
+            return {
+                'type': "circle",
+                'name': this.name,
+                'center': this.center.name,
+                'segment': [this.pt0.name, this.pt1.name]
+            };
+        },
     });
 
+    var json_element_create = function(ejson) {
+        var e = null;
+        var typename = ejson['type'];
+        var name = ejson['name'];
+        debug_log("type="+typename + ", name="+name);
+        if (typename === 'point') {
+            var xy = ejson['xy'];
+            e = $.extend(true, {}, point)
+                .name_set(name)
+                .xy_set(xy[0], xy[1]);
+        } else if (typename === 'line_2points') {
+            var pts = names_to_elements(ejson['pts']);
+            e = $.extend(true, {}, line_2points)
+                .name_set(name)
+                .points_set(pts[0], pts[1]);
+        } else if (typename === 'line_segment') {
+            var pts = names_to_elements(ejson['pts']);
+            e = $.extend(true, {}, line_segment)
+                .name_set(name)
+                .points_set(pts[0], pts[1]);
+        } else if (typename === 'circle') {
+            debug_log('making circle');
+            debug_log("center="+ejson["center"]);
+            debug_log("segment="+ejson["segment"]);
+            var c_seg_names = $.merge($.merge([],
+                [ejson['center']]), ejson['segment']);
+            debug_log("c_seg_names="+c_seg_names);
+            var c_seg = names_to_elements(c_seg_names);
+            debug_log("c_seg_names="+c_seg_names + ", c_seg="+c_seg);
+            e = $.extend(true, {}, circle_center_segment)
+                .name_set(name)
+                .center_segment_set(c_seg[0], c_seg[1], c_seg[2]);
+        }
+        return e;
+    };
+
     var elements = [];
+    var names_to_elements = function(names) {
+        return names.map(function (name) { 
+            return elements.filter(function (e) { 
+                return e.name == name; })[0]; 
+            });
+        };
+    var selected_index = function() {
+        var i = 0;
+        while ((i < elements.length) && !elements[i].selected) {
+            i++;
+        }
+        return i;
+    };
+    var elements_at_add = function(at, e) {
+        var head = elements.slice(0, at);
+        var tail = elements.slice(at);
+        debug_log("at="+at + ", |h|="+head.length + ", |t|="+tail.length
+            + ", |e|="+elements.length);
+        elements = $.merge($.merge(head, [e]), tail);
+        debug_log("After: |e|="+elements.length);
+    };
+
     $("#json-in").click(function () { 
             debug_log("json-in");
             var es_json;
@@ -516,14 +622,7 @@ $("#fclear").click(function(event){
             elements = [];
             debug_log("|e|="+es_json.length);
             for (var i = 0; i < es_json.length; i++) {
-                var ej = es_json[i];
-                var e;
-                if (ej['type'] == 'point') {
-                    var xy = ej['xy'];
-                    e = $.extend(true, {}, point)
-                        .name_set(ej['name'])
-                        .xy_set(xy[0], xy[1]);
-                }
+                var e = json_element_create(es_json[i]);
                 if (e !== null) {
                     elements.push(e);
                 }
@@ -538,23 +637,88 @@ $("#fclear").click(function(event){
     var enames = function() { 
         return elements.map(function(e) { return e.name; }) 
     };
+    var element_edit = function(ei) {
+        debug_log("element_edit ei="+ei);
+    };
+    var element_remove = function(ei) {
+        debug_log("element_remove ei="+ei);
+    };
     var etable = function() {
         return {
             redraw: function() {
+                var any_selected = false;
                 var tbl = $("#elements");
                 var tbl0 = tbl[0]
                 // Remove rows, but the title 
                 while (tbl[0].childNodes.length > 1) {
                     tbl0.removeChild(tbl0.lastChild);
                 }
-                for (var i = 0; i < elements.length; i++) {
-                    var e = elements[i];
-                    tbl.append($('<tr>')
+                for (var i = 0; i < elements.length + 1; i++) {
+                    var e, classes = "element-row";
+                    if (i < elements.length) {
+                        e = elements[i];
+                        any_selected = any_selected || e.selected;
+                    } else {
+                        e  = { 
+                            'name': '_', 
+                            'str': function() { return '_'; },
+                            selected: !any_selected
+                        };
+                    }
+                    debug_log("i="+i + ", selected="+e.selected);
+                    var tr = $('<tr>');
+                        tr
+                        .attr("ei", i)
+                        .addClass("element-row" + 
+                            (e.selected ? " element-selected" : ""))
                         .append($('<td>')
                             .text(digits_sub(e.name)))
                         .append($('<td>')
-                            .text(e.str())));
+                            .text(e.str()));
+                    if (i < elements.length) {
+                        tr.append($('<td>')
+                            .append($('<button>')
+                                .html("Edit")
+                                .button({
+                                    text: false,
+                                    icons: {
+                                        primary: "ui-icon-pencil"
+                                    }})
+                                )
+                                .click(function(ei) { 
+                                    return function() { element_edit(ei); }
+                                }(i))
+                            .append($('<button>')
+                                .html("Remove")
+                                .button({
+                                    text: false,
+                                    icons: {
+                                        primary: "ui-icon-trash"
+                                    }})
+                                )
+                                .click(function(ei) { 
+                                    return function() { element_remove(ei); }
+                                }(i))
+                            .append($('<button>')
+                                .html("Up")
+                                .button({
+                                    text: false,
+                                    icons: {
+                                        primary: "ui-icon-arrow-1-n"
+                                    }})
+                                )
+                        );
+                    }
+                    tbl.append(tr);
                 }
+                $(".element-row").click(function() {
+                    var ei = $(this).attr("ei");
+                    debug_log("IN element-row clicked ei="+ei);
+                    for (var i = 0; i < elements.length; i++) {
+                        elements[i].selected = (i == ei);
+                    }
+                    etable.redraw();
+                });
             }
         }
     }();
@@ -759,28 +923,28 @@ $("#fclear").click(function(event){
             "OK": function() {
                 var $this = this;
                 var ok = true;
-		var pt = null;
+                var pt = null;
                 var xy = [];
                 var name = $("#pt-name-input").val().trim();
                 var ok = /^[A-Z][0-9]*$/.test(name) && 
                     ($.inArray(name, enames()) < 0);
                 $("#pt-name-error").css('display', ok ? 'none' : 'block');
-		var tabi = add_pt_tabs.tabs("option", "selected");
-		debug_log("tabi="+tabi);
-		if (tabi == 0) { // absolute
-		    for (var i = 0; i < 2; i++) {
-			var s =  $("#" + sxy[i] + "-input").val().trim();
-			var sok = (s !== "") && !isNaN(s);
-			if (sok) { xy[i] = Number(s); }
-			$("#" + sxy[i] + "-error").css('display',
-			    sok ? 'none' : 'block');
-			ok = ok && sok;
-		    }
-		    if (ok) {
-			var pt = $.extend(true, {}, point)
-			    .xy_set(xy[0], xy[1]);
-		    }
-		} else { // tabi == 1 ==> intersection
+                var tabi = add_pt_tabs.tabs("option", "selected");
+                debug_log("tabi="+tabi);
+                if (tabi == 0) { // absolute
+                    for (var i = 0; i < 2; i++) {
+                        var s =  $("#" + sxy[i] + "-input").val().trim();
+                        var sok = (s !== "") && !isNaN(s);
+                        if (sok) { xy[i] = Number(s); }
+                        $("#" + sxy[i] + "-error").css('display',
+                            sok ? 'none' : 'block');
+                        ok = ok && sok;
+                    }
+                    if (ok) {
+                        var pt = $.extend(true, {}, point)
+                            .xy_set(xy[0], xy[1]);
+                    }
+                } else { // tabi == 1 ==> intersection
                     var curve01 = [0, 1].map(function (n) {
                         var cname = $("#add-pt-curve" + n).val();
                         debug_log("n="+n + ", cname="+cname);
@@ -799,8 +963,8 @@ $("#fclear").click(function(event){
                         if (curve01[1].is_circle()) {
                             debug_log("line_circle NOT yet");
                         } else {
-			    pt = $.extend(true, {}, point_2lines)
-			        .lines_set(curve01[0], curve01[1]);
+                            pt = $.extend(true, {}, point_2lines)
+                                .lines_set(curve01[0], curve01[1]);
                         }
                     }                    
                 }
@@ -895,13 +1059,14 @@ $("#fclear").click(function(event){
         var curve_elements = elements.filter(
             function (e) { return e.is_curve(); });
         debug_log("#curves="+curve_elements.length);
+        var si = selected_index(); 
         if (curve_elements.length < 2) {
             add_pt_tabs.tabs('select', 0);
             add_pt_tabs.tabs('disable', 1);
         } else {
             add_pt_tabs.tabs('enable', 1);
             var curve_select = $(".curve-select").empty();
-            for (var i = 0; i < curve_elements.length; i++) {
+            for (var i = 0; i < si; i++) {
                  var name = curve_elements[i].name;
                  debug_log("Adding option: "+name);
                  curve_select
@@ -912,7 +1077,7 @@ $("#fclear").click(function(event){
         }
         dlg_point.data('cb', function(pt) { 
             debug_log("pushing pt:"+pt.str3());
-            elements.push(pt);
+            elements_at_add(si, pt);
             debug_log("e[0]="+elements[0]);
             redraw();
         });
@@ -932,7 +1097,8 @@ $("#fclear").click(function(event){
                     error("For line, 2 points must be defined");
                 } else {
                     var pt_select = $(".pt-select").empty();
-                    for (var i = 0; i < pt_elements.length; i++) {
+                    var si = selected_index(); 
+                    for (var i = 0; i < si; i++) {
                          var name = pt_elements[i].name;
                          debug_log("Adding option: "+name);
                          pt_select
@@ -944,8 +1110,7 @@ $("#fclear").click(function(event){
                         "Add " + (is_seg ? "Segment" : "Line"));
                     dlg_line.data("segment", is_seg);
                     dlg_line.data('cb', function(ln) { 
-                        debug_log("pushing line:"+ln.str3());
-                        elements.push(ln);
+                        elements_at_add(si, ln);
                         redraw();
                     });
                     dlg_line.dialog("open");
@@ -962,8 +1127,9 @@ $("#fclear").click(function(event){
         if (pt_elements.length < 2) {
             error("For circle, 2 points must be defined");
         } else {
+            var si = selected_index(); 
             var pt_select = $(".pt-select").empty();
-            for (var i = 0; i < pt_elements.length; i++) {
+            for (var i = 0; i < si; i++) {
                  var name = pt_elements[i].name;
                  debug_log("Adding option: "+name);
                  pt_select
@@ -973,12 +1139,13 @@ $("#fclear").click(function(event){
             }
             dlg_circle.data('cb', function(circ) { 
                 debug_log("pushing circle:"+circ.str());
-                elements.push(circ);
+                elements_at_add(si, circ);
                 redraw();
             });
             dlg_circle.dialog("open");
         }
     });
+    redraw();
 
 });
 
