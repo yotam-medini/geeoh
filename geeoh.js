@@ -3,6 +3,8 @@
 
 var debug_win = undefined;
 
+function debug_log0(message) {}
+
 function debug_log(message) {
     if (!debug_win)
     {
@@ -98,12 +100,13 @@ $(document).ready(function () {
         for (i = 0; i < f.length; i++) {
             pts.push([x + f[i][0]*r, y + f[i][1]*r]);
         }
-        debug_log("xy_points_around: x="+x+", y="+y + ", r="+r + ", pts="+pts);
+        // debug_log("xy_points_around: x="+x+", y="+y + ", r="+r + ",
+        //    pts="+pts);
         return pts;
     }
 
     var rect_xys_clip = function(rect, xys) {
-        debug_log("rect_xys_clip: rect="+rect + ", xys="+xys);
+        // debug_log("rect_xys_clip: rect="+rect + ", xys="+xys);
         var cxys = [];
         for (i = 0; i < xys.length; i++) {
             var x = xys[i][0], y = xys[i][1];
@@ -189,9 +192,9 @@ $("#fclear").click(function(event){
         best_label_point: function(elements, rect, delta) { // max-min
             // debug_log("BLP: e="+this.name);
             var candidates = this.candidate_label_points(rect, delta);
-            debug_log("pre-clip #="+candidates.length);
+            // debug_log("pre-clip #="+candidates.length);
             candidates = rect_xys_clip(rect, candidates);
-            debug_log("after-clip #="+candidates.length);
+            // debug_log("after-clip #="+candidates.length);
             var best = null, best_distance2 = -1;
             for (var ci = 0; ci < candidates.length; ci++) {
                 var cpt = candidates[ci];
@@ -209,7 +212,7 @@ $("#fclear").click(function(event){
                     best = cpt;
                 }
             }
-            debug_log("  BLP: best="+best);
+            // debug_log("  BLP: best="+best);
             return best;
         }
     };
@@ -273,7 +276,7 @@ $("#fclear").click(function(event){
         },
         abc_get: function() { return this.abc; },
         abc_set: function(a, b, c) {
-            debug_log("abc_set: a="+a.toFixed(3) + ", b="+b.toFixed(3) +
+            debug_log0("abc_set: a="+a.toFixed(3) + ", b="+b.toFixed(3) +
                       ", c="+c.toFixed(3));
             var d2 = a*a + b*b;
             this.valid = (d2 > epsilon2);
@@ -366,7 +369,7 @@ $("#fclear").click(function(event){
     var line_2points = $.extend(true, {}, line, {
         pts: [null, null],
         points_set: function(pt0, pt1) {
-            debug_log("L2Ps set: p0="+pt0.str3() + ", pt1="+pt1.str3());
+            debug_log0("L2Ps set: p0="+pt0.str3() + ", pt1="+pt1.str3());
             this.pts = [pt0, pt1];
             return this.update();
         },
@@ -376,7 +379,7 @@ $("#fclear").click(function(event){
         //   = x1y1-x0y1-x1y1+x1y0 = x1y0 - x0y1
         update: function() {
             var p0 = this.pts[0], p1 = this.pts[1];
-            debug_log("L2Ps update: p0="+p0.str3() + ", p1="+p1.str3());
+            // debug_log("L2Ps update: p0="+p0.str3() + ", p1="+p1.str3());
             var x0 = p0.xy[0], y0 = p0.xy[1], x1 = p1.xy[0], y1 = p1.xy[1];
             this.abc_set(y1 - y0, x0 - x1, x1*y0 - x0*y1);
             return this;
@@ -388,7 +391,7 @@ $("#fclear").click(function(event){
         point_inside_segment: function(pt) {
             // Assuming pt is in the line, but not necessarily within segment
             var p0 = this.pts[0], p1 = this.pts[1];
-            debug_log("pt="+pt.str3()+", p0="+p0.str3()+", p1="+p1.str3());
+            // debug_log("pt="+pt.str3()+", p0="+p0.str3()+", p1="+p1.str3());
             var x0 = p0.xy[0], y0 = p0.xy[1], x1 = p1.xy[0], y1 = p1.xy[1];
             var dx = x1 - x0, dy = y1 - y0;
             var j = (Math.abs(dx) < Math.abs(dy) ? 1 : 0);
@@ -396,7 +399,7 @@ $("#fclear").click(function(event){
             var low = p0.xy[j], high = p1.xy[j];
             if (low > high) { var t = low; low = high; high = t; }
             var inside = (low <= v) && (v <= high);
-            debug_log("j="+j +", v="+v.toFixed(3) + 
+            debug_log0("j="+j +", v="+v.toFixed(3) + 
                 ", low="+low.toFixed(3) + ", high="+high.toFixed(3) +
                 ", inside="+inside);
             return inside;
@@ -459,7 +462,7 @@ $("#fclear").click(function(event){
     var point_2lines = $.extend(true, {}, point, {
         lines: [null, null],
         lines_set: function(l0, l1) {
-            debug_log("point_2lines.lines_set: l0="+l0.str3() + 
+            debug_log0("point_2lines.lines_set: l0="+l0.str3() + 
                 ", l1="+l1.str3());
             this.lines = [l0, l1];
             this.update();
@@ -551,11 +554,131 @@ $("#fclear").click(function(event){
         },
     });
 
+    var point_circle_circle = $.extend(true, {}, point, {
+        circles: [null, null],
+        circle_line_set: function(c0, c1, other) {
+            this.circles = [c0, c1];
+            this.other = other;
+            this.update();
+            return this;
+        },
+        update: function() {
+            this.valid = false;
+            var c0 = this.circles[0];
+            var c1 = this.circles[1];
+            if (c0.valid && c1..valid) {
+                var c0x = c0.center.xy[0];
+                var c0y = c0.center.xy[1];
+                var c1x = c1.center.xy[0];
+                var c1y = c1.center.xy[1];
+                var dx = c1x - c0x;
+                var dy = c1y - c0y;
+                var dist2 = dx*dx + dy*dy;
+                var dist = Math.sqrt(dist);
+                if ((dist <= c0.radius + c1.radius) &&
+                    (dist > Math.abs(c0.radius - c1.radius))) {
+                     this.valid = true;
+                     // First Consider coordinate system, centered at (c0x,c0y)
+                     // and (c1x, c1y) lies on its positive 'X' ray.
+                     var r0 = c0.radius;
+                     var r1 = c1.radius;
+                     // mid point of 2 intersection points
+                     xt = dist*dist + r0*r0 - r1*r1;
+                     yt2 = r0*r0 - xt*xt; // square of half distance 
+                     // In original coordinate system
+                     xmid = c0x + xt*(c1x - c0x)/dist;
+                     ymid = c0y + yt*(c1y - c0y)/dist;
+
+
+                     yt = Math.sqrt(r0*r0 - xt*xt);
+                     if (this.other) { yt = -yt; }
+                }
+            } else {
+                debug_log("pcl: update: c|c not valid");
+            }
+        },
+        needs: function(element_name) {
+            return element_name === this.circles[0].name ||
+                 element_name === this.circles[1].name;
+        },
+        str: function() {
+            return "⨉(⊙" + this.circles[0].name + ", " +
+                + "⊙" + this.circles[1].name + ")";
+        },
+        toJSON: function() {
+            return {
+                'type': "point_circle_circle",
+                'name': this.name,
+                'cl': [this.circles[0].name, this.circles[1].name]
+            };
+        },
+    });    
+
+    var point_circle_line = $.extend(true, {}, point, {
+        circle: null,
+        line: null,
+        circle_line_set: function(c, l, other) {
+            this.circle = c;
+            this.line = l;
+            this.other = other;
+            this.update();
+            return this;
+        },
+        update: function() {
+            this.valid = false;
+            if (this.circle.valid && this.line.valid) {
+                // Shift X,Y to the circle center of.  xt = x-cx, yt = y-cy
+                var cx = this.circle.center.xy[0];
+                var cy = this.circle.center.xy[1];
+                // ax + by + c = (a(xt+cx) + b(yt+cy) + c = 0.
+                var a = this.line.abc[0];
+                var b = this.line.abc[1];
+                var c = this.line.abc[2] + a*cx + b*cy;
+                var a2b2 = a*a + b*b;
+                var denom = 1./a2b2;
+                var R = this.circle.radius;
+                var disc = a2b2*R*R - c*c;
+                if (disc >= 0) {
+                    this.valid = true;
+                    var sqr = Math.sqrt(disc);
+                    if (this.other) { sqr = -sqr; }
+                    var xt = (-a*c + b*sqr)*denom; // +/-
+                    var yt = (-b*c - a*sqr)*denom; // -/+
+                    this.xy[0] = xt + cx;
+                    this.xy[1] = yt + cy;
+                    debug_log("X(C,L): abc="+this.line.abc +
+                        ", a="+a.toFixed(2) + ", b="+b.toFixed(2) + ", c="+c +
+                        ", a2b2="+a2b2.toFixed(2) + 
+                        ", disc="+disc.toFixed(2) +
+                        ", xt="+xt.toFixed(2) + ", yt="+yt.toFixed(2) +
+                        ", xy=["+this.xy[0].toFixed(2) + ", " + 
+                        this.xy[1].toFixed(2) + "]");
+                }
+            } else {
+                debug_log("pcl: update: c|l not valid");
+            }
+        },
+        needs: function(element_name) {
+            return element_name === this.circle.name ||
+                 element_name === this.line.name;
+        },
+        str: function() {
+            return "⨉(⊙" + this.circle.name + ", " + this.line.name + ")";
+        },
+        toJSON: function() {
+            return {
+                'type': "point_circle_line",
+                'name': this.name,
+                'cl': [this.circle.name, this.line.name]
+            };
+        },
+    });    
+
     var json_element_create = function(ejson) {
         var e = null;
         var typename = ejson['type'];
         var name = ejson['name'];
-        debug_log("type="+typename + ", name="+name);
+        // debug_log("type="+typename + ", name="+name);
         if (typename === 'point') {
             var xy = ejson['xy'];
             e = $.extend(true, {}, point)
@@ -572,14 +695,14 @@ $("#fclear").click(function(event){
                 .name_set(name)
                 .points_set(pts[0], pts[1]);
         } else if (typename === 'circle') {
-            debug_log('making circle');
-            debug_log("center="+ejson["center"]);
-            debug_log("segment="+ejson["segment"]);
+            // debug_log('making circle');
+            // debug_log("center="+ejson["center"]);
+            // debug_log("segment="+ejson["segment"]);
             var c_seg_names = $.merge($.merge([],
                 [ejson['center']]), ejson['segment']);
-            debug_log("c_seg_names="+c_seg_names);
+            // debug_log("c_seg_names="+c_seg_names);
             var c_seg = names_to_elements(c_seg_names);
-            debug_log("c_seg_names="+c_seg_names + ", c_seg="+c_seg);
+            // debug_log("c_seg_names="+c_seg_names + ", c_seg="+c_seg);
             e = $.extend(true, {}, circle_center_segment)
                 .name_set(name)
                 .center_segment_set(c_seg[0], c_seg[1], c_seg[2]);
@@ -604,14 +727,14 @@ $("#fclear").click(function(event){
     var elements_at_add = function(at, e) {
         var head = elements.slice(0, at);
         var tail = elements.slice(at);
-        debug_log("at="+at + ", |h|="+head.length + ", |t|="+tail.length
+        debug_log0("at="+at + ", |h|="+head.length + ", |t|="+tail.length
             + ", |e|="+elements.length);
         elements = $.merge($.merge(head, [e]), tail);
-        debug_log("After: |e|="+elements.length);
+        // debug_log("After: |e|="+elements.length);
     };
 
     $("#json-in").click(function () { 
-            debug_log("json-in");
+            // debug_log("json-in");
             var es_json;
             try {
                 es_json = JSON.parse($("#json-text")[0].value);
@@ -620,7 +743,7 @@ $("#fclear").click(function(event){
                 es_json = [];
             }
             elements = [];
-            debug_log("|e|="+es_json.length);
+            // debug_log("|e|="+es_json.length);
             for (var i = 0; i < es_json.length; i++) {
                 var e = json_element_create(es_json[i]);
                 if (e !== null) {
@@ -642,6 +765,30 @@ $("#fclear").click(function(event){
     };
     var element_remove = function(ei) {
         debug_log("element_remove ei="+ei);
+        var name = elements[ei].name;
+        for (var i = ei + 1;  
+            (i < elements.length) && !elements[i].needs(name); i++);
+        if (i == elements.length) {
+            elements = $.merge(elements.slice(0, ei), elements.slice(ei + 1));
+            redraw();
+        } else {
+            warning("Element '" + elements[i].name + "' needs '" + name + "'");
+        }
+    };
+    var element_up = function(ei) {
+        if (ei > 0) {
+            var upname = elements[ei - 1].name;
+            if (elements[ei].needs(name)) {
+                warning("Element '" + elements[ei].name +
+                    "' needs '" + name + "'");
+            } else {
+                var head = elements.slice(0, ei - 1);
+                var mid = [elements[ei], elements[ei - 1]];
+                var tail = elements.slice(ei + 1);
+                elements = $.merge($.merge($.merge([], head), mid), tail);
+                etable.redraw();
+            }
+        }
     };
     var etable = function() {
         return {
@@ -665,7 +812,6 @@ $("#fclear").click(function(event){
                             selected: !any_selected
                         };
                     }
-                    debug_log("i="+i + ", selected="+e.selected);
                     var tr = $('<tr>');
                         tr
                         .attr("ei", i)
@@ -684,10 +830,10 @@ $("#fclear").click(function(event){
                                     icons: {
                                         primary: "ui-icon-pencil"
                                     }})
+                                    .click(function(ei) { 
+                                        return function() { element_edit(ei); }
+                                    }(i))
                                 )
-                                .click(function(ei) { 
-                                    return function() { element_edit(ei); }
-                                }(i))
                             .append($('<button>')
                                 .html("Remove")
                                 .button({
@@ -695,10 +841,12 @@ $("#fclear").click(function(event){
                                     icons: {
                                         primary: "ui-icon-trash"
                                     }})
+                                    .click(function(ei) { 
+                                        return function() { 
+                                            element_remove(ei); 
+                                        }
+                                    }(i))
                                 )
-                                .click(function(ei) { 
-                                    return function() { element_remove(ei); }
-                                }(i))
                             .append($('<button>')
                                 .html("Up")
                                 .button({
@@ -706,6 +854,9 @@ $("#fclear").click(function(event){
                                     icons: {
                                         primary: "ui-icon-arrow-1-n"
                                     }})
+                                    .click(function(ei) { 
+                                        return function() { element_up(ei); }
+                                    }(i))
                                 )
                         );
                     }
@@ -713,7 +864,7 @@ $("#fclear").click(function(event){
                 }
                 $(".element-row").click(function() {
                     var ei = $(this).attr("ei");
-                    debug_log("IN element-row clicked ei="+ei);
+                    // debug_log("IN element-row clicked ei="+ei);
                     for (var i = 0; i < elements.length; i++) {
                         elements[i].selected = (i == ei);
                     }
@@ -738,11 +889,11 @@ $("#fclear").click(function(event){
                 ctx.fillRect(0, 0, w, h);
                 this.minmax_set();
                 this.axis_draw(ctx);
-                debug_log("|elements|="+elements.length);
+                // debug_log("|elements|="+elements.length);
                 var rect = [ [x0, x0 + dx], [y0, y0 + dy] ];
                 for (var i = 0; i < elements.length; i++) {
                     var e = elements[i];
-                    debug_log("canvas.redraw: e["+i+"]=" + e);
+                    // debug_log("canvas.redraw: e["+i+"]=" + e);
                     e.draw(this, ctx);
                     var p = e.best_label_point(elements, rect, delta_label);
                     // ctx.font = "Italic 30px";
@@ -795,19 +946,19 @@ $("#fclear").click(function(event){
                 var bdy_pts = []; // boundary points
                 var lines = [this.line_left, this.line_right, 
                     this.line_bottom, this.line_top];
-                debug_log("line_draw: l="+l.str3());
+                // debug_log("line_draw: l="+l.str3());
                 for (var i = 0; i < 4; i++) {
                     var lbdy = lines[i];
                     var pt = $.extend(true, {}, point_2lines)
                         .lines_set(l, lbdy);
                     if (pt.valid) {
-                        debug_log("pt="+pt.str3() + ", lbdy="+lbdy.str3());
+                        // debug_log("pt="+pt.str3() + ", lbdy="+lbdy.str3());
                         if (lbdy.point_inside_segment(pt)) {
                             bdy_pts.push(pt);
                         }
                     }
                 }
-                debug_log("|bdy_pts|="+bdy_pts.length);
+                // debug_log("|bdy_pts|="+bdy_pts.length);
                 if (bdy_pts.length >= 2) {
                    this.segment_draw(ctx, bdy_pts[0], bdy_pts[1]);
                 }
@@ -817,13 +968,13 @@ $("#fclear").click(function(event){
                 var cxy = [this.x2canvas(p.xy[0]), this.y2canvas(p.xy[1])];
                 var rg = distance(circ.pt0, circ.pt1);
                 var rc = this.g2canvas(rg);
-                debug_log("rg="+rg + ", rc="+rc);
+                // debug_log("rg="+rg + ", rc="+rc);
                 ctx.beginPath();
                 ctx.arc(cxy[0], cxy[1], rc, 0., 2*Math.PI);
                 ctx.stroke();
             },
             minmax_set: function() {
-                debug_log("minmax_set called");
+                // debug_log("minmax_set called");
                 var rr = rect_required; // abbreviation
                 x0 = rr[0][0];
                 y0 = rr[1][0];
@@ -843,7 +994,7 @@ $("#fclear").click(function(event){
                 delta_label = this.canvas2g(
                     Math.max(16, Math.min(c.width, c.height)/0x40));
                 pt_rad = Math.max(3, Math.min(c.width, c.height)/0x200);
-                debug_log("x0="+x0 + ", y0="+y0 + ", dx="+dx + ", dy="+dy);
+                // debug_log("x0="+x0 + ", y0="+y0 + ", dx="+dx + ", dy="+dy);
                 this.point_lb = $.extend(true, {}, point).xy_set(x0, y0);
                 this.point_rb = $.extend(true, {}, point).xy_set(x0 + dx, y0);
                 this.point_lt = $.extend(true, {}, point).xy_set(x0, y0 + dy);
@@ -851,7 +1002,7 @@ $("#fclear").click(function(event){
                     $.extend(true, {}, point).xy_set(x0 + dx, y0 + dy);
                 this.line_left = $.extend(true, {}, line_2points)
                     .points_set(this.point_lb, this.point_lt);
-                debug_log("line_left="+this.line_left.str3());
+                // debug_log("line_left="+this.line_left.str3());
                 this.line_right = $.extend(true, {}, line_2points)
                     .points_set(this.point_rb, this.point_rt);
                 this.line_bottom = $.extend(true, {}, line_2points)
@@ -930,7 +1081,7 @@ $("#fclear").click(function(event){
                     ($.inArray(name, enames()) < 0);
                 $("#pt-name-error").css('display', ok ? 'none' : 'block');
                 var tabi = add_pt_tabs.tabs("option", "selected");
-                debug_log("tabi="+tabi);
+                // debug_log("tabi="+tabi);
                 if (tabi == 0) { // absolute
                     for (var i = 0; i < 2; i++) {
                         var s =  $("#" + sxy[i] + "-input").val().trim();
@@ -947,21 +1098,21 @@ $("#fclear").click(function(event){
                 } else { // tabi == 1 ==> intersection
                     var curve01 = [0, 1].map(function (n) {
                         var cname = $("#add-pt-curve" + n).val();
-                        debug_log("n="+n + ", cname="+cname);
+                        // debug_log("n="+n + ", cname="+cname);
                         return elements.filter(function (e) { 
                             return e.name == cname; })[0]; });
-                    debug_log("#curve01="+curve01.length + " :="+curve01);
+                    // debug_log("#curve01="+curve01.length + " :="+curve01);
                     if (curve01[0].is_circle()) {
                         if (curve01[1].is_circle()) {
                             debug_log("circle_circle NOT yet");
                         } else {
-                            debug_log("circle_line NOT yet");
+                            pt = $.extend(true, {}, point_circle_line)
+                                .circle_line_set(curve01[0], curve01[1]);
                         }
                     } else {
-                        debug_log("curve01[1]="+curve01[1]);
-                        debug_log("curve01[1].str="+curve01[1].str());
                         if (curve01[1].is_circle()) {
-                            debug_log("line_circle NOT yet");
+                            pt = $.extend(true, {}, point_circle_line)
+                                .circle_line_set(curve01[1], curve01[0]);
                         } else {
                             pt = $.extend(true, {}, point_2lines)
                                 .lines_set(curve01[0], curve01[1]);
@@ -991,16 +1142,17 @@ $("#fclear").click(function(event){
                 var ok = true;
                 var xy = [];
                 var name = $("#line-name-input").val().trim();
-                var ok = /^[a-z][0-9]*$/.test(name);
+                var ok = /^[a-z][0-9]*$/.test(name) && 
+                    ($.inArray(name, enames()) < 0);
                 $("#line-name-error").css('display', ok ? 'none' : 'block');
                 if (ok) {
                     var is_seg = dlg_line.data('segment');
-                    debug_log("segment?=" + is_seg);
+                    // debug_log("segment?=" + is_seg);
                     var pt01 = [0, 1].map(function (n) {
                         var pt_name = $("#pt" + n + "-select").val();
                         return elements.filter(function (e) { 
                             return e.name == pt_name; })[0]; });
-                    debug_log("pt0="+pt01[0].str() + ", pt1="+pt01[1].str());
+                    // debug_log("pt0="+pt01[0].str() + ", pt1="+pt01[1].str());
                     var ln = $.extend(true, {}, 
                         (is_seg ? line_segment : line_2points))
                         .name_set(name)
@@ -1031,13 +1183,13 @@ $("#fclear").click(function(event){
                 if (ok) {
                     var sel_pfx = $.merge($.merge([], ["#center"]),
                         [0,1].map(function(n) { return "#circle-pt" + n; }));
-                    debug_log("sel_pfx="+sel_pfx);
+                    // debug_log("sel_pfx="+sel_pfx);
                     var c_pt01 = sel_pfx.map(function (pfxn) { 
                         var pt_name = $(pfxn + "-select").val();
-                        debug_log("pt_name="+pt_name);
+                        // debug_log("pt_name="+pt_name);
                         return elements.filter(function (e) { 
                             return e.name == pt_name; })[0]; });
-                    debug_log("c="+c_pt01[0] + 
+                    debug_log0("c="+c_pt01[0] + 
                         ", pt0="+c_pt01[1].str() + ", pt1="+c_pt01[2].str());
                     var circ = $.extend(true, {}, circle_center_segment)
                         .name_set(name)
@@ -1055,20 +1207,17 @@ $("#fclear").click(function(event){
     });
 
     $("#add-point").click(function() {
-        debug_log("add-point");
-        var curve_elements = elements.filter(
-            function (e) { return e.is_curve(); });
-        debug_log("#curves="+curve_elements.length);
         var si = selected_index(); 
+        var curve_elements = elements.slice(0, si).filter(
+            function (e) { return e.is_curve(); });
         if (curve_elements.length < 2) {
             add_pt_tabs.tabs('select', 0);
             add_pt_tabs.tabs('disable', 1);
         } else {
             add_pt_tabs.tabs('enable', 1);
             var curve_select = $(".curve-select").empty();
-            for (var i = 0; i < si; i++) {
+            for (var i = 0; i < curve_elements.length; i++) {
                  var name = curve_elements[i].name;
-                 debug_log("Adding option: "+name);
                  curve_select
                      .append($("<option></option>")
                          .attr("value", name)
@@ -1076,9 +1225,7 @@ $("#fclear").click(function(event){
             }
         }
         dlg_point.data('cb', function(pt) { 
-            debug_log("pushing pt:"+pt.str3());
             elements_at_add(si, pt);
-            debug_log("e[0]="+elements[0]);
             redraw();
         });
         dlg_point.dialog("open");
@@ -1089,18 +1236,17 @@ $("#fclear").click(function(event){
         var is_seg_out = (i == 1);
         $(is_seg_out ? "#add-segment" : "#add-line").click(function(is_seg) {
             return function() {
-                debug_log("add-line: is_seg="+is_seg);
-                var pt_elements = elements.filter(
+                // debug_log("add-line: is_seg="+is_seg);
+                var si = selected_index(); 
+                var pt_elements = elements.slice(0, si).filter(
                     function (e) { return e.is_point(); });
-                debug_log("np="+pt_elements.length);
+                // debug_log("np="+pt_elements.length);
                 if (pt_elements.length < 2) {
                     error("For line, 2 points must be defined");
                 } else {
                     var pt_select = $(".pt-select").empty();
-                    var si = selected_index(); 
-                    for (var i = 0; i < si; i++) {
+                    for (var i = 0; i < pt_elements.length; i++) {
                          var name = pt_elements[i].name;
-                         debug_log("Adding option: "+name);
                          pt_select
                              .append($("<option></option>")
                                  .attr("value", name)
@@ -1120,25 +1266,21 @@ $("#fclear").click(function(event){
     }
 
     $("#add-circle").click(function() {
-        debug_log("add-circle");
-        var pt_elements = elements.filter(
+        var si = selected_index(); 
+        var pt_elements = elements.slice(0, si).filter(
             function (e) { return e.is_point(); });
-        debug_log("np="+pt_elements.length);
         if (pt_elements.length < 2) {
             error("For circle, 2 points must be defined");
         } else {
-            var si = selected_index(); 
             var pt_select = $(".pt-select").empty();
-            for (var i = 0; i < si; i++) {
+            for (var i = 0; i < pt_elements.length; i++) {
                  var name = pt_elements[i].name;
-                 debug_log("Adding option: "+name);
                  pt_select
                      .append($("<option></option>")
                          .attr("value", name)
                          .text(name)); 
             }
             dlg_circle.data('cb', function(circ) { 
-                debug_log("pushing circle:"+circ.str());
                 elements_at_add(si, circ);
                 redraw();
             });
