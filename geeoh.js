@@ -554,66 +554,6 @@ $("#fclear").click(function(event){
         },
     });
 
-    var point_circle_circle = $.extend(true, {}, point, {
-        circles: [null, null],
-        circle_line_set: function(c0, c1, other) {
-            this.circles = [c0, c1];
-            this.other = other;
-            this.update();
-            return this;
-        },
-        update: function() {
-            this.valid = false;
-            var c0 = this.circles[0];
-            var c1 = this.circles[1];
-            if (c0.valid && c1..valid) {
-                var c0x = c0.center.xy[0];
-                var c0y = c0.center.xy[1];
-                var c1x = c1.center.xy[0];
-                var c1y = c1.center.xy[1];
-                var dx = c1x - c0x;
-                var dy = c1y - c0y;
-                var dist2 = dx*dx + dy*dy;
-                var dist = Math.sqrt(dist);
-                if ((dist <= c0.radius + c1.radius) &&
-                    (dist > Math.abs(c0.radius - c1.radius))) {
-                     this.valid = true;
-                     // First Consider coordinate system, centered at (c0x,c0y)
-                     // and (c1x, c1y) lies on its positive 'X' ray.
-                     var r0 = c0.radius;
-                     var r1 = c1.radius;
-                     // mid point of 2 intersection points
-                     xt = dist*dist + r0*r0 - r1*r1;
-                     yt2 = r0*r0 - xt*xt; // square of half distance 
-                     // In original coordinate system
-                     xmid = c0x + xt*(c1x - c0x)/dist;
-                     ymid = c0y + yt*(c1y - c0y)/dist;
-
-
-                     yt = Math.sqrt(r0*r0 - xt*xt);
-                     if (this.other) { yt = -yt; }
-                }
-            } else {
-                debug_log("pcl: update: c|c not valid");
-            }
-        },
-        needs: function(element_name) {
-            return element_name === this.circles[0].name ||
-                 element_name === this.circles[1].name;
-        },
-        str: function() {
-            return "⨉(⊙" + this.circles[0].name + ", " +
-                + "⊙" + this.circles[1].name + ")";
-        },
-        toJSON: function() {
-            return {
-                'type': "point_circle_circle",
-                'name': this.name,
-                'cl': [this.circles[0].name, this.circles[1].name]
-            };
-        },
-    });    
-
     var point_circle_line = $.extend(true, {}, point, {
         circle: null,
         line: null,
@@ -670,6 +610,78 @@ $("#fclear").click(function(event){
                 'type': "point_circle_line",
                 'name': this.name,
                 'cl': [this.circle.name, this.line.name]
+            };
+        },
+    });    
+
+    var point_circle_circle = $.extend(true, {}, point, {
+        circles: [null, null],
+        circle_circle_set: function(c0, c1, other) {
+            debug_log("circle_circle_set");
+            this.circles = [c0, c1];
+            this.other = other;
+            this.update();
+            return this;
+        },
+        update: function() {
+            debug_log("point_circle_circle::update");
+            this.valid = false;
+            var c0 = this.circles[0];
+            var c1 = this.circles[1];
+            debug_log("point_circle_circle::update v0="+
+                c0.valid + ", v1="+c1.v1);
+            if (c0.valid && c1.valid) {
+                var c0x = c0.center.xy[0];
+                var c0y = c0.center.xy[1];
+                var c1x = c1.center.xy[0];
+                var c1y = c1.center.xy[1];
+                var dx = c1x - c0x;
+                var dy = c1y - c0y;
+                var dist2 = dx*dx + dy*dy;
+                var dist = Math.sqrt(dist2);
+                var r0 = c0.radius;
+                var r1 = c1.radius;
+                debug_log("dist="+dist.toFixed(2) + ", r0="+r0.toFixed(2) + 
+                    ", r1="+r1.toFixed(2));
+                if ((dist <= r0 + r1) && (dist > Math.abs(r0 - r1))) {
+                     this.valid = true;
+                     // First Consider coordinate system, centered at (c0x,c0y)
+                     // and (c1x, c1y) lies on its positive 'X' ray.
+                     // mid point of 2 intersection points
+                     var xt = dist*dist + r0*r0 - r1*r1;
+                     var yt2 = r0*r0 - xt*xt; // square of half distance 
+                     var yt = Math.sqrt(yt2);
+                     if (this.other) { yt = -yt; }
+                     // In original coordinate system
+                     var dx = c1x - c0x;
+                     var dy = c1y - c0y;
+                     var q = xt/dist;
+                     var xmid = c0x + q*dx;
+                     var ymid = c0y + q*dy;
+                     var q = yt/dist;
+                     // Add the mid-point - a perpendicular yt segment.
+                     this.xy[0] = xmid - q*dy;
+                     this.xy[1] = ymid + q*dx;
+                     debug_log("XCC: xt="+xt.toFixed(2) + "yt="+yt.toFixed(2) + 
+                        ", xy="+xy2str(this.xy));
+                }
+            } else {
+                debug_log("pcl: update: c|c not valid");
+            }
+        },
+        needs: function(element_name) {
+            return element_name === this.circles[0].name ||
+                 element_name === this.circles[1].name;
+        },
+        str: function() {
+            return "⨉(⊙" + this.circles[0].name + ", " +
+                "⊙" + this.circles[1].name + ")";
+        },
+        toJSON: function() {
+            return {
+                'type': "point_circle_circle",
+                'name': this.name,
+                'cl': [this.circles[0].name, this.circles[1].name]
             };
         },
     });    
@@ -1096,6 +1108,8 @@ $("#fclear").click(function(event){
                             .xy_set(xy[0], xy[1]);
                     }
                 } else { // tabi == 1 ==> intersection
+                    var other = $("#other").is(':checked');
+                    debug_log("other="+other);
                     var curve01 = [0, 1].map(function (n) {
                         var cname = $("#add-pt-curve" + n).val();
                         // debug_log("n="+n + ", cname="+cname);
@@ -1104,7 +1118,8 @@ $("#fclear").click(function(event){
                     // debug_log("#curve01="+curve01.length + " :="+curve01);
                     if (curve01[0].is_circle()) {
                         if (curve01[1].is_circle()) {
-                            debug_log("circle_circle NOT yet");
+                            pt = $.extend(true, {}, point_circle_circle)
+                                .circle_circle_set(curve01[0], curve01[1]);
                         } else {
                             pt = $.extend(true, {}, point_circle_line)
                                 .circle_line_set(curve01[0], curve01[1]);
@@ -1193,7 +1208,7 @@ $("#fclear").click(function(event){
                         ", pt0="+c_pt01[1].str() + ", pt1="+c_pt01[2].str());
                     var circ = $.extend(true, {}, circle_center_segment)
                         .name_set(name)
-                        .center_segment_set(c_pt01[0], c_pt01[0], c_pt01[2]);
+                        .center_segment_set(c_pt01[0], c_pt01[1], c_pt01[2]);
                     if (circ.valid) {
                         $(this).data('cb')(circ);
                         $(this).dialog("close"); 
