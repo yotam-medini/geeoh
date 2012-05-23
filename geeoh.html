@@ -17,40 +17,66 @@
     <h1>Geometry Exploration Environment &mdash; Off Hand!</h1>
 <input type="file" id="my-filesel"/>
 <a href="#" id="fclear">Clear</a>
-    <table>
+    <div id="toolbar">
+      <ul>
+        <li><a href="#tab-add"><span>Add Element</span></a></li>
+        <li><a href="#tab-pref"><span>Preferences</span></a></li>
+        <li><a href="#tab-io"><span>I/O</span></a></li>
+        <li><a href="#tab-help"><span>Help</span></a></li>
+      </ul>
+      <div id="tab-add">
+	<table id="tool-box">
+	  <tr>
+	    <td><button id="add-point">+ Point</button></td>
+	    <td><button id="add-line">+ Line</button></td>
+	    <td><button id="add-segment">+ Segment</button></td>
+	    <td><button id="add-circle">+ Circle</button></td>
+	  </tr>
+	</table>
+      </div>
+      <div id="tab-pref">
+        Preferences ...
+      </div>
+      <div id="tab-io">
+	<table>
+	  <tr>
+	    <td>
+	      <table>
+		<tr>
+		  <td><button id="json-in" type="button">JSON in</button></td>
+		</tr>
+		<tr>
+		  <td><button id="json-out" type="button">JSON out</button></td>
+		</tr>
+	      </table>
+	    </td>
+	    <td><textarea id="json-text" col="50"></textarea></td>
+	  </tr>
+	</table>
+      </div>
+      <div id="tab-help">
+        Help ison its way
+      </div>
+    </div>
+    <center id="canvas-center">
+      <canvas id="geeoh-canvas" width="90%" height="90%"></canvas>
+    </center>
+    <table id="elements-box">
       <tr>
-        <td colspan="2">
-          <table id="tool-box">
-            <tr>
-              <td><button id="add-point">+ Point</button></td>
-	      <td><button id="add-line">+ Line</button></td>
-	      <td><button id="add-segment">+ Segment</button></td>
-	      <td><button id="add-circle">+ Circle</button></td>
-	    </tr>
-          </table>
+	<th colspan="2">
+	  <button id="elements-toggle" title="Elements Expand/Collapse">E
+	  </button>
+	  Elements
+	</th>
+      </tr>
+      <tr>
+	<td>
+	  <table id="elements">
+	    <tr><th>Name</th><th>Value</th></tr>
+	  </table>
 	</td>
       </tr>
-      <tr>
-        <td>
-          <table id="elements-box">
-            <tr><th>Elements</th></tr>
-            <tr>
-              <td>
-                <table id="elements">
-                  <tr><th>Name</th><th>Value</th></tr>
-                </table>
-	      </td>
-	    </tr>
-          </table>
-        </td>
-        <td>
-          <center>
-            <canvas id="geeoh-canvas" width="90%" height="90%"></canvas>
-          </center>
-        </td>
-      </tr>
     </table>
-    <div id="pointer">XY</div>
     <div id="dlg-point">
       <table>
         <tr><td>Name</td>
@@ -171,21 +197,6 @@
         </table>
       </center>
     </div>
-    <table>
-      <tr>
-        <td>
-          <table>
-            <tr>
-              <td><button id="json-in" type="button">JSON in</button></td>
-            </tr>
-            <tr>
-              <td><button id="json-out" type="button">JSON out</button></td>
-            </tr>
-          </table>
-        </td>
-        <td><textarea id="json-text" col="50"></textarea></td>
-      </tr>
-    </table>
     <div style="display:none" id="div-dialog-error">
       <p>
         <span class="ui-icon ui-icon-alert" 

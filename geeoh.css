@@ -10,3 +10,13 @@ table,th, td
 {
   background: #4f4;
 }
+
+#elements-box
+{
+  float:left;
+}
+
+#canvas-center
+{
+  /* float:left; */
+}

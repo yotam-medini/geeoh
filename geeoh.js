@@ -138,14 +138,16 @@ $("#fclear").click(function(event){
         $("#my-filesel").attr({ value: '' });;
 });
 
+    $("#toolbar").tabs({collapsible: true});
+
 
     var w = $(window).width();
     var h = $(window).height();
     debug_log("w="+w + ", h="+h);
     // var c = document.getElementById("geeoh-canvas");
     var rnd = Math.round
-    w = rnd(7*w/10);
-    h = rnd(7*h/10);
+    w = rnd(7*w/8);
+    h = rnd(7*h/8);
     debug_log("For Canvas: w="+w + ", h="+h);
     var ec = $("#geeoh-canvas");
     var c = ec[0];
@@ -155,6 +157,7 @@ $("#fclear").click(function(event){
     var pointer = $("#pointer").draggable();
     $("#tool-box").draggable();
     $("#elements-box").draggable();
+    $("#elements-toggle").click(function() { $("#elements").slideToggle(); });
 
     // solve 2x2 linear equations
     var solve_2linear = function(abc0, abc1) {
@@ -491,7 +494,7 @@ $("#fclear").click(function(event){
         },
         str: function() {
             return "⨉(" + this.lines[0].name + ", " + this.lines[1].name + ")";
-        },
+p        },
         toJSON: function() {
             return {
                 'type': "point_2lines",
@@ -609,12 +612,13 @@ $("#fclear").click(function(event){
             return {
                 'type': "point_circle_line",
                 'name': this.name,
-                'cl': [this.circle.name, this.line.name]
+                'cl': [this.circle.name, this.line.name],
+                'other': this.other
             };
         },
     });    
 
-    var point_circle_circle = $.extend(true, {}, point, {
+    var point_2circles = $.extend(true, {}, point, {
         circles: [null, null],
         circle_circle_set: function(c0, c1, other) {
             debug_log("circle_circle_set");
@@ -624,11 +628,11 @@ $("#fclear").click(function(event){
             return this;
         },
         update: function() {
-            debug_log("point_circle_circle::update");
+            debug_log("point_2circles::update");
             this.valid = false;
             var c0 = this.circles[0];
             var c1 = this.circles[1];
-            debug_log("point_circle_circle::update v0="+
+            debug_log("point_2circles::update v0="+
                 c0.valid + ", v1="+c1.v1);
             if (c0.valid && c1.valid) {
                 var c0x = c0.center.xy[0];
@@ -648,7 +652,7 @@ $("#fclear").click(function(event){
                      // First Consider coordinate system, centered at (c0x,c0y)
                      // and (c1x, c1y) lies on its positive 'X' ray.
                      // mid point of 2 intersection points
-                     var xt = dist*dist + r0*r0 - r1*r1;
+                     var xt = (dist*dist + r0*r0 - r1*r1)/(2*dist);
                      var yt2 = r0*r0 - xt*xt; // square of half distance 
                      var yt = Math.sqrt(yt2);
                      if (this.other) { yt = -yt; }
@@ -662,7 +666,9 @@ $("#fclear").click(function(event){
                      // Add the mid-point - a perpendicular yt segment.
                      this.xy[0] = xmid - q*dy;
                      this.xy[1] = ymid + q*dx;
-                     debug_log("XCC: xt="+xt.toFixed(2) + "yt="+yt.toFixed(2) + 
+                     debug_log("XCC: xt="+xt.toFixed(2) + 
+		        ", yt2="+yt2.toFixed(2) + 
+		        ", yt="+yt.toFixed(2) + 
                         ", xy="+xy2str(this.xy));
                 }
             } else {
@@ -679,9 +685,10 @@ $("#fclear").click(function(event){
         },
         toJSON: function() {
             return {
-                'type': "point_circle_circle",
+                'type': "point_2circles",
                 'name': this.name,
-                'cl': [this.circles[0].name, this.circles[1].name]
+                'circles': [this.circles[0].name, this.circles[1].name],
+                'other': this.other
             };
         },
     });    
@@ -718,11 +725,31 @@ $("#fclear").click(function(event){
             e = $.extend(true, {}, circle_center_segment)
                 .name_set(name)
                 .center_segment_set(c_seg[0], c_seg[1], c_seg[2]);
+        } else if (typename === "point_2lines") {
+            var lines = names_to_elements(ejson['lines']);
+            e = $.extend(true, {}, point_2lines)
+               .name_set(name)
+               .lines_set(lines[0], lines[1]);
+        } else if (typename === "point_circle_line") {
+            var cl = names_to_elements(ejson['cl']);
+            e = $.extend(true, {}, point_circle_line)
+                .name_set(name)
+                .circle_line_set(cl[0], cl[1], ejson['other'])
+        } else if (typename === "point_2circles") {
+            var circles = names_to_elements(ejson['circles']);
+            e = $.extend(true, {}, point_2circles)
+                .name_set(name)
+                .circle_circle_set(circles[0], circles[1], ejson['other'])
         }
         return e;
     };
 
     var elements = [];
+    var name_to_element = function(name) {
+        return elements.filter(function (e) { 
+            return e.name == name; 
+        })[0]; 
+    }
     var names_to_elements = function(names) {
         return names.map(function (name) { 
             return elements.filter(function (e) { 
@@ -1118,16 +1145,17 @@ $("#fclear").click(function(event){
                     // debug_log("#curve01="+curve01.length + " :="+curve01);
                     if (curve01[0].is_circle()) {
                         if (curve01[1].is_circle()) {
-                            pt = $.extend(true, {}, point_circle_circle)
-                                .circle_circle_set(curve01[0], curve01[1]);
+                            pt = $.extend(true, {}, point_2circles)
+                                .circle_circle_set(curve01[0], curve01[1], 
+				    other);
                         } else {
                             pt = $.extend(true, {}, point_circle_line)
-                                .circle_line_set(curve01[0], curve01[1]);
+                                .circle_line_set(curve01[0], curve01[1], other);
                         }
                     } else {
                         if (curve01[1].is_circle()) {
                             pt = $.extend(true, {}, point_circle_line)
-                                .circle_line_set(curve01[1], curve01[0]);
+                                .circle_line_set(curve01[1], curve01[0], other);
                         } else {
                             pt = $.extend(true, {}, point_2lines)
                                 .lines_set(curve01[0], curve01[1]);
