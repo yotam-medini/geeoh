@@ -388,8 +388,10 @@ $("#fclear").click(function(event){
             return this;
         },
         needs: function(element_name) {
-            return element_name === this.pts[0].name ||
+            var ret = element_name === this.pts[0].name ||
                  element_name === this.pts[1].name;
+            debug_log("l2p: needs("+element_name+"), ret="+ret);
+            return ret;
         },
         point_inside_segment: function(pt) {
             // Assuming pt is in the line, but not necessarily within segment
@@ -817,9 +819,9 @@ p        },
     var element_up = function(ei) {
         if (ei > 0) {
             var upname = elements[ei - 1].name;
-            if (elements[ei].needs(name)) {
+            if (elements[ei].needs(upname)) {
                 warning("Element '" + elements[ei].name +
-                    "' needs '" + name + "'");
+                    "' needs '" + upname + "'");
             } else {
                 var head = elements.slice(0, ei - 1);
                 var mid = [elements[ei], elements[ei - 1]];
