@@ -182,9 +182,18 @@ $("#fclear").click(function(event){
     var element = {
         name: "",
         valid: true,
+        depon: [], // List of elements, this depends on
         selected: false,
+        edit: function() { debug_log("Dummmy edit"); return false; },
+        edit_ret: false,
         name_set: function(s) { this.name = s; return this; },
-        needs: function(element_name) { return false; },
+        needs: function(element_name) { 
+            var found = false;
+            for (var i = 0; !found && i < this.depon.length; ++i) {
+               found = this.depon[i].name === element_name;
+            }
+            return found;
+        },
         is_point: function() { return false; },
         is_segment: function() { return false; },
         is_circle: function() { return false; },
@@ -227,6 +236,16 @@ $("#fclear").click(function(event){
             this.xy[0] = x;
             this.xy[1] = y;
             return this;
+        },
+        edit: function() {
+            $("#pt-name-input").val(this.name);
+            for (var i = 0; i < 2; i++) {
+                $("#" + sxy[i] + "-input").val(this.xy[i]);
+            }
+            this.edit_ret = false;
+            dlg_point.data('cb', function(pt) { 
+               // ???????????????????????????????? !!!!!!!!!!!!!!!!!!!!
+            });
         },
         str: function() { return this.str2(); },
         toJSON: function() {
@@ -370,10 +389,10 @@ $("#fclear").click(function(event){
     });
 
     var line_2points = $.extend(true, {}, line, {
-        pts: [null, null],
+        depon: [null, null],
         points_set: function(pt0, pt1) {
             debug_log0("L2Ps set: p0="+pt0.str3() + ", pt1="+pt1.str3());
-            this.pts = [pt0, pt1];
+            this.depon = [pt0, pt1];
             return this.update();
         },
         // (y1-y0)x - (x1-x0)y + c = 0
@@ -381,21 +400,15 @@ $("#fclear").click(function(event){
         //   = x1y0-x0y0-x0y1+x0y0 = x1y0 - x0y1
         //   = x1y1-x0y1-x1y1+x1y0 = x1y0 - x0y1
         update: function() {
-            var p0 = this.pts[0], p1 = this.pts[1];
+            var p0 = this.depon[0], p1 = this.depon[1];
             // debug_log("L2Ps update: p0="+p0.str3() + ", p1="+p1.str3());
             var x0 = p0.xy[0], y0 = p0.xy[1], x1 = p1.xy[0], y1 = p1.xy[1];
             this.abc_set(y1 - y0, x0 - x1, x1*y0 - x0*y1);
             return this;
         },
-        needs: function(element_name) {
-            var ret = element_name === this.pts[0].name ||
-                 element_name === this.pts[1].name;
-            debug_log("l2p: needs("+element_name+"), ret="+ret);
-            return ret;
-        },
         point_inside_segment: function(pt) {
             // Assuming pt is in the line, but not necessarily within segment
-            var p0 = this.pts[0], p1 = this.pts[1];
+            var p0 = this.depon[0], p1 = this.depon[1];
             // debug_log("pt="+pt.str3()+", p0="+p0.str3()+", p1="+p1.str3());
             var x0 = p0.xy[0], y0 = p0.xy[1], x1 = p1.xy[0], y1 = p1.xy[1];
             var dx = x1 - x0, dy = y1 - y0;
@@ -410,15 +423,15 @@ $("#fclear").click(function(event){
             return inside;
         },
         str: function() { 
-            return "-(" + digits_sub(this.pts[0].name) + ", " + 
-                digits_sub(this.pts[1].name) + ")-"; 
+            return "-(" + digits_sub(this.depon[0].name) + ", " + 
+                digits_sub(this.depon[1].name) + ")-"; 
         },
         typename: function() { return 'line_2points'; },
         toJSON: function() {
             return {
                 'type': this.typename(),
                 'name': this.name,
-                'pts': [this.pts[0].name, this.pts[1].name]
+                'pts': [this.depon[0].name, this.depon[1].name]
             };
         },
     });
@@ -426,22 +439,22 @@ $("#fclear").click(function(event){
     var line_segment = $.extend(true, {}, line_2points, {
         is_segment: function() { return true; },
         str: function() { 
-            return "[" + digits_sub(this.pts[0].name) + ", " + 
-                digits_sub(this.pts[1].name) + "]"; },
+            return "[" + digits_sub(this.depon[0].name) + ", " + 
+                digits_sub(this.depon[1].name) + "]"; },
         draw: function(canvas, ctx) {
-            canvas.segment_draw(ctx, this.pts[0], this.pts[1]);
+            canvas.segment_draw(ctx, this.depon[0], this.depon[1]);
         },
         candidate_label_points: function(rect, delta) {
             var mid = $.extend(true, {}, point)
                 .xy_set(
-                    (this.pts[0].xy[0] + this.pts[1].xy[0])/2,
-                    (this.pts[0].xy[1] + this.pts[1].xy[1])/2);
+                    (this.depon[0].xy[0] + this.depon[1].xy[0])/2,
+                    (this.depon[0].xy[1] + this.depon[1].xy[1])/2);
             return mid.candidate_label_points(rect, delta);
         },
         distance2_to: function(xy) {
             // denom -- may be cached on update!
-            var p0 = this.pts[0]; 
-            var p1 = this.pts[1]; 
+            var p0 = this.depon[0]; 
+            var p1 = this.depon[1]; 
             var dpx = p1[0] - p0[0];
             var dpy = p1[1] - p0[1];
             var denom = dpx*dpx + dpy * dpy;
@@ -803,6 +816,8 @@ p        },
     };
     var element_edit = function(ei) {
         debug_log("element_edit ei="+ei);
+        var e = elements[ei];
+        
     };
     var element_remove = function(ei) {
         debug_log("element_remove ei="+ei);
