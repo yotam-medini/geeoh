@@ -536,34 +536,30 @@ $("#fclear").click(function(event){
     });
 
     var circle_center_segment = $.extend(true, {}, circle, {
+        depon: [null, null, null],
         center_segment_set: function(c, pt0, pt1) {
-            this.center = c;
-            this.pt0 = pt0;
-            this.pt1 = pt1;
+            this.depon = [c, pt0, pt1];
+            //this.center = c;
+            //this.pt0 = pt0;
+            //this.pt1 = pt1;
             return this.update();
         },
         update: function() {
-            this.radius = distance(this.pt0, this.pt1);
+            this.center = this.depon[0];
+            this.radius = distance(this.depon[1], this.depon[2]);
             this.valid = (this.radius > epsilon);
             return this;
         },
-        pt0: $.extend(true, {}, point).xy_set(0, 0),
-        pt1: $.extend(true, {}, point).xy_set(1, 0),
-        needs: function(element_name) {
-            return element_name === this.center.name ||
-                 element_name === this.pt0.name ||
-                 element_name === this.pt1.name;
-        },
         str: function() { 
-           return "⊙(" + this.center.name + ", [" +
-               this.pt0.name + ", " + this.pt1.name + "])";
+           return "⊙(" + this.depon[0].name + ", [" +
+               this.depon[1].name + ", " + this.depon[2].name + "])";
         },
         toJSON: function() {
             return {
                 'type': "circle",
                 'name': this.name,
-                'center': this.center.name,
-                'segment': [this.pt0.name, this.pt1.name]
+                'center': this.depon[0].name,
+                'segment': [this.depon[1].name, this.depon[2].name]
             };
         },
     });
@@ -1018,7 +1014,7 @@ $("#fclear").click(function(event){
             circle_draw: function(ctx, circ) {
                 var p = circ.center;
                 var cxy = [this.x2canvas(p.xy[0]), this.y2canvas(p.xy[1])];
-                var rg = distance(circ.pt0, circ.pt1);
+                var rg = circ.radius;
                 var rc = this.g2canvas(rg);
                 // debug_log("rg="+rg + ", rc="+rc);
                 ctx.beginPath();
