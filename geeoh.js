@@ -478,17 +478,17 @@ $("#fclear").click(function(event){
 
 
     var point_2lines = $.extend(true, {}, point, {
-        lines: [null, null],
+        depon: [null, null],
         lines_set: function(l0, l1) {
             debug_log0("point_2lines.lines_set: l0="+l0.str3() + 
                 ", l1="+l1.str3());
-            this.lines = [l0, l1];
+            this.depon = [l0, l1];
             this.update();
             return this;
         },
         update: function() {
             this.valid = false;
-            var l0 = this.lines[0], l1 = this.lines[1];
+            var l0 = this.depon[0], l1 = this.depon[1];
             if (l0.valid && l1.valid) {
                 var xy = solve_2linear(l0.abc_get(), l1.abc_get());
                 this.valid = (xy !== null);
@@ -503,18 +503,14 @@ $("#fclear").click(function(event){
                 debug_log("p2l: update: l0||l1 not valid");
             }
         },
-        needs: function(element_name) {
-            return element_name === this.lines[0].name ||
-                 element_name === this.lines[1].name;
-        },
         str: function() {
-            return "⨉(" + this.lines[0].name + ", " + this.lines[1].name + ")";
-p        },
+            return "⨉(" + this.depon[0].name + ", " + this.depon[1].name + ")";
+        },
         toJSON: function() {
             return {
                 'type': "point_2lines",
                 'name': this.name,
-                'lines': [this.lines[0].name, this.lines[1].name]
+                'lines': [this.depon[0].name, this.depon[1].name]
             };
         },
     });    
