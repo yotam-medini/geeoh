@@ -539,9 +539,6 @@ $("#fclear").click(function(event){
         depon: [null, null, null],
         center_segment_set: function(c, pt0, pt1) {
             this.depon = [c, pt0, pt1];
-            //this.center = c;
-            //this.pt0 = pt0;
-            //this.pt1 = pt1;
             return this.update();
         },
         update: function() {
@@ -565,28 +562,28 @@ $("#fclear").click(function(event){
     });
 
     var point_circle_line = $.extend(true, {}, point, {
-        circle: null,
-        line: null,
+        depon: [null, null],
         circle_line_set: function(c, l, other) {
-            this.circle = c;
-            this.line = l;
+            this.depon = [c, l]
             this.other = other;
             this.update();
             return this;
         },
         update: function() {
             this.valid = false;
-            if (this.circle.valid && this.line.valid) {
+            var circle = this.depon[0];
+            var line = this.depon[1];
+            if (circle.valid && line.valid) {
                 // Shift X,Y to the circle center of.  xt = x-cx, yt = y-cy
-                var cx = this.circle.center.xy[0];
-                var cy = this.circle.center.xy[1];
+                var cx = circle.center.xy[0];
+                var cy = circle.center.xy[1];
                 // ax + by + c = (a(xt+cx) + b(yt+cy) + c = 0.
-                var a = this.line.abc[0];
-                var b = this.line.abc[1];
-                var c = this.line.abc[2] + a*cx + b*cy;
+                var a = line.abc[0];
+                var b = line.abc[1];
+                var c = line.abc[2] + a*cx + b*cy;
                 var a2b2 = a*a + b*b;
                 var denom = 1./a2b2;
-                var R = this.circle.radius;
+                var R = circle.radius;
                 var disc = a2b2*R*R - c*c;
                 if (disc >= 0) {
                     this.valid = true;
@@ -596,7 +593,7 @@ $("#fclear").click(function(event){
                     var yt = (-b*c - a*sqr)*denom; // -/+
                     this.xy[0] = xt + cx;
                     this.xy[1] = yt + cy;
-                    debug_log("X(C,L): abc="+this.line.abc +
+                    debug_log("X(C,L): abc="+line.abc +
                         ", a="+a.toFixed(2) + ", b="+b.toFixed(2) + ", c="+c +
                         ", a2b2="+a2b2.toFixed(2) + 
                         ", disc="+disc.toFixed(2) +
@@ -608,28 +605,24 @@ $("#fclear").click(function(event){
                 debug_log("pcl: update: c|l not valid");
             }
         },
-        needs: function(element_name) {
-            return element_name === this.circle.name ||
-                 element_name === this.line.name;
-        },
         str: function() {
-            return "⨉(⊙" + this.circle.name + ", " + this.line.name + ")";
+            return "⨉(⊙" + this.depon[0].name + ", " + this.depon[1].name + ")";
         },
         toJSON: function() {
             return {
                 'type': "point_circle_line",
                 'name': this.name,
-                'cl': [this.circle.name, this.line.name],
+                'cl': [this.depon[0].name, this.depon[1].name],
                 'other': this.other
             };
         },
     });    
 
     var point_2circles = $.extend(true, {}, point, {
-        circles: [null, null],
+        depon: [null, null],
         circle_circle_set: function(c0, c1, other) {
             debug_log("circle_circle_set");
-            this.circles = [c0, c1];
+            this.depon = [c0, c1];
             this.other = other;
             this.update();
             return this;
@@ -637,8 +630,8 @@ $("#fclear").click(function(event){
         update: function() {
             debug_log("point_2circles::update");
             this.valid = false;
-            var c0 = this.circles[0];
-            var c1 = this.circles[1];
+            var c0 = this.depon[0];
+            var c1 = this.depon[1];
             debug_log("point_2circles::update v0="+
                 c0.valid + ", v1="+c1.v1);
             if (c0.valid && c1.valid) {
@@ -682,19 +675,15 @@ $("#fclear").click(function(event){
                 debug_log("pcl: update: c|c not valid");
             }
         },
-        needs: function(element_name) {
-            return element_name === this.circles[0].name ||
-                 element_name === this.circles[1].name;
-        },
         str: function() {
-            return "⨉(⊙" + this.circles[0].name + ", " +
-                "⊙" + this.circles[1].name + ")";
+            return "⨉(⊙" + this.depon[0].name + ", " +
+                "⊙" + this.depon[1].name + ")";
         },
         toJSON: function() {
             return {
                 'type': "point_2circles",
                 'name': this.name,
-                'circles': [this.circles[0].name, this.circles[1].name],
+                'circles': [this.depon[0].name, this.depon[1].name],
                 'other': this.other
             };
         },
