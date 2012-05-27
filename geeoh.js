@@ -159,6 +159,9 @@ $("#fclear").click(function(event){
     $("#elements-box").draggable();
     $("#elements-toggle").click(function() { $("#elements").slideToggle(); });
 
+    var dlg_point = $("#dlg-point");
+    var add_pt_tabs = $("#add-pt-tabs");
+
     // solve 2x2 linear equations
     var solve_2linear = function(abc0, abc1) {
         var xy = null; // pessimistic
@@ -238,6 +241,7 @@ $("#fclear").click(function(event){
             this.xy[1] = y;
             return this;
         },
+        tabi: 0,
         edit: function(ei) {
             debug_log("point.edit: ei="+ei);
             $("#pt-name-input").val(this.name);
@@ -245,7 +249,8 @@ $("#fclear").click(function(event){
                 $("#" + sxy[i] + "-input").val(this.xy[i]);
             }
             this.edit_ret = false;
-            // $("#pt-name-input").attr('disabled', 'disabled');
+            add_pt_tabs.tabs("option", "selected", this.tabi);
+            dlg_point.data("edit_mode", true);
             dlg_point.data('cb', function(pt) { 
                 elements_replace_update(ei, pt);
             });
@@ -507,6 +512,7 @@ $("#fclear").click(function(event){
                 debug_log("p2l: update: l0||l1 not valid");
             }
         },
+        tabi: 1,
         str: function() {
             return "⨉(" + this.depon[0].name + ", " + this.depon[1].name + ")";
         },
@@ -609,6 +615,7 @@ $("#fclear").click(function(event){
                 debug_log("pcl: update: c|l not valid");
             }
         },
+        tabi: 1,
         str: function() {
             return "⨉(⊙" + this.depon[0].name + ", " + this.depon[1].name + ")";
         },
@@ -679,6 +686,7 @@ $("#fclear").click(function(event){
                 debug_log("pcl: update: c|c not valid");
             }
         },
+        tabi: 1,
         str: function() {
             return "⨉(⊙" + this.depon[0].name + ", " +
                 "⊙" + this.depon[1].name + ")";
@@ -819,7 +827,6 @@ $("#fclear").click(function(event){
     var element_edit = function(ei) {
         debug_log("element_edit ei="+ei);
         var e = elements[ei];
-        $(".element-name").attr('disabled', true);
         e.edit(ei);
     };
     var element_remove = function(ei) {
@@ -1122,23 +1129,33 @@ $("#fclear").click(function(event){
             }}(i));
     }
 
-    var add_pt_tabs = $("#add-pt-tabs");
     add_pt_tabs.tabs();
-    var dlg_point = $("#dlg-point");
     dlg_point.dialog({
         autoOpen: false,
         title: "Add Point",
         modal: true,
+        open: function(event, ui) { 
+            debug_log("dlg_point.open cb");
+            var d = $("#dlg-point");
+            var edit_mode = d.data("edit_mode");
+            if (edit_mode) {
+                $("#pt-name-input").attr('disabled', true);
+            } else {
+                $("#pt-name-input").removeAttr('disabled');
+            }
+            var t = (edit_mode ? "Edit" : "Add") + " Point";
+            d.dialog("option", "title", t);
+        },
         buttons: {
             "OK": function() {
                 var $this = this;
                 var ok = true;
                 var pt = null;
                 var xy = [];
+                var d = $("#dlg-point");
+                var edit_mode = d.data("edit_mode");
                 var name = $("#pt-name-input").val().trim();
-                var inp_disa = $("#pt-name-input").attr('disabled');
-                debug_log("inp_disa="+inp_disa);
-                var ok = (inp_disa === 'disabled') ||
+                var ok = edit_mode ||
                     (/^[A-Z][0-9]*$/.test(name) && 
                     ($.inArray(name, enames()) < 0));
                 $("#pt-name-error").css('display', ok ? 'none' : 'block');
@@ -1295,6 +1312,7 @@ $("#fclear").click(function(event){
                          .text(name)); 
             }
         }
+        dlg_point.data("edit_mode", false);
         dlg_point.data('cb', function(pt) { 
             elements_at_add(si, pt);
             redraw();
