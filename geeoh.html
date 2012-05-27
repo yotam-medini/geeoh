@@ -27,10 +27,10 @@
       <div id="tab-add">
 	<table id="tool-box">
 	  <tr>
-	    <td><button id="add-point">+ Point</button></td>
-	    <td><button id="add-line">+ Line</button></td>
-	    <td><button id="add-segment">+ Segment</button></td>
-	    <td><button id="add-circle">+ Circle</button></td>
+	    <td><button id="add-point" class="add">+ Point</button></td>
+	    <td><button id="add-line" class="add">+ Line</button></td>
+	    <td><button id="add-segment" class="add">+ Segment</button></td>
+	    <td><button id="add-circle" class="add">+ Circle</button></td>
 	  </tr>
 	</table>
       </div>
@@ -81,7 +81,7 @@
       <table>
         <tr><td>Name</td>
           <td title="Upper-Case followed by optional digits">
-            <input id="pt-name-input">
+            <input id="pt-name-input" class="element-name">
           </td>
           <td>
             <span id="pt-name-error"
@@ -136,7 +136,7 @@
       <table id="tbl-line2pt-input">
         <tr><td>Name</td>
           <td title="lower-case followed by optional digits">
-            <input id="line-name-input">
+            <input id="line-name-input" class="element-name">
           </td>
           <td>
             <span id="line-name-error"
@@ -158,7 +158,7 @@
         <table id="tbl-circle-input">
           <tr><td>Name</td>
             <td title="Upper-Case followed by optional digits">
-              <input id="circle-name-input">
+              <input id="circle-name-input" class="element-name">
             </td>
             <td>
               <span id="circle-name-error"

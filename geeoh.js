@@ -184,9 +184,10 @@ $("#fclear").click(function(event){
         valid: true,
         depon: [], // List of elements, this depends on
         selected: false,
-        edit: function() { debug_log("Dummmy edit"); return false; },
+        edit: function(ei) { debug_log("Dummmy edit"); return false; },
         edit_ret: false,
         name_set: function(s) { this.name = s; return this; },
+        update: function() { debug_log("Dummy update"); },
         needs: function(element_name) { 
             var found = false;
             for (var i = 0; !found && i < this.depon.length; ++i) {
@@ -237,15 +238,18 @@ $("#fclear").click(function(event){
             this.xy[1] = y;
             return this;
         },
-        edit: function() {
+        edit: function(ei) {
+            debug_log("point.edit: ei="+ei);
             $("#pt-name-input").val(this.name);
             for (var i = 0; i < 2; i++) {
                 $("#" + sxy[i] + "-input").val(this.xy[i]);
             }
             this.edit_ret = false;
+            // $("#pt-name-input").attr('disabled', 'disabled');
             dlg_point.data('cb', function(pt) { 
-               // ???????????????????????????????? !!!!!!!!!!!!!!!!!!!!
+                elements_replace_update(ei, pt);
             });
+            dlg_point.dialog("open");
         },
         str: function() { return this.str2(); },
         toJSON: function() {
@@ -401,7 +405,7 @@ $("#fclear").click(function(event){
         //   = x1y1-x0y1-x1y1+x1y0 = x1y0 - x0y1
         update: function() {
             var p0 = this.depon[0], p1 = this.depon[1];
-            // debug_log("L2Ps update: p0="+p0.str3() + ", p1="+p1.str3());
+            debug_log("L2Ps update: p0="+p0.str() + ", p1="+p1.str());
             var x0 = p0.xy[0], y0 = p0.xy[1], x1 = p1.xy[0], y1 = p1.xy[1];
             this.abc_set(y1 - y0, x0 - x1, x1*y0 - x0*y1);
             return this;
@@ -767,6 +771,23 @@ $("#fclear").click(function(event){
         elements = $.merge($.merge(head, [e]), tail);
         // debug_log("After: |e|="+elements.length);
     };
+    var elements_replace_update = function(ei, e) {
+        var name = elements[ei].name;
+        elements[ei] = e;
+        e.update();
+        for (; ei < elements.length; ei++) {
+            var enext = elements[ei];
+            for (var di = 0; di < enext.depon.length; di++) {
+                if (enext.depon[di].name === name) {
+                    debug_log("eru: ei="+ei + ", di="+di);
+                    enext.depon[di] = e;
+                }
+            }
+            debug_log("eru: ei="+ei +", e="+e.str() + ", ...update()");
+            enext.update();
+        }
+        redraw();
+    };
 
     $("#json-in").click(function () { 
             // debug_log("json-in");
@@ -798,7 +819,8 @@ $("#fclear").click(function(event){
     var element_edit = function(ei) {
         debug_log("element_edit ei="+ei);
         var e = elements[ei];
-        
+        $(".element-name").attr('disabled', true);
+        e.edit(ei);
     };
     var element_remove = function(ei) {
         debug_log("element_remove ei="+ei);
@@ -1114,11 +1136,14 @@ $("#fclear").click(function(event){
                 var pt = null;
                 var xy = [];
                 var name = $("#pt-name-input").val().trim();
-                var ok = /^[A-Z][0-9]*$/.test(name) && 
-                    ($.inArray(name, enames()) < 0);
+                var inp_disa = $("#pt-name-input").attr('disabled');
+                debug_log("inp_disa="+inp_disa);
+                var ok = (inp_disa === 'disabled') ||
+                    (/^[A-Z][0-9]*$/.test(name) && 
+                    ($.inArray(name, enames()) < 0));
                 $("#pt-name-error").css('display', ok ? 'none' : 'block');
                 var tabi = add_pt_tabs.tabs("option", "selected");
-                // debug_log("tabi="+tabi);
+                debug_log("dlg_point/ok: tabi="+tabi);
                 if (tabi == 0) { // absolute
                     for (var i = 0; i < 2; i++) {
                         var s =  $("#" + sxy[i] + "-input").val().trim();
@@ -1160,6 +1185,7 @@ $("#fclear").click(function(event){
                         }
                     }                    
                 }
+                debug_log("dlg_point: ok="+ok);
                 if (ok) {
                     pt.name_set(name);
                     $(this).data('cb')(pt);
@@ -1247,6 +1273,10 @@ $("#fclear").click(function(event){
         }
     });
 
+    $(".add").click(function() {
+        debug_log("element_edit: re-enable input name=");
+        $(".element-name").removeAttr('disabled');
+    });
     $("#add-point").click(function() {
         var si = selected_index(); 
         var curve_elements = elements.slice(0, si).filter(
