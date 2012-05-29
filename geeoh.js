@@ -182,13 +182,47 @@ $("#fclear").click(function(event){
         return xy;
     };
 
+    var elements = [];
+
+    var points_options_set = function(ei) {
+        var pt_elements = elements.slice(0, ei).filter(
+            function (e) { return e.is_point(); });
+        var pt_select = $(".pt-select").empty();
+        for (var i = 0; i < pt_elements.length; i++) {
+             var name = pt_elements[i].name;
+             pt_select
+                 .append($("<option></option>")
+                     .attr("value", name)
+                     .text(name)); 
+        }
+        return pt_elements.length;
+    };
+
+    var curves_options_set = function(ei) {
+        var curve_elements = elements.slice(0, ei).filter(
+            function (e) { return e.is_curve(); });
+        if (curve_elements.length < 2) {
+            add_pt_tabs.tabs('select', 0);
+            add_pt_tabs.tabs('disable', 1);
+        } else {
+            add_pt_tabs.tabs('enable', 1);
+            var curve_select = $(".curve-select").empty();
+            for (var i = 0; i < curve_elements.length; i++) {
+                 var name = curve_elements[i].name;
+                 curve_select
+                     .append($("<option></option>")
+                         .attr("value", name)
+                         .text(name)); 
+            }
+        }
+    };
+
     var element = {
         name: "",
         valid: true,
         depon: [], // List of elements, this depends on
         selected: false,
         edit: function(ei) { debug_log("Dummmy edit"); return false; },
-        edit_ret: false,
         name_set: function(s) { this.name = s; return this; },
         update: function() { debug_log("Dummy update"); },
         needs: function(element_name) { 
@@ -241,20 +275,22 @@ $("#fclear").click(function(event){
             this.xy[1] = y;
             return this;
         },
-        tabi: 0,
         edit: function(ei) {
             debug_log("point.edit: ei="+ei);
             $("#pt-name-input").val(this.name);
-            for (var i = 0; i < 2; i++) {
-                $("#" + sxy[i] + "-input").val(this.xy[i]);
-            }
-            this.edit_ret = false;
-            add_pt_tabs.tabs("option", "selected", this.tabi);
+            curves_options_set(ei);
+            this.edit_init();
             dlg_point.data("edit_mode", true);
             dlg_point.data('cb', function(pt) { 
                 elements_replace_update(ei, pt);
             });
             dlg_point.dialog("open");
+        },
+        edit_init: function() {
+            add_pt_tabs.tabs("option", "selected", 0);
+            for (var i = 0; i < 2; i++) {
+                $("#" + sxy[i] + "-input").val(this.xy[i]);
+            }
         },
         str: function() { return this.str2(); },
         toJSON: function() {
@@ -415,6 +451,20 @@ $("#fclear").click(function(event){
             this.abc_set(y1 - y0, x0 - x1, x1*y0 - x0*y1);
             return this;
         },
+        edit: function(ei) {
+            debug_log("line_2points.edit: ei="+ei);
+            dlg_line.data("edit_mode", true);
+            $("#line-name-input").val(this.name);
+            points_options_set(ei);
+            for (var i = 0; i < 2; i++) {
+                $("#pt" + i + "-select").val(this.depon[i].name)
+                    .attr("selected", true);
+            }
+            dlg_line.data('cb', function(c) { 
+                elements_replace_update(ei, c);
+            });
+            dlg_line.dialog("open");
+        },
         point_inside_segment: function(pt) {
             // Assuming pt is in the line, but not necessarily within segment
             var p0 = this.depon[0], p1 = this.depon[1];
@@ -486,15 +536,28 @@ $("#fclear").click(function(event){
     });
 
 
-    var point_2lines = $.extend(true, {}, point, {
+    var point_2curves = $.extend(true, {}, point, {
         depon: [null, null],
-        lines_set: function(l0, l1) {
-            debug_log0("point_2lines.lines_set: l0="+l0.str3() + 
-                ", l1="+l1.str3());
+        other: false,
+        curves_set: function(l0, l1, other) {
+            debug_log0("point_2curves.curves_set: l0="+l0.str() + 
+                ", l1="+l1.str());
             this.depon = [l0, l1];
+            this.other = false;
             this.update();
             return this;
         },
+        edit_init: function() {
+            add_pt_tabs.tabs("option", "selected", 1);
+            for (var i = 0; i < 2; i++) {
+                $("#add-pt-curve" + i).val(this.depon[i].name)
+                    .attr("selected", true);
+            }
+            $("#other").prop("checked", this.other);
+        },
+    });    
+
+    var point_2lines = $.extend(true, {}, point_2curves, {
         update: function() {
             this.valid = false;
             var l0 = this.depon[0], l1 = this.depon[1];
@@ -512,7 +575,6 @@ $("#fclear").click(function(event){
                 debug_log("p2l: update: l0||l1 not valid");
             }
         },
-        tabi: 1,
         str: function() {
             return "⨉(" + this.depon[0].name + ", " + this.depon[1].name + ")";
         },
@@ -557,6 +619,21 @@ $("#fclear").click(function(event){
             this.valid = (this.radius > epsilon);
             return this;
         },
+        edit: function(ei) {
+            debug_log("circle_center_segment.edit: ei="+ei);
+            $("#circle-name-input").val(this.name);
+            points_options_set(ei);
+            $("#center-select").val(this.depon[0].name).attr("selected", true);
+            for (var i = 0; i < 2; i++) {
+                $("#circle-pt" + i + "-select").val(this.depon[i + 1].name)
+                    .attr("selected", true);
+            }
+            dlg_circle.data("edit_mode", true);
+            dlg_circle.data('cb', function(c) { 
+                elements_replace_update(ei, c);
+            });
+            dlg_circle.dialog("open");
+        },
         str: function() { 
            return "⊙(" + this.depon[0].name + ", [" +
                this.depon[1].name + ", " + this.depon[2].name + "])";
@@ -571,14 +648,7 @@ $("#fclear").click(function(event){
         },
     });
 
-    var point_circle_line = $.extend(true, {}, point, {
-        depon: [null, null],
-        circle_line_set: function(c, l, other) {
-            this.depon = [c, l]
-            this.other = other;
-            this.update();
-            return this;
-        },
+    var point_circle_line = $.extend(true, {}, point_2curves, {
         update: function() {
             this.valid = false;
             var circle = this.depon[0];
@@ -615,7 +685,6 @@ $("#fclear").click(function(event){
                 debug_log("pcl: update: c|l not valid");
             }
         },
-        tabi: 1,
         str: function() {
             return "⨉(⊙" + this.depon[0].name + ", " + this.depon[1].name + ")";
         },
@@ -629,15 +698,7 @@ $("#fclear").click(function(event){
         },
     });    
 
-    var point_2circles = $.extend(true, {}, point, {
-        depon: [null, null],
-        circle_circle_set: function(c0, c1, other) {
-            debug_log("circle_circle_set");
-            this.depon = [c0, c1];
-            this.other = other;
-            this.update();
-            return this;
-        },
+    var point_2circles = $.extend(true, {}, point_2curves, {
         update: function() {
             debug_log("point_2circles::update");
             this.valid = false;
@@ -737,22 +798,21 @@ $("#fclear").click(function(event){
             var lines = names_to_elements(ejson['lines']);
             e = $.extend(true, {}, point_2lines)
                .name_set(name)
-               .lines_set(lines[0], lines[1]);
+               .curves_set(lines[0], lines[1]);
         } else if (typename === "point_circle_line") {
             var cl = names_to_elements(ejson['cl']);
             e = $.extend(true, {}, point_circle_line)
                 .name_set(name)
-                .circle_line_set(cl[0], cl[1], ejson['other'])
+                .curves_set(cl[0], cl[1], ejson['other'])
         } else if (typename === "point_2circles") {
             var circles = names_to_elements(ejson['circles']);
             e = $.extend(true, {}, point_2circles)
                 .name_set(name)
-                .circle_circle_set(circles[0], circles[1], ejson['other'])
+                .curves_set(circles[0], circles[1], ejson['other'])
         }
         return e;
     };
 
-    var elements = [];
     var name_to_element = function(name) {
         return elements.filter(function (e) { 
             return e.name == name; 
@@ -1016,7 +1076,7 @@ $("#fclear").click(function(event){
                 for (var i = 0; i < 4; i++) {
                     var lbdy = lines[i];
                     var pt = $.extend(true, {}, point_2lines)
-                        .lines_set(l, lbdy);
+                        .curves_set(l, lbdy);
                     if (pt.valid) {
                         // debug_log("pt="+pt.str3() + ", lbdy="+lbdy.str3());
                         if (lbdy.point_inside_segment(pt)) {
@@ -1136,15 +1196,14 @@ $("#fclear").click(function(event){
         modal: true,
         open: function(event, ui) { 
             debug_log("dlg_point.open cb");
-            var d = $("#dlg-point");
-            var edit_mode = d.data("edit_mode");
+            var edit_mode = dlg_point.data("edit_mode");
             if (edit_mode) {
                 $("#pt-name-input").attr('disabled', true);
             } else {
                 $("#pt-name-input").removeAttr('disabled');
             }
             var t = (edit_mode ? "Edit" : "Add") + " Point";
-            d.dialog("option", "title", t);
+            dlg_point.dialog("option", "title", t);
         },
         buttons: {
             "OK": function() {
@@ -1152,8 +1211,7 @@ $("#fclear").click(function(event){
                 var ok = true;
                 var pt = null;
                 var xy = [];
-                var d = $("#dlg-point");
-                var edit_mode = d.data("edit_mode");
+                var edit_mode = dlg_point.data("edit_mode");
                 var name = $("#pt-name-input").val().trim();
                 var ok = edit_mode ||
                     (/^[A-Z][0-9]*$/.test(name) && 
@@ -1186,19 +1244,19 @@ $("#fclear").click(function(event){
                     if (curve01[0].is_circle()) {
                         if (curve01[1].is_circle()) {
                             pt = $.extend(true, {}, point_2circles)
-                                .circle_circle_set(curve01[0], curve01[1], 
+                                .curves_set(curve01[0], curve01[1], 
 				    other);
                         } else {
                             pt = $.extend(true, {}, point_circle_line)
-                                .circle_line_set(curve01[0], curve01[1], other);
+                                .curves_set(curve01[0], curve01[1], other);
                         }
                     } else {
                         if (curve01[1].is_circle()) {
                             pt = $.extend(true, {}, point_circle_line)
-                                .circle_line_set(curve01[1], curve01[0], other);
+                                .curves_set(curve01[1], curve01[0], other);
                         } else {
                             pt = $.extend(true, {}, point_2lines)
-                                .lines_set(curve01[0], curve01[1]);
+                                .curves_set(curve01[0], curve01[1]);
                         }
                     }                    
                 }
@@ -1220,14 +1278,30 @@ $("#fclear").click(function(event){
         width: $(window).width()/2,
         height: $(window).height()/2,
         modal: true,
+        open: function(event, ui) { 
+            debug_log("dlg_point.open cb");
+            var edit_mode = dlg_line.data("edit_mode");
+            var is_seg = dlg_line.data('segment');
+            var lni = $("#line-name-input");
+            if (edit_mode) {
+                lni.attr('disabled', true);
+            } else {
+                lni.removeAttr('disabled');
+            }
+            var t = (edit_mode ? "Edit" : "Add") + 
+                (is_seg ? " Segment" : " Line");
+            dlg_line.dialog("option", "title", t);
+        },
         buttons: {
             "OK": function() {
                 var $this = this;
                 var ok = true;
                 var xy = [];
+                var edit_mode = dlg_line.data("edit_mode");
                 var name = $("#line-name-input").val().trim();
-                var ok = /^[a-z][0-9]*$/.test(name) && 
-                    ($.inArray(name, enames()) < 0);
+                var ok = edit_mode || 
+                    (/^[a-z][0-9]*$/.test(name) && 
+                    ($.inArray(name, enames()) < 0));
                 $("#line-name-error").css('display', ok ? 'none' : 'block');
                 if (ok) {
                     var is_seg = dlg_line.data('segment');
@@ -1258,11 +1332,24 @@ $("#fclear").click(function(event){
         width: 3*$(window).width()/5,
         height: 3*$(window).height()/5,
         modal: true,
+        open: function(event, ui) { 
+            debug_log("dlg_point.open cb");
+            var edit_mode = dlg_circle.data("edit_mode");
+            if (edit_mode) {
+                $("#circle-name-input").attr('disabled', true);
+            } else {
+                $("#circle-name-input").removeAttr('disabled');
+            }
+            var t = (edit_mode ? "Edit" : "Add") + " Circle";
+            dlg_circle.dialog("option", "title", t);
+        },
         buttons: {
             "OK": function() {
+                var edit_mode = dlg_circle.data("edit_mode");
                 var name = $("#circle-name-input").val().trim();
-                var ok = /^[A-Z][0-9]*$/.test(name) && 
-                    ($.inArray(name, enames()) < 0);
+                var ok = edit_mode || 
+                    (/^[A-Z][0-9]*$/.test(name) && 
+                    ($.inArray(name, enames()) < 0));
                 $("#circle-name-error").css('display', ok ? 'none' : 'block');
                 if (ok) {
                     var sel_pfx = $.merge($.merge([], ["#center"]),
@@ -1296,22 +1383,7 @@ $("#fclear").click(function(event){
     });
     $("#add-point").click(function() {
         var si = selected_index(); 
-        var curve_elements = elements.slice(0, si).filter(
-            function (e) { return e.is_curve(); });
-        if (curve_elements.length < 2) {
-            add_pt_tabs.tabs('select', 0);
-            add_pt_tabs.tabs('disable', 1);
-        } else {
-            add_pt_tabs.tabs('enable', 1);
-            var curve_select = $(".curve-select").empty();
-            for (var i = 0; i < curve_elements.length; i++) {
-                 var name = curve_elements[i].name;
-                 curve_select
-                     .append($("<option></option>")
-                         .attr("value", name)
-                         .text(name)); 
-            }
-        }
+        curves_options_set(si);
         dlg_point.data("edit_mode", false);
         dlg_point.data('cb', function(pt) { 
             elements_at_add(si, pt);
@@ -1327,23 +1399,12 @@ $("#fclear").click(function(event){
             return function() {
                 // debug_log("add-line: is_seg="+is_seg);
                 var si = selected_index(); 
-                var pt_elements = elements.slice(0, si).filter(
-                    function (e) { return e.is_point(); });
-                // debug_log("np="+pt_elements.length);
-                if (pt_elements.length < 2) {
+                var n_pts = points_options_set(si);
+                if (n_pts < 2) {
                     error("For line, 2 points must be defined");
                 } else {
-                    var pt_select = $(".pt-select").empty();
-                    for (var i = 0; i < pt_elements.length; i++) {
-                         var name = pt_elements[i].name;
-                         pt_select
-                             .append($("<option></option>")
-                                 .attr("value", name)
-                                 .text(name)); 
-                    }
-                    dlg_line.dialog("option", "title", 
-                        "Add " + (is_seg ? "Segment" : "Line"));
                     dlg_line.data("segment", is_seg);
+                    dlg_line.data("edit", false);
                     dlg_line.data('cb', function(ln) { 
                         elements_at_add(si, ln);
                         redraw();
@@ -1356,19 +1417,11 @@ $("#fclear").click(function(event){
 
     $("#add-circle").click(function() {
         var si = selected_index(); 
-        var pt_elements = elements.slice(0, si).filter(
-            function (e) { return e.is_point(); });
-        if (pt_elements.length < 2) {
+        var n_pts = points_options_set(si);
+        if (n_pts < 2) {
             error("For circle, 2 points must be defined");
         } else {
-            var pt_select = $(".pt-select").empty();
-            for (var i = 0; i < pt_elements.length; i++) {
-                 var name = pt_elements[i].name;
-                 pt_select
-                     .append($("<option></option>")
-                         .attr("value", name)
-                         .text(name)); 
-            }
+            dlg_circle.data('edit_mode', false);
             dlg_circle.data('cb', function(circ) { 
                 elements_at_add(si, circ);
                 redraw();
