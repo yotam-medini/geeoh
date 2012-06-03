@@ -5,16 +5,19 @@
     <link rel="stylesheet" type="text/css" href="geeoh.css"/>
     <link rel="stylesheet" 
         href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/base/jquery-ui.css" />
+    <link rel="stylesheet" href="jquery.keypad.css" />
     <script type="text/javascript" 
       src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js">
     </script>
     <script type="text/javascript" 
       src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js">
     </script>
+    <script type="text/javascript" src="jquery.keypad.min.js"></script>
     <script type="text/javascript" src="geeoh.js"></script>
   </head>
   <body>
     <h1>Geometry Exploration Environment &mdash; Off Hand!</h1>
+<input type="text" id="kptest"/>
 <input type="file" id="my-filesel"/>
 <a href="#" id="fclear">Clear</a>
     <div id="toolbar">
@@ -31,6 +34,7 @@
 	    <td><button id="add-line" class="add">+ Line</button></td>
 	    <td><button id="add-segment" class="add">+ Segment</button></td>
 	    <td><button id="add-circle" class="add">+ Circle</button></td>
+	    <td><button id="add-angle" class="add">+ Angle</button></td>
 	  </tr>
 	</table>
       </div>
@@ -55,28 +59,12 @@
 	</table>
       </div>
       <div id="tab-help">
-        Help ison its way
+        Help is on its way
       </div>
     </div>
     <center id="canvas-center">
       <canvas id="geeoh-canvas" width="90%" height="90%"></canvas>
     </center>
-    <table id="elements-box">
-      <tr>
-	<th colspan="2">
-	  <button id="elements-toggle" title="Elements Expand/Collapse">E
-	  </button>
-	  Elements
-	</th>
-      </tr>
-      <tr>
-	<td>
-	  <table id="elements">
-	    <tr><th>Name</th><th>Value</th></tr>
-	  </table>
-	</td>
-      </tr>
-    </table>
     <div id="dlg-point">
       <table>
         <tr><td>Name</td>
@@ -197,6 +185,46 @@
         </table>
       </center>
     </div>
+    <div id="dlg-angle">
+      <table id="tbl-line2pt-input">
+        <tr><td>Name</td>
+          <td title="Greek letter followed by optional digits">
+            <input type="text" id="angle-name-input" class="element-name">
+          </td>
+          <td>
+            <span id="angle-name-error"
+               class="ui-icon ui-icon-alert name-error" 
+               style="float: left; margin-right:.3em;">
+            </span>
+          </td>
+        </tr>
+        <tr><td>Point</td>
+          <td><select id="angle-pt0-select" class="pt-select"></select></td>
+        </tr>
+        <tr><td>Point</td>
+          <td><select id="angle-pt1-select" class="pt-select"></select></td>
+        </tr>
+        <tr><td>Point</td>
+          <td><select id="angle-pt2-select" class="pt-select"></select></td>
+        </tr>
+      </table>
+    </div>
+    <table id="elements-box">
+      <tr>
+	<th colspan="2">
+	  <button id="elements-toggle" title="Elements Expand/Collapse">E
+	  </button>
+	  Elements
+	</th>
+      </tr>
+      <tr>
+	<td>
+	  <table id="elements">
+	    <tr><th>Name</th><th>Value</th></tr>
+	  </table>
+	</td>
+      </tr>
+    </table>
     <div style="display:none" id="div-dialog-error">
       <p>
         <span class="ui-icon ui-icon-alert" 

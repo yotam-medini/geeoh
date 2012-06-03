@@ -13,10 +13,14 @@ table,th, td
 
 #elements-box
 {
-  float:left;
+  /* float:left; */
+  position:absolute;
+  top:60%;
+  left:10%;
 }
 
 #canvas-center
 {
   /* float:left; */
+  padding: 12px;
 }

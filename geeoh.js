@@ -10,7 +10,7 @@ function debug_log(message) {
     {
         debug_win = window.open("about:blank", "GeeOH-Debug",
             "width=300,height=300,scrollbars=1,resizable=1");
-        var html = "<html><head><title>GeeOH Debug</title></head><body>" + 
+        var html = "<html><head><title>GeeOH Debug</title></head><body>" +
             '<div id="debug">Hello1<br></div>' +
             "</body></html>";
         debug_win.document.open();
@@ -33,8 +33,38 @@ function xy_add(p0, p1) {
 function xy_xy_dist2(p0, p1) {
     var dx = p1[0] - p0[0];
     var dy = p1[1] - p0[1];
-    var d2 = dx*dx + dy*dy; 
+    var d2 = dx*dx + dy*dy;
     return d2;
+}
+
+function xyxyxy_angle(x0, y0, x1, y1, x2, y2, epsilon) {
+    // Angle of 3-points, (v0,v1,v2) considered as complex numbers:
+    //   v_k = x_k + iy_k  // i = 0,1,2  
+    //
+    //   Angle of:
+    //
+    //     (v2-v1) / (v0 - v1)
+    //     = ((x2 - x1) + i(y2 - y1)) / ((x0 - x1) + i(y0 - y1))
+    //     = ((x2 - x1) + i(y2 - y1)) * ((x0 - x1) - i(y0 - y1))
+    //       / ((x0 - x1)^2+(y0 - y1)^2)
+    //
+    //   is the angle of
+    //     ((x2 - x1) + i(y2 - y1)) * ((x0 - x1) - i(y0 - y1))
+    //     =      (x2 - x1)*(x0 - x1) + (y2 - y1)*(y0 - y1)
+    //       +i( -(x2 - x1)*(y0 - y1) + (x0 - x1)*(y2 - y1)  )
+    var dx01 = x0 - x1, dy01 = y0 - y1;
+    var dx21 = x2 - x1, dy21 = y2 - y1;
+    var x = dx21 * dx01 + dy21 * dy01;
+    var y = -dx21*dy01 +  dx01*dy21;
+    debug_log("v0=("+x0+","+y0+") v1=("+x1+","+y1+
+        ") v2=("+x2+","+y2+")");
+    debug_log("dv01=("+dx01+","+dy01+") dv21=("+dx21+","+dy21+")");
+    var ret = undefined;
+    if (Math.abs(x) + Math.abs(y) > epsilon) {
+        ret = Math.atan2(y, x); // in HTML5 y grows down
+    }
+    debug_log("xy=("+x+","+y+")"+", ret="+ret);
+    return ret;
 }
 
 function xy2str(xy) {
@@ -53,7 +83,7 @@ $(document).ready(function () {
         [1, 0],
         [sqrt2d2, sqrt2d2],
         [0, 1],
-        [-sqrt2d2, sqrt2d2], 
+        [-sqrt2d2, sqrt2d2],
         [-1, 0],
         [-sqrt2d2, -sqrt2d2],
         [0, -1],
@@ -95,7 +125,7 @@ $(document).ready(function () {
     };
 
     var xy_points_around = function(x, y, r) {
-        var pts = []; 
+        var pts = [];
         var f = label_shift_factors;
         for (i = 0; i < f.length; i++) {
             pts.push([x + f[i][0]*r, y + f[i][1]*r]);
@@ -110,14 +140,14 @@ $(document).ready(function () {
         var cxys = [];
         for (i = 0; i < xys.length; i++) {
             var x = xys[i][0], y = xys[i][1];
-            if ((rect[0][0] < x) && (x < rect[0][1]) && 
+            if ((rect[0][0] < x) && (x < rect[0][1]) &&
                 (rect[1][0] < y) && (y < rect[1][1])) {
                 cxys.push(xys[i]);
             }
         }
         return cxys;
     }
-    
+
     var digits_sub = function(s) {
         var ns = "";
         for (var i = 0; i < s.length; i++)
@@ -193,7 +223,7 @@ $("#fclear").click(function(event){
              pt_select
                  .append($("<option></option>")
                      .attr("value", name)
-                     .text(name)); 
+                     .text(name));
         }
         return pt_elements.length;
     };
@@ -212,7 +242,7 @@ $("#fclear").click(function(event){
                  curve_select
                      .append($("<option></option>")
                          .attr("value", name)
-                         .text(name)); 
+                         .text(name));
             }
         }
     };
@@ -225,7 +255,7 @@ $("#fclear").click(function(event){
         edit: function(ei) { debug_log("Dummmy edit"); return false; },
         name_set: function(s) { this.name = s; return this; },
         update: function() { debug_log("Dummy update"); },
-        needs: function(element_name) { 
+        needs: function(element_name) {
             var found = false;
             for (var i = 0; !found && i < this.depon.length; ++i) {
                found = this.depon[i].name === element_name;
@@ -240,11 +270,11 @@ $("#fclear").click(function(event){
         distance2_to: function(xy) { return 1.; },
         candidate_label_points: function(rect, delta) { return []; },
         best_label_point: function(elements, rect, delta) { // max-min
-            // debug_log("BLP: e="+this.name);
+            debug_log("BLP: e="+this.name);
             var candidates = this.candidate_label_points(rect, delta);
-            // debug_log("pre-clip #="+candidates.length);
+            debug_log("pre-clip #="+candidates.length);
             candidates = rect_xys_clip(rect, candidates);
-            // debug_log("after-clip #="+candidates.length);
+            debug_log("after-clip #="+candidates.length);
             var best = null, best_distance2 = -1;
             for (var ci = 0; ci < candidates.length; ci++) {
                 var cpt = candidates[ci];
@@ -255,14 +285,14 @@ $("#fclear").click(function(event){
                         if (d2_nearest > d2) { d2_nearest = d2; }
                     }
                 }
-                // debug_log("  BLP: cpt="+xy2str(cpt) + 
+                // debug_log("  BLP: cpt="+xy2str(cpt) +
                 //    ", d2near="+d2_nearest.toFixed(2));
                 if (best_distance2 < d2_nearest) {
                     best_distance2 = d2_nearest;
                     best = cpt;
                 }
             }
-            // debug_log("  BLP: best="+best);
+            debug_log("  BLP: best="+best);
             return best;
         }
     };
@@ -281,7 +311,7 @@ $("#fclear").click(function(event){
             curves_options_set(ei);
             this.edit_init();
             dlg_point.data("edit_mode", true);
-            dlg_point.data('cb', function(pt) { 
+            dlg_point.data('cb', function(pt) {
                 elements_replace_update(ei, pt);
             });
             dlg_point.dialog("open");
@@ -300,18 +330,18 @@ $("#fclear").click(function(event){
                 'xy': this.xy
             };
         },
-        str2: function() { 
+        str2: function() {
            return "("+this.xy[0].toFixed(2) +
                ", " + this.xy[1].toFixed(2) + ")";
         },
-        str3: function() { 
+        str3: function() {
            return "("+this.xy[0].toFixed(3) +
                ", " + this.xy[1].toFixed(3) + ")";
         },
         draw: function(canvas, ctx) {
             if (this.valid) { canvas.point_draw(ctx, this); }
         },
-        distance2_to: function(xy) { 
+        distance2_to: function(xy) {
             var d2 = Number.MAX_VALUE;
             if (this.valid) {
                 var dx = xy[0] - this.xy[0];
@@ -320,7 +350,7 @@ $("#fclear").click(function(event){
             }
             return d2;
         },
-        candidate_label_points: function(rect, delta) { 
+        candidate_label_points: function(rect, delta) {
             return xy_points_around(this.xy[0], this.xy[1], delta);
         },
     });
@@ -358,7 +388,7 @@ $("#fclear").click(function(event){
         },
         is_curve: function() { return true; },
         str: function() { return this.str3(); },
-        str3: function() { 
+        str3: function() {
             return "["+this.abc[0].toFixed(3) + ", " + this.abc[1].toFixed(3) +
                 ", " + this.abc[2].toFixed(3) + "]";
         },
@@ -374,33 +404,33 @@ $("#fclear").click(function(event){
             var v = abc[0]*xy[0] + abc[1]*xy[1] + abc[2];
             return Math.abs(v);
         },
-        candidate_label_points: function(rect, delta) { 
+        candidate_label_points: function(rect, delta) {
             // rect == [[Xmin,Xmax], [Ymin,YMax]]
-            var candidates = []; 
+            var candidates = [];
             // We intersect this line with the 4 lines of the clipping rect.
             // For each, if the intersection is withing the rect's segment
             // we add appropriate candidates, avoiding this line.
             //
             //  left:     abc = [1, 0, -rect[0][0]]
-            //    shift = 
+            //    shift =
             //      line-vertical? = [[delta, 0]]
             //      line-horizontal? = [ [delta, -delta], [delta, delta] ]
-            //  
+            //
             //  right:    abc = [1, 0, -rect[0][1]]
-            //    shift = 
+            //    shift =
             //      line-vertical? = [[-delta, 0]]
             //      line-horizontal? = [ [-delta, -delta], [-delta, delta] ]
-            //  
+            //
             //  bottom:   abc = [0, 1, -rect[1][0]]
-            //    shift = 
+            //    shift =
             //      line-vertical? = [[-delta, delta], [delta, delta]]
             //      line-horizontal? = [[0, delta]]
-            //  
+            //
             //  top:      abc = [0, 1, -rect[1][1]]
-            //    shift = 
+            //    shift =
             //      line-vertical? = [-delta, -delta], [delta, -delta]]
             //      line-horizontal? = [[0, -delta]]
-            //  
+            //
             var lrbt = [
             //   abc            horizontal          vertical
                 [[1, 0, [0,0]], [[ 1,-1], [ 1, 1]], [[ 1, 0]] ],          // L
@@ -441,7 +471,7 @@ $("#fclear").click(function(event){
             return this.update();
         },
         // (y1-y0)x - (x1-x0)y + c = 0
-        // c = (x1-x0)y-(y1-y0)x 
+        // c = (x1-x0)y-(y1-y0)x
         //   = x1y0-x0y0-x0y1+x0y0 = x1y0 - x0y1
         //   = x1y1-x0y1-x1y1+x1y0 = x1y0 - x0y1
         update: function() {
@@ -460,7 +490,7 @@ $("#fclear").click(function(event){
                 $("#pt" + i + "-select").val(this.depon[i].name)
                     .attr("selected", true);
             }
-            dlg_line.data('cb', function(c) { 
+            dlg_line.data('cb', function(c) {
                 elements_replace_update(ei, c);
             });
             dlg_line.dialog("open");
@@ -476,14 +506,14 @@ $("#fclear").click(function(event){
             var low = p0.xy[j], high = p1.xy[j];
             if (low > high) { var t = low; low = high; high = t; }
             var inside = (low <= v) && (v <= high);
-            debug_log0("j="+j +", v="+v.toFixed(3) + 
+            debug_log0("j="+j +", v="+v.toFixed(3) +
                 ", low="+low.toFixed(3) + ", high="+high.toFixed(3) +
                 ", inside="+inside);
             return inside;
         },
-        str: function() { 
-            return "-(" + digits_sub(this.depon[0].name) + ", " + 
-                digits_sub(this.depon[1].name) + ")-"; 
+        str: function() {
+            return "-(" + digits_sub(this.depon[0].name) + ", " +
+                digits_sub(this.depon[1].name) + ")-";
         },
         typename: function() { return 'line_2points'; },
         toJSON: function() {
@@ -494,11 +524,11 @@ $("#fclear").click(function(event){
             };
         },
     });
-    
+
     var line_segment = $.extend(true, {}, line_2points, {
         is_segment: function() { return true; },
-        str: function() { 
-            return "[" + digits_sub(this.depon[0].name) + ", " + 
+        str: function() {
+            return "[" + digits_sub(this.depon[0].name) + ", " +
                 digits_sub(this.depon[1].name) + "]"; },
         draw: function(canvas, ctx) {
             canvas.segment_draw(ctx, this.depon[0], this.depon[1]);
@@ -512,8 +542,8 @@ $("#fclear").click(function(event){
         },
         distance2_to: function(xy) {
             // denom -- may be cached on update!
-            var p0 = this.depon[0]; 
-            var p1 = this.depon[1]; 
+            var p0 = this.depon[0];
+            var p1 = this.depon[1];
             var dpx = p1[0] - p0[0];
             var dpy = p1[1] - p0[1];
             var denom = dpx*dpx + dpy * dpy;
@@ -527,7 +557,7 @@ $("#fclear").click(function(event){
                     m = p1;
                 } else {
                     m = [xy[0] + t*dpx, xy[1] + t*dpy];
-                }                
+                }
             }
             d2 = xy_xy_dist2(xy, m);
             return d2;
@@ -540,7 +570,7 @@ $("#fclear").click(function(event){
         depon: [null, null],
         other: false,
         curves_set: function(l0, l1, other) {
-            debug_log0("point_2curves.curves_set: l0="+l0.str() + 
+            debug_log0("point_2curves.curves_set: l0="+l0.str() +
                 ", l1="+l1.str());
             this.depon = [l0, l1];
             this.other = false;
@@ -555,7 +585,7 @@ $("#fclear").click(function(event){
             }
             $("#other").prop("checked", this.other);
         },
-    });    
+    });
 
     var point_2lines = $.extend(true, {}, point_2curves, {
         update: function() {
@@ -565,7 +595,7 @@ $("#fclear").click(function(event){
                 var xy = solve_2linear(l0.abc_get(), l1.abc_get());
                 this.valid = (xy !== null);
                 if (!this.valid) {
-                    debug_log("p2l: Not-valid: l0="+l0.str3() + 
+                    debug_log("p2l: Not-valid: l0="+l0.str3() +
                         ", l1="+l1.str3());
                     this.xy = null;
                 } else {
@@ -585,14 +615,14 @@ $("#fclear").click(function(event){
                 'lines': [this.depon[0].name, this.depon[1].name]
             };
         },
-    });    
+    });
 
     var circle = $.extend(true, {}, element, {
         center: $.extend(true, {}, point).xy_set(0, 0),
         radius: 1,
         is_circle: function() { return true; },
         is_curve: function() { return true; },
-        str: function() { 
+        str: function() {
            return "Circle(" + this.center.str() + ", r="+this.radius + ")";
         },
         draw: function(canvas, ctx) {
@@ -601,7 +631,7 @@ $("#fclear").click(function(event){
         distance_to: function(xy) {
             return Math.abs(this.center.distance_to(xy) - this.radius);
         },
-        candidate_label_points: function(rect, delta) { 
+        candidate_label_points: function(rect, delta) {
             return xy_points_around(this.center.xy[0], this.center.xy[1],
                 this.radius + delta);
         },
@@ -629,12 +659,12 @@ $("#fclear").click(function(event){
                     .attr("selected", true);
             }
             dlg_circle.data("edit_mode", true);
-            dlg_circle.data('cb', function(c) { 
+            dlg_circle.data('cb', function(c) {
                 elements_replace_update(ei, c);
             });
             dlg_circle.dialog("open");
         },
-        str: function() { 
+        str: function() {
            return "⊙(" + this.depon[0].name + ", [" +
                this.depon[1].name + ", " + this.depon[2].name + "])";
         },
@@ -675,10 +705,10 @@ $("#fclear").click(function(event){
                     this.xy[1] = yt + cy;
                     debug_log("X(C,L): abc="+line.abc +
                         ", a="+a.toFixed(2) + ", b="+b.toFixed(2) + ", c="+c +
-                        ", a2b2="+a2b2.toFixed(2) + 
+                        ", a2b2="+a2b2.toFixed(2) +
                         ", disc="+disc.toFixed(2) +
                         ", xt="+xt.toFixed(2) + ", yt="+yt.toFixed(2) +
-                        ", xy=["+this.xy[0].toFixed(2) + ", " + 
+                        ", xy=["+this.xy[0].toFixed(2) + ", " +
                         this.xy[1].toFixed(2) + "]");
                 }
             } else {
@@ -696,7 +726,7 @@ $("#fclear").click(function(event){
                 'other': this.other
             };
         },
-    });    
+    });
 
     var point_2circles = $.extend(true, {}, point_2curves, {
         update: function() {
@@ -717,7 +747,7 @@ $("#fclear").click(function(event){
                 var dist = Math.sqrt(dist2);
                 var r0 = c0.radius;
                 var r1 = c1.radius;
-                debug_log("dist="+dist.toFixed(2) + ", r0="+r0.toFixed(2) + 
+                debug_log("dist="+dist.toFixed(2) + ", r0="+r0.toFixed(2) +
                     ", r1="+r1.toFixed(2));
                 if ((dist <= r0 + r1) && (dist > Math.abs(r0 - r1))) {
                      this.valid = true;
@@ -725,7 +755,7 @@ $("#fclear").click(function(event){
                      // and (c1x, c1y) lies on its positive 'X' ray.
                      // mid point of 2 intersection points
                      var xt = (dist*dist + r0*r0 - r1*r1)/(2*dist);
-                     var yt2 = r0*r0 - xt*xt; // square of half distance 
+                     var yt2 = r0*r0 - xt*xt; // square of half distance
                      var yt = Math.sqrt(yt2);
                      if (this.other) { yt = -yt; }
                      // In original coordinate system
@@ -738,9 +768,9 @@ $("#fclear").click(function(event){
                      // Add the mid-point - a perpendicular yt segment.
                      this.xy[0] = xmid - q*dy;
                      this.xy[1] = ymid + q*dx;
-                     debug_log("XCC: xt="+xt.toFixed(2) + 
-		        ", yt2="+yt2.toFixed(2) + 
-		        ", yt="+yt.toFixed(2) + 
+                     debug_log("XCC: xt="+xt.toFixed(2) +
+		        ", yt2="+yt2.toFixed(2) +
+		        ", yt="+yt.toFixed(2) +
                         ", xy="+xy2str(this.xy));
                 }
             } else {
@@ -760,7 +790,119 @@ $("#fclear").click(function(event){
                 'other': this.other
             };
         },
-    });    
+    });
+
+    var angle = $.extend(true, {}, element, {
+        value: 0.,
+    });
+
+    var angle_3pt = $.extend(true, {}, angle, {
+        depon: [null, null, null],
+        angle_begin: 0.,
+        angle_end: 0.,
+        label_pt_cs: [0., 0.],
+        label_delta: 1.,
+        points_set: function(p0, p1, p2) {
+            this.depon = [p0, p1, p2];
+            return this.update();
+        },
+        update: function() {
+            // Angle of 3-points, (v0,v1,v2) considered as complex numbers:
+            //   v_k = x_k + iy_k  // i = 0,1,2  
+            //
+            //   Angle of:
+            //
+            //     (v2-v1) / (v0 - v1)
+            //     = ((x2 - x1) + i(y2 - y1)) / ((x0 - x1) + i(y0 - y1))
+            //     = ((x2 - x1) + i(y2 - y1)) * ((x0 - x1) - i(y0 - y1))
+            //       / ((x0 - x1)^2+(y0 - y1)^2)
+            //
+            //   is the angle of
+            //     ((x2 - x1) + i(y2 - y1)) * ((x0 - x1) - i(y0 - y1))
+            //     =      (x2 - x1)*(x0 - x1) + (y2 - y1)*(y0 - y1)
+            //       +i( -(x2 - x1)*(y0 - y1) + (x0 - x1)*(y2 - y1)  )
+            var x0 = this.depon[0].xy[0], y0 = this.depon[0].xy[1];
+            var x1 = this.depon[1].xy[0], y1 = this.depon[1].xy[1];
+            var x2 = this.depon[2].xy[0], y2 = this.depon[2].xy[1];
+            this.value = xyxyxy_angle(x0, y0, x1, y1, x2, y2, epsilon);
+            if (this.value === undefined) {
+                this.valid = false;
+                this.value = 0;
+            } else {
+                this.valid = true;
+                var angle_begin = xyxyxy_angle(x1 + 1, y1, x1, y1, x0, y0,
+                    epsilon);
+                var angle_end = xyxyxy_angle(x1 + 1, y1, x1, y1, x2, y2,
+                    epsilon);
+                this.angle_begin = angle_begin;
+                this.angle_end = angle_end;
+                if (angle_begin < 0) { angle_begin += 2*Math.PI; }
+                if (angle_end < 0) { angle_end += 2*Math.PI; }
+                var angle_mid = (angle_begin + angle_end)/2.;
+                if (angle_begin > angle_end) {
+                    angle_mid += (angle_mid < Math.PI ? 1 : -1)*Math.PI;
+                }
+                this.label_pt_cs = 
+                    [Math.cos(angle_mid), Math.sin(angle_mid)];
+                debug_log("Ab="+this.angle_begin + ", Am="+angle_mid +
+                    ", Ae="+this.angle_end + " c="+this.label_pt_cs[0] +
+                    " s="+this.label_pt_cs[1]);
+                var dsq_01 = xy_xy_dist2(this.depon[0], this.depon[1]);
+                var dsq_21 = xy_xy_dist2(this.depon[2], this.depon[1]);
+                this.label_delta = Math.sqrt(Math.min(dsq_01, dsq_21));
+            }
+            debug_log("angle.update: valid="+this.valid + 
+                ", value="+this.value);
+            return this;
+        },
+        str: function() {
+            return "∡(" + digits_sub(this.depon[0].name) + "," +
+                digits_sub(this.depon[1].name) + "," +
+                digits_sub(this.depon[2].name) + ")";
+        },
+        toJSON: function() {
+            return {
+               'type': 'angle',
+               'name': this.name,
+               'pts': [
+                   this.depon[0].name,
+                   this.depon[1].name,
+                   this.depon[2].name]
+            };
+        },
+        draw: function(canvas, ctx) {
+            if (this.valid) {
+                var v1 = this.depon[1];
+                var x1 = v1.xy[0], y1 = v1.xy[1];
+                canvas.arc_draw(ctx, x1, y1, this.angle_begin, this.angle_end);
+            }
+        },
+        distance2_to: function(xy) {
+            var d2 = Number.MAX_VALUE;
+            if (this.valid) {
+                var v1 = this.depon[1];
+                var cs = this.label_pt_cs;
+                var dx = xy[0] - (v1.xy[0] + cs[0]*this.label_delta);
+                var dy = xy[1] - (v1.xy[1] + cs[0]*this.label_delta);
+                d2 = dx*dx + dy*dy;
+            }
+            return d2;
+        },
+        distance_to: function(xy) {
+            var d = Number.MAX_VALUE;
+            if (this.valid) {
+                var d2 = this.distance2_to(xy);
+                d = Math.sqrt(d2);
+            }
+            return d2;
+        },
+        candidate_label_points: function(rect, delta) {
+            var v1 = this.depon[1];
+            var cs = this.label_pt_cs;
+            delta += this.label_delta;
+            return [[v1.xy[0] + cs[0]*delta, v1.xy[1] + cs[1]*delta]];
+        },
+    });
 
     var json_element_create = function(ejson) {
         var e = null;
@@ -809,19 +951,24 @@ $("#fclear").click(function(event){
             e = $.extend(true, {}, point_2circles)
                 .name_set(name)
                 .curves_set(circles[0], circles[1], ejson['other'])
+        } else if (typename === "angle") {
+            var pts = names_to_elements(ejson['pts']);
+            e = $.extend(true, {}, angle_3pt)
+                .name_set(name)
+                .points_set(pts[0], pts[1], pts[1]);
         }
         return e;
     };
 
     var name_to_element = function(name) {
-        return elements.filter(function (e) { 
-            return e.name == name; 
-        })[0]; 
+        return elements.filter(function (e) {
+            return e.name == name;
+        })[0];
     }
     var names_to_elements = function(names) {
-        return names.map(function (name) { 
-            return elements.filter(function (e) { 
-                return e.name == name; })[0]; 
+        return names.map(function (name) {
+            return elements.filter(function (e) {
+                return e.name == name; })[0];
             });
         };
     var selected_index = function() {
@@ -857,13 +1004,13 @@ $("#fclear").click(function(event){
         redraw();
     };
 
-    $("#json-in").click(function () { 
+    $("#json-in").click(function () {
             // debug_log("json-in");
             var es_json;
             try {
                 es_json = JSON.parse($("#json-text")[0].value);
             } catch(ex) {
-                debug_log("ex="+ex); 
+                debug_log("ex="+ex);
                 es_json = [];
             }
             elements = [];
@@ -876,13 +1023,13 @@ $("#fclear").click(function(event){
             }
             redraw();
         });
-    $("#json-out").click(function () { 
+    $("#json-out").click(function () {
             debug_log("json-out");
             var t = $("#json-text")[0];
             t.value = JSON.stringify(elements);
         });
-    var enames = function() { 
-        return elements.map(function(e) { return e.name; }) 
+    var enames = function() {
+        return elements.map(function(e) { return e.name; })
     };
     var element_edit = function(ei) {
         debug_log("element_edit ei="+ei);
@@ -892,7 +1039,7 @@ $("#fclear").click(function(event){
     var element_remove = function(ei) {
         debug_log("element_remove ei="+ei);
         var name = elements[ei].name;
-        for (var i = ei + 1;  
+        for (var i = ei + 1;
             (i < elements.length) && !elements[i].needs(name); i++);
         if (i == elements.length) {
             elements = $.merge(elements.slice(0, ei), elements.slice(ei + 1));
@@ -922,7 +1069,7 @@ $("#fclear").click(function(event){
                 var any_selected = false;
                 var tbl = $("#elements");
                 var tbl0 = tbl[0]
-                // Remove rows, but the title 
+                // Remove rows, but the title
                 while (tbl[0].childNodes.length > 1) {
                     tbl0.removeChild(tbl0.lastChild);
                 }
@@ -932,8 +1079,8 @@ $("#fclear").click(function(event){
                         e = elements[i];
                         any_selected = any_selected || e.selected;
                     } else {
-                        e  = { 
-                            'name': '_', 
+                        e  = {
+                            'name': '_',
                             'str': function() { return '_'; },
                             selected: !any_selected
                         };
@@ -941,7 +1088,7 @@ $("#fclear").click(function(event){
                     var tr = $('<tr>');
                         tr
                         .attr("ei", i)
-                        .addClass("element-row" + 
+                        .addClass("element-row" +
                             (e.selected ? " element-selected" : ""))
                         .append($('<td>')
                             .text(digits_sub(e.name)))
@@ -956,7 +1103,7 @@ $("#fclear").click(function(event){
                                     icons: {
                                         primary: "ui-icon-pencil"
                                     }})
-                                    .click(function(ei) { 
+                                    .click(function(ei) {
                                         return function() { element_edit(ei); }
                                     }(i))
                                 )
@@ -967,9 +1114,9 @@ $("#fclear").click(function(event){
                                     icons: {
                                         primary: "ui-icon-trash"
                                     }})
-                                    .click(function(ei) { 
-                                        return function() { 
-                                            element_remove(ei); 
+                                    .click(function(ei) {
+                                        return function() {
+                                            element_remove(ei);
                                         }
                                     }(i))
                                 )
@@ -980,7 +1127,7 @@ $("#fclear").click(function(event){
                                     icons: {
                                         primary: "ui-icon-arrow-1-n"
                                     }})
-                                    .click(function(ei) { 
+                                    .click(function(ei) {
                                         return function() { element_up(ei); }
                                     }(i))
                                 )
@@ -1006,7 +1153,7 @@ $("#fclear").click(function(event){
         var x0, dx, y0, dy;
         var point_lb, point_rb, point_lt, point_rt;
         var line_left, line_right, line_bottom, line_top;
-        var dtag1, pt_rad, delta_label;
+        var dtag1, pt_rad, angle_rad, delta_label;
         return {
             redraw: function() {
                 var ctx = c.getContext("2d");
@@ -1025,8 +1172,8 @@ $("#fclear").click(function(event){
                     // ctx.font = "Italic 30px";
                     ctx.font = "italic 12pt sans-serif";
                     ctx.textAlign = "center";
-                    ctx.strokeText(digits_sub(e.name), 
-                this.x2canvas(p[0]), this.y2canvas(p[1]));
+                    ctx.strokeText(digits_sub(e.name),
+                        this.x2canvas(p[0]), this.y2canvas(p[1]));
                 }
             },
             axis_draw: function(ctx) {
@@ -1070,7 +1217,7 @@ $("#fclear").click(function(event){
             },
             line_draw: function(ctx, l) {
                 var bdy_pts = []; // boundary points
-                var lines = [this.line_left, this.line_right, 
+                var lines = [this.line_left, this.line_right,
                     this.line_bottom, this.line_top];
                 // debug_log("line_draw: l="+l.str3());
                 for (var i = 0; i < 4; i++) {
@@ -1099,6 +1246,14 @@ $("#fclear").click(function(event){
                 ctx.arc(cxy[0], cxy[1], rc, 0., 2*Math.PI);
                 ctx.stroke();
             },
+            arc_draw: function(ctx, x, y, angle_begin, angle_end) {
+                debug_log("arc_draw: Ab="+angle_begin+", Ae="+angle_end);
+                // in HTML5 angles grow down and clockwise.
+                ctx.beginPath();
+                ctx.arc(this.x2canvas(x), this.y2canvas(y),
+                    angle_rad, -angle_begin, -angle_end, true);
+                ctx.stroke();
+            },
             minmax_set: function() {
                 // debug_log("minmax_set called");
                 var rr = rect_required; // abbreviation
@@ -1120,6 +1275,7 @@ $("#fclear").click(function(event){
                 delta_label = this.canvas2g(
                     Math.max(16, Math.min(c.width, c.height)/0x40));
                 pt_rad = Math.max(3, Math.min(c.width, c.height)/0x200);
+                angle_rad = Math.max(12, Math.min(c.width, c.height)/0x100);
                 // debug_log("x0="+x0 + ", y0="+y0 + ", dx="+dx + ", dy="+dy);
                 this.point_lb = $.extend(true, {}, point).xy_set(x0, y0);
                 this.point_rb = $.extend(true, {}, point).xy_set(x0 + dx, y0);
@@ -1136,10 +1292,10 @@ $("#fclear").click(function(event){
                 this.line_top = $.extend(true, {}, line_2points)
                     .points_set(this.point_lt, this.point_rt);
             },
-            pt2canvas: function(pt) { 
+            pt2canvas: function(pt) {
                 return [this.x2canvas(pt[0]), this.y2canvas(pt[1])];
             },
-            canvas2pt: function(cpt) { 
+            canvas2pt: function(cpt) {
                 return [this.canvas2x(cpt[0]), this.canvas2y(cpt[1])];
             },
             g2canvas: function(d) { return (c.width * d) / dx; },
@@ -1185,7 +1341,7 @@ $("#fclear").click(function(event){
         $("#" + name_xy[i] + "-error").css('display', 'none');
         $("#" + name_xy[i] + "-input").keypress(function (k) {
             return function() {
-               $("#" + name_xy[k] + "-error").css('display', 'none'); 
+               $("#" + name_xy[k] + "-error").css('display', 'none');
             }}(i));
     }
 
@@ -1194,7 +1350,7 @@ $("#fclear").click(function(event){
         autoOpen: false,
         title: "Add Point",
         modal: true,
-        open: function(event, ui) { 
+        open: function(event, ui) {
             debug_log("dlg_point.open cb");
             var edit_mode = dlg_point.data("edit_mode");
             if (edit_mode) {
@@ -1214,7 +1370,7 @@ $("#fclear").click(function(event){
                 var edit_mode = dlg_point.data("edit_mode");
                 var name = $("#pt-name-input").val().trim();
                 var ok = edit_mode ||
-                    (/^[A-Z][0-9]*$/.test(name) && 
+                    (/^[A-Z][0-9]*$/.test(name) &&
                     ($.inArray(name, enames()) < 0));
                 $("#pt-name-error").css('display', ok ? 'none' : 'block');
                 var tabi = add_pt_tabs.tabs("option", "selected");
@@ -1238,13 +1394,13 @@ $("#fclear").click(function(event){
                     var curve01 = [0, 1].map(function (n) {
                         var cname = $("#add-pt-curve" + n).val();
                         // debug_log("n="+n + ", cname="+cname);
-                        return elements.filter(function (e) { 
+                        return elements.filter(function (e) {
                             return e.name == cname; })[0]; });
                     // debug_log("#curve01="+curve01.length + " :="+curve01);
                     if (curve01[0].is_circle()) {
                         if (curve01[1].is_circle()) {
                             pt = $.extend(true, {}, point_2circles)
-                                .curves_set(curve01[0], curve01[1], 
+                                .curves_set(curve01[0], curve01[1],
 				    other);
                         } else {
                             pt = $.extend(true, {}, point_circle_line)
@@ -1258,13 +1414,13 @@ $("#fclear").click(function(event){
                             pt = $.extend(true, {}, point_2lines)
                                 .curves_set(curve01[0], curve01[1]);
                         }
-                    }                    
+                    }
                 }
                 debug_log("dlg_point: ok="+ok);
                 if (ok) {
                     pt.name_set(name);
                     $(this).data('cb')(pt);
-                    $(this).dialog("close"); 
+                    $(this).dialog("close");
                 }
             },
             Cancel: function() { $(this).dialog("close"); }
@@ -1278,7 +1434,7 @@ $("#fclear").click(function(event){
         width: $(window).width()/2,
         height: $(window).height()/2,
         modal: true,
-        open: function(event, ui) { 
+        open: function(event, ui) {
             debug_log("dlg_point.open cb");
             var edit_mode = dlg_line.data("edit_mode");
             var is_seg = dlg_line.data('segment');
@@ -1288,7 +1444,7 @@ $("#fclear").click(function(event){
             } else {
                 lni.removeAttr('disabled');
             }
-            var t = (edit_mode ? "Edit" : "Add") + 
+            var t = (edit_mode ? "Edit" : "Add") +
                 (is_seg ? " Segment" : " Line");
             dlg_line.dialog("option", "title", t);
         },
@@ -1299,8 +1455,8 @@ $("#fclear").click(function(event){
                 var xy = [];
                 var edit_mode = dlg_line.data("edit_mode");
                 var name = $("#line-name-input").val().trim();
-                var ok = edit_mode || 
-                    (/^[a-z][0-9]*$/.test(name) && 
+                var ok = edit_mode ||
+                    (/^[a-z][0-9]*$/.test(name) &&
                     ($.inArray(name, enames()) < 0));
                 $("#line-name-error").css('display', ok ? 'none' : 'block');
                 if (ok) {
@@ -1308,16 +1464,16 @@ $("#fclear").click(function(event){
                     // debug_log("segment?=" + is_seg);
                     var pt01 = [0, 1].map(function (n) {
                         var pt_name = $("#pt" + n + "-select").val();
-                        return elements.filter(function (e) { 
+                        return elements.filter(function (e) {
                             return e.name == pt_name; })[0]; });
                     // debug_log("pt0="+pt01[0].str() + ", pt1="+pt01[1].str());
-                    var ln = $.extend(true, {}, 
+                    var ln = $.extend(true, {},
                         (is_seg ? line_segment : line_2points))
                         .name_set(name)
                         .points_set(pt01[0], pt01[1]);
                     if (ln.valid) {
                         $(this).data('cb')(ln);
-                        $(this).dialog("close"); 
+                        $(this).dialog("close");
                     }
                 }
             },
@@ -1332,7 +1488,7 @@ $("#fclear").click(function(event){
         width: 3*$(window).width()/5,
         height: 3*$(window).height()/5,
         modal: true,
-        open: function(event, ui) { 
+        open: function(event, ui) {
             debug_log("dlg_point.open cb");
             var edit_mode = dlg_circle.data("edit_mode");
             if (edit_mode) {
@@ -1347,29 +1503,90 @@ $("#fclear").click(function(event){
             "OK": function() {
                 var edit_mode = dlg_circle.data("edit_mode");
                 var name = $("#circle-name-input").val().trim();
-                var ok = edit_mode || 
-                    (/^[A-Z][0-9]*$/.test(name) && 
+                var ok = edit_mode ||
+                    (/^[A-Z][0-9]*$/.test(name) &&
                     ($.inArray(name, enames()) < 0));
                 $("#circle-name-error").css('display', ok ? 'none' : 'block');
                 if (ok) {
                     var sel_pfx = $.merge($.merge([], ["#center"]),
                         [0,1].map(function(n) { return "#circle-pt" + n; }));
                     // debug_log("sel_pfx="+sel_pfx);
-                    var c_pt01 = sel_pfx.map(function (pfxn) { 
+                    var c_pt01 = sel_pfx.map(function (pfxn) {
                         var pt_name = $(pfxn + "-select").val();
                         // debug_log("pt_name="+pt_name);
-                        return elements.filter(function (e) { 
+                        return elements.filter(function (e) {
                             return e.name == pt_name; })[0]; });
-                    debug_log0("c="+c_pt01[0] + 
+                    debug_log0("c="+c_pt01[0] +
                         ", pt0="+c_pt01[1].str() + ", pt1="+c_pt01[2].str());
                     var circ = $.extend(true, {}, circle_center_segment)
                         .name_set(name)
                         .center_segment_set(c_pt01[0], c_pt01[1], c_pt01[2]);
                     if (circ.valid) {
                         $(this).data('cb')(circ);
-                        $(this).dialog("close"); 
+                        $(this).dialog("close");
                     } else {
                         error("Bad radius");
+                    }
+                }
+            },
+            Cancel: function() { $(this).dialog("close"); }
+        }
+    });
+
+    var dlg_angle = $("#dlg-angle");
+    $("#kptest").keypad();
+    $(".keypad-popup").css("z-index", 9999);
+    $("#angle-name-input").keypad({
+        "layout": [
+           // see: http://en.wikipedia.org/wiki/Keyboard_layout#Greek
+           //      http://unifont.org/keycurry/KeyCurryIPA.html
+           "0123456789" + $.keypad.BACK,
+           "ςερτυθιοπ" + $.keypad.CLEAR,
+           "ασδφγηξκλ",
+           "ζχψωβνμ" + $.keypad.CLOSE
+        ]
+    });
+    dlg_angle.dialog({
+        autoOpen: false,
+        title: "Add Angle",
+        width: $(window).width()/2,
+        height: $(window).height()/2,
+        modal: true,
+        open: function(event, ui) {
+            debug_log("dlg_angle.open cb");
+            var edit_mode = dlg_angle.data("edit_mode");
+            var lni = $("#angle-name-input");
+            if (edit_mode) {
+                lni.attr('disabled', true);
+            } else {
+                lni.removeAttr('disabled');
+            }
+            var t = (edit_mode ? "Edit" : "Add") + " Angle";
+            dlg_angle.dialog("option", "title", t);
+        },
+        buttons: {
+            "OK": function() {
+                var $this = this;
+                var ok = true;
+                var xy = [];
+                var edit_mode = dlg_angle.data("edit_mode");
+                var name = $("#angle-name-input").val().trim();
+                var ok = edit_mode ||
+                    (/^[α-ψ][0-9]*$/.test(name) &&
+                    ($.inArray(name, enames()) < 0));
+                debug_log("angle-name-error: ok="+ok);
+                $("#angle-name-error").css('display', ok ? 'none' : 'block');
+                if (ok) {
+                    var pts = [0, 1, 2].map(function (n) {
+                        var pt_name = $("#angle-pt" + n + "-select").val();
+                        return elements.filter(function (e) {
+                            return e.name == pt_name; })[0]; });
+                    var a = $.extend(true, {}, angle_3pt)
+                        .name_set(name)
+                        .points_set(pts[0], pts[1], pts[2]);
+                    if (a.valid) {
+                        $(this).data('cb')(a);
+                        $(this).dialog("close");
                     }
                 }
             },
@@ -1382,10 +1599,10 @@ $("#fclear").click(function(event){
         $(".element-name").removeAttr('disabled');
     });
     $("#add-point").click(function() {
-        var si = selected_index(); 
+        var si = selected_index();
         curves_options_set(si);
         dlg_point.data("edit_mode", false);
-        dlg_point.data('cb', function(pt) { 
+        dlg_point.data('cb', function(pt) {
             elements_at_add(si, pt);
             redraw();
         });
@@ -1398,14 +1615,14 @@ $("#fclear").click(function(event){
         $(is_seg_out ? "#add-segment" : "#add-line").click(function(is_seg) {
             return function() {
                 // debug_log("add-line: is_seg="+is_seg);
-                var si = selected_index(); 
+                var si = selected_index();
                 var n_pts = points_options_set(si);
                 if (n_pts < 2) {
                     error("For line, 2 points must be defined");
                 } else {
                     dlg_line.data("segment", is_seg);
                     dlg_line.data("edit", false);
-                    dlg_line.data('cb', function(ln) { 
+                    dlg_line.data('cb', function(ln) {
                         elements_at_add(si, ln);
                         redraw();
                     });
@@ -1416,19 +1633,36 @@ $("#fclear").click(function(event){
     }
 
     $("#add-circle").click(function() {
-        var si = selected_index(); 
+        var si = selected_index();
         var n_pts = points_options_set(si);
         if (n_pts < 2) {
             error("For circle, 2 points must be defined");
         } else {
             dlg_circle.data('edit_mode', false);
-            dlg_circle.data('cb', function(circ) { 
+            dlg_circle.data('cb', function(circ) {
                 elements_at_add(si, circ);
                 redraw();
             });
             dlg_circle.dialog("open");
         }
     });
+
+    $("#add-angle").click(function() {
+        var si = selected_index();
+        var n_pts = points_options_set(si);
+        if (n_pts < 3) {
+            error("For circle, 3 points must be defined");
+        } else {
+            dlg_angle.data('edit_mode', false);
+            dlg_angle.data('cb', function(a) {
+                elements_at_add(si, a);
+                redraw();
+            });
+            dlg_angle.dialog("open");
+        }
+    });
+
+    $(".name-error").css("display", "none");
     redraw();
 
 });
