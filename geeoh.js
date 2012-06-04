@@ -1,5 +1,5 @@
-(function(){
-  "use strict";
+(function () {
+    "use strict";
 
 var debug_win = undefined;
 
@@ -63,7 +63,7 @@ function xyxyxy_angle(x0, y0, x1, y1, x2, y2, epsilon) {
     if (Math.abs(x) + Math.abs(y) > epsilon) {
         ret = Math.atan2(y, x); // in HTML5 y grows down
     }
-    debug_log("xy=("+x+","+y+")"+", ret="+ret);
+    debug_log("xy=("+x+","+y+")"+", ret="+ret.toFixed(2));
     return ret;
 }
 
@@ -292,7 +292,7 @@ $("#fclear").click(function(event){
                     best = cpt;
                 }
             }
-            debug_log("  BLP: best="+best);
+            debug_log("  BLP: best="+(best === null ? "null" : xy2str(best)));
             return best;
         }
     };
@@ -476,7 +476,7 @@ $("#fclear").click(function(event){
         //   = x1y1-x0y1-x1y1+x1y0 = x1y0 - x0y1
         update: function() {
             var p0 = this.depon[0], p1 = this.depon[1];
-            debug_log("L2Ps update: p0="+p0.str() + ", p1="+p1.str());
+            // debug_log("L2Ps update: p0="+p0.str() + ", p1="+p1.str());
             var x0 = p0.xy[0], y0 = p0.xy[1], x1 = p1.xy[0], y1 = p1.xy[1];
             this.abc_set(y1 - y0, x0 - x1, x1*y0 - x0*y1);
             return this;
@@ -844,15 +844,18 @@ $("#fclear").click(function(event){
                 }
                 this.label_pt_cs = 
                     [Math.cos(angle_mid), Math.sin(angle_mid)];
-                debug_log("Ab="+this.angle_begin + ", Am="+angle_mid +
-                    ", Ae="+this.angle_end + " c="+this.label_pt_cs[0] +
-                    " s="+this.label_pt_cs[1]);
-                var dsq_01 = xy_xy_dist2(this.depon[0], this.depon[1]);
-                var dsq_21 = xy_xy_dist2(this.depon[2], this.depon[1]);
-                this.label_delta = Math.sqrt(Math.min(dsq_01, dsq_21));
+                debug_log("Ab="+this.angle_begin + 
+                    ", Am="+angle_mid.toFixed(2) +
+                    ", Ae="+this.angle_end.toFixed(2) + 
+                    " c="+this.label_pt_cs[0].toFixed(2) +
+                    " s="+this.label_pt_cs[1].toFixed(2));
+                var dsq_01 = xy_xy_dist2(this.depon[0].xy, this.depon[1].xy);
+                var dsq_21 = xy_xy_dist2(this.depon[2].xy, this.depon[1].xy);
+                this.label_delta = Math.sqrt(Math.min(dsq_01, dsq_21))/6.;
+                debug_log("label_delta="+this.label_delta);
             }
             debug_log("angle.update: valid="+this.valid + 
-                ", value="+this.value);
+                ", value="+this.value.toFixed(2));
             return this;
         },
         str: function() {
@@ -883,8 +886,11 @@ $("#fclear").click(function(event){
                 var v1 = this.depon[1];
                 var cs = this.label_pt_cs;
                 var dx = xy[0] - (v1.xy[0] + cs[0]*this.label_delta);
+                debug_log0("dx="+dx+", xy="+xy2str(xy)+", cs="+xy2str(cs)+
+                    ", label_delta="+this.label_delta);
                 var dy = xy[1] - (v1.xy[1] + cs[0]*this.label_delta);
                 d2 = dx*dx + dy*dy;
+                debug_log("A.d2to: d2="+d2.toFixed(2));
             }
             return d2;
         },
@@ -955,7 +961,7 @@ $("#fclear").click(function(event){
             var pts = names_to_elements(ejson['pts']);
             e = $.extend(true, {}, angle_3pt)
                 .name_set(name)
-                .points_set(pts[0], pts[1], pts[1]);
+                .points_set(pts[0], pts[1], pts[2]);
         }
         return e;
     };
@@ -1167,13 +1173,17 @@ $("#fclear").click(function(event){
                 for (var i = 0; i < elements.length; i++) {
                     var e = elements[i];
                     // debug_log("canvas.redraw: e["+i+"]=" + e);
-                    e.draw(this, ctx);
-                    var p = e.best_label_point(elements, rect, delta_label);
-                    // ctx.font = "Italic 30px";
-                    ctx.font = "italic 12pt sans-serif";
-                    ctx.textAlign = "center";
-                    ctx.strokeText(digits_sub(e.name),
-                        this.x2canvas(p[0]), this.y2canvas(p[1]));
+                    if (e.valid) {
+                        e.draw(this, ctx);
+                        var p = e.best_label_point(elements, rect, delta_label);
+                        if (p !== null) {
+                            // ctx.font = "Italic 30px";
+                            ctx.font = "italic 12pt sans-serif";
+                            ctx.textAlign = "center";
+                            ctx.strokeText(digits_sub(e.name),
+                                this.x2canvas(p[0]), this.y2canvas(p[1]));
+                        }
+                    }
                 }
             },
             axis_draw: function(ctx) {
@@ -1247,7 +1257,8 @@ $("#fclear").click(function(event){
                 ctx.stroke();
             },
             arc_draw: function(ctx, x, y, angle_begin, angle_end) {
-                debug_log("arc_draw: Ab="+angle_begin+", Ae="+angle_end);
+                debug_log("arc_draw: Ab="+angle_begin.toFixed(2)+
+                    ", Ae="+angle_end.toFixed(2));
                 // in HTML5 angles grow down and clockwise.
                 ctx.beginPath();
                 ctx.arc(this.x2canvas(x), this.y2canvas(y),
