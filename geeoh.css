@@ -2,11 +2,28 @@
 
 .tab-pref, .tr-pref, .td-pref
 {
-  border: 0px;
+  border: 0;
 }
 
-/* #elements */
-table, th, td
+.td-pref-sub
+{
+  width: 40%;
+}
+
+.td-pref-left
+{
+  padding-left: 24px;
+}
+
+/* table, th, td */
+#elements-box,
+#elements-box table,
+#elements-box tr,
+#elements-box td,
+#expressions-box,
+#expressions-box table,
+#expressions-box tr,
+#expressions-box td
 {
   border: 2px solid black;
 }

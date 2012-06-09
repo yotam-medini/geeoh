@@ -1061,19 +1061,32 @@
                     es_json = [];
                 }
                 elements = [];
+                var json_elements = es_json['elements'];
                 // debug_log("|e|="+es_json.length);
-                for (var i = 0; i < es_json.length; i++) {
-                    var e = json_element_create(es_json[i]);
+                for (var i = 0; i < json_elements.length; i++) {
+                    var e = json_element_create(json_elements[i]);
                     if (e !== null) {
                         elements.push(e);
                     }
+                }
+                expressions = [];
+                var json_expressions = es_json['expressions'];
+                for (var i = 0; i < json_expressions.length; i++) {
+                    var e = $.extend(true, {}, expression)
+                        .set(json_expressions[i]);
+                    expressions.push(e);
                 }
                 redraw();
             });
         $("#json-out").click(function () {
                 debug_log("json-out");
                 var t = $("#json-text")[0];
-                t.value = JSON.stringify(elements);
+                // t.value = JSON.stringify(elements);
+                var d = {
+                    'elements': elements,
+                    'expressions': expressions,
+                };
+                t.value = JSON.stringify(d);
             });
         var enames = function () {
             return elements.map(function (e) { return e.name; })
@@ -1864,6 +1877,9 @@
                 jst = jst.replace(re, v);
                 debug_log("name2value: return jst="+jst);
                 return jst;
+            },
+            toJSON: function () {
+                return this.user_text;
             }
         };
 

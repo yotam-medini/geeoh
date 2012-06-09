@@ -3,13 +3,13 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Gee Oh!</title>
     <link rel="stylesheet" type="text/css" href="geeoh.css"/>
-    <link rel="stylesheet" 
+    <link rel="stylesheet"
         href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/base/jquery-ui.css" />
     <link rel="stylesheet" href="jquery.keypad.css" />
-    <script type="text/javascript" 
+    <script type="text/javascript"
       src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js">
     </script>
-    <script type="text/javascript" 
+    <script type="text/javascript"
       src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js">
     </script>
     <script type="text/javascript" src="jquery.keypad.min.js"></script>
@@ -19,7 +19,7 @@
     <h1>Geometry Exploration Environment &mdash; Off Hand!</h1>
     <div id="toolbar">
       <ul>
-        <li><a href="#tab-add"><span>Add Element</span></a></li>
+        <li><a href="#tab-add"><span>Add</span></a></li>
         <li><a href="#tab-pref"><span>Preferences</span></a></li>
         <li><a href="#tab-io"><span>I/O</span></a></li>
         <li><a href="#tab-help"><span>Help</span></a></li>
@@ -39,16 +39,50 @@
         </table>
       </div>
       <div id="tab-pref">
-        <table  class="tab-pref">
-          <tr class="tr-pref">
-            <td class="td-pref">
-              <input id="check-axes" type="checkbox"
-                title="Draw axes?"/>
+        <table class="tab-pref" border="0">
+          <tr border="0">
+            <td class="td-pref-sub" border="0">
+              <table class="tab-pref" border="0">
+                <tr class="tr-pref">
+                  <td class="td-pref" class="td-pref-left">
+                    <input id="check-axes" type="checkbox"
+                      title="Draw axes?"/>
+                  </td>
+                  <td class="td-pref">Axes</td>
+                </tr>
+                <tr class="tr-pref">
+                  <td class="td-pref" class="td-pref-left">
+                    <input id="check-expjs" type="checkbox"
+                      title="Show Javascript translation&#013of expressions"/>
+                  </td>
+                  <td class="td-pref">Javascript Expression</td>
+                </tr>
+              </table>
             </td>
-            <td class="td-pref">Axes</td>
-          </tr>
-          <tr class="tr-pref">
-            <td class="td-pref"><button id="b-limits">Limits…</button></td>
+            <td class="td-pref-sub">
+              <table class="tab-pref" border="0">
+                <tr class="tr-pref">
+                  <td class="td-pref" class="td-pref-left">
+                    <button id="b-limits">Limits…</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="td-pref" class="td-pref-left">Precision</td>
+                  <td class="td-pref">
+                    <select id="select-precision">
+                      <option value="0">0</option>
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                      <option value="4">4</option>
+                      <option value="5">5</option>
+                      <option value="6">6</option>
+                      <option value="-1">Unlimited</option>
+                    </select>
+                  </td>
+                </tr>
+              </table>
+            </td>
           </tr>
         </table>
       </div>
@@ -85,7 +119,7 @@
           </td>
           <td>
             <span id="pt-name-error"
-               class="ui-icon ui-icon-alert" 
+               class="ui-icon ui-icon-alert"
                style="float: left; margin-right:.3em;">
             </span>
           </td>
@@ -101,7 +135,7 @@
             <tr><td>X</td><td><input id="x-input" size="5"></td>
               <td>
                 <span id="x-error"
-                   class="ui-icon ui-icon-alert" 
+                   class="ui-icon ui-icon-alert"
                    style="float: left; margin-right:.3em;">
                 </span>
               </td>
@@ -109,7 +143,7 @@
             <tr><td>Y</td><td><input id="y-input" size="5"></td>
               <td>
                 <span id="y-error"
-                   class="ui-icon ui-icon-alert" 
+                   class="ui-icon ui-icon-alert"
                    style="float: left; margin-right:.3em;">
                 </span>
               </td>
@@ -119,9 +153,9 @@
         <div id="add-pt-intersection">
           <table>
             <tr>
-              <td><select id="add-pt-curve0" class="curve-select"></select></td>
+              <td><selepicct id="add-pt-curve0" class="curve-select"></select></td>
               <td rowspan="2">
-                <input id="other" type="checkbox" 
+                <input id="other" type="checkbox"
                    title="Take other solution&#xA;(in case of a circle)." />
               </td>
             </tr>
@@ -140,7 +174,7 @@
           </td>
           <td>
             <span id="line-name-error"
-               class="ui-icon ui-icon-alert" 
+               class="ui-icon ui-icon-alert"
                style="float: left; margin-right:.3em;">
             </span>
           </td>
@@ -162,7 +196,7 @@
             </td>
             <td>
               <span id="circle-name-error"
-                 class="ui-icon ui-icon-alert" 
+                 class="ui-icon ui-icon-alert"
                  style="float: left; margin-right:.3em;">
               </span>
             </td>
@@ -205,7 +239,7 @@
           </td>
           <td>
             <span id="angle-name-error"
-               class="ui-icon ui-icon-alert name-error" 
+               class="ui-icon ui-icon-alert name-error"
                style="float: left; margin-right:.3em;">
             </span>
           </td>
@@ -286,7 +320,7 @@
     </table>
     <div style="display:none" id="div-dialog-error">
       <p>
-        <span class="ui-icon ui-icon-alert" 
+        <span class="ui-icon ui-icon-alert"
               style="float:left; margin:0 7px 20px 0;">
         </span>
         <span id="errormsg"></span>
@@ -294,7 +328,7 @@
     </div>
     <div style="display:none" id="div-dialog-warning">
       <p>
-        <span class="ui-icon ui-icon-info" 
+        <span class="ui-icon ui-icon-info"
               style="float:left; margin:0 7px 20px 0;">
         </span>
         <span id="warnmsg"></span>
