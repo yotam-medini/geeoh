@@ -541,6 +541,7 @@
             super_update: line_2points.update,
             length: 0.,
             update: function () {
+                var i;
                 var A = this.depon[0].xy, B = this.depon[1].xy;
                 var dx = B[0] - A[0];
                 var dy = B[1] - A[1];
@@ -548,7 +549,9 @@
                 this.length = Math.sqrt(d2);                
                 // debug_log("line_segment.update 1");
                 this.super_update();
-                // debug_log("line_segment.update 2");
+                debug_log("line_segment.update 2, |expressions|="+
+                    expressions.length);
+                $.each(expressions, function (i, e) { e.dirty = true; });
                 return this;
             },
             is_segment: function () { return true; },
@@ -889,6 +892,7 @@
                     var dsq_21 = xy_xy_dist2(v[2].xy, v[1].xy);
                     this.label_delta = Math.sqrt(Math.min(dsq_01, dsq_21))/6.;
                     debug_log("label_delta="+this.label_delta);
+                    $.each(expressions, function (i, e) { e.dirty = true; });
                 }
                 debug_log("angle.update: valid="+this.valid +
                     ", value="+this.value.toFixed(2));
@@ -1382,10 +1386,6 @@
         }();
 
         $("#check-axes").click(function () { canvas.redraw(); });
-        var redraw = function () {
-            canvas.redraw();
-            etable.redraw();
-        };
 
         canvas.redraw();
         ec.mousemove(function (e) {
@@ -1820,7 +1820,6 @@
         });
 
         $(".name-error").css("display", "none");
-        redraw();
 
         var expression = {
             user_text: "0",
@@ -1859,14 +1858,10 @@
                }
             },
             name2value: function (jst, s, v) {
-                var i;
-                var non_letters = "[^A-Za-zα-ψ0-9]";
-                var sre = "(?^|" + non_letters + ")(" + 
-                    s + ")(?$|" + non_letters + ")";
+                var sre = "\\b(" + s + ")\\b";
                 var re = new RegExp(sre, "g");
-                debug_log("name2value: jst="+jst + ", s="+s + ", v="+v +
-                    ", result.length="+result.length);
-                jst.replace(re, v);
+                debug_log("name2value: jst="+jst + ", s="+s + ", v="+v);
+                jst = jst.replace(re, v);
                 debug_log("name2value: return jst="+jst);
                 return jst;
             }
@@ -1907,6 +1902,14 @@
                 }
             }
         }();
+
+        var redraw = function () {
+            canvas.redraw();
+            etable.redraw();
+            extable.redraw();
+        };
+        redraw();
+
 
     });
 
