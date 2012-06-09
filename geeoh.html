@@ -25,38 +25,53 @@
         <li><a href="#tab-help"><span>Help</span></a></li>
       </ul>
       <div id="tab-add">
-	<table id="tool-box">
-	  <tr>
-	    <td><button id="add-point" class="add">+ Point</button></td>
-	    <td><button id="add-line" class="add">+ Line</button></td>
-	    <td><button id="add-segment" class="add">+ Segment</button></td>
-	    <td><button id="add-circle" class="add">+ Circle</button></td>
-	    <td><button id="add-angle" class="add">+ Angle</button></td>
-	  </tr>
-	</table>
+        <table id="tool-box">
+          <tr>
+            <td><button id="add-point" class="add">+ Point</button></td>
+            <td><button id="add-line" class="add">+ Line</button></td>
+            <td><button id="add-segment" class="add">+ Segment</button></td>
+            <td><button id="add-circle" class="add">+ Circle</button></td>
+            <td><button id="add-angle" class="add">+ Angle</button></td>
+            <td>
+              <button id="add-expression" class="add">+ Expression</button>
+            </td>
+          </tr>
+        </table>
       </div>
       <div id="tab-pref">
-        Preferences ...
+        <table  class="tab-pref">
+          <tr class="tr-pref">
+            <td class="td-pref">
+              <input id="check-axes" type="checkbox"
+                title="Draw axes?"/>
+            </td>
+            <td class="td-pref">Axes</td>
+          </tr>
+          <tr class="tr-pref">
+            <td class="td-pref"><button id="b-limits">Limits…</button></td>
+          </tr>
+        </table>
       </div>
       <div id="tab-io">
-	<table>
-	  <tr>
-	    <td>
-	      <table>
-		<tr>
-		  <td><button id="json-in" type="button">JSON in</button></td>
-		</tr>
-		<tr>
-		  <td><button id="json-out" type="button">JSON out</button></td>
-		</tr>
-	      </table>
-	    </td>
-	    <td><textarea id="json-text" col="50"></textarea></td>
-	  </tr>
-	</table>
+        <table>
+          <tr>
+            <td>
+              <table>
+                <tr>
+                  <td><button id="json-in" type="button">JSON in</button></td>
+                </tr>
+                <tr>
+                  <td><button id="json-out" type="button">JSON out</button></td>
+                </tr>
+              </table>
+            </td>
+            <td><textarea id="json-text" col="50"></textarea></td>
+          </tr>
+        </table>
       </div>
       <div id="tab-help">
         Help is on its way
+        <a href="geeoh-help.html" target="_blank">See more…</a>.
       </div>
     </div>
     <center id="canvas-center">
@@ -83,7 +98,7 @@
         </ul>
         <div id="add-pt-absulte">
           <table>
-            <tr><td>X</td><td><input id="x-input"></td>
+            <tr><td>X</td><td><input id="x-input" size="5"></td>
               <td>
                 <span id="x-error"
                    class="ui-icon ui-icon-alert" 
@@ -91,7 +106,7 @@
                 </span>
               </td>
             </tr>
-            <tr><td>Y</td><td><input id="y-input"></td>
+            <tr><td>Y</td><td><input id="y-input" size="5"></td>
               <td>
                 <span id="y-error"
                    class="ui-icon ui-icon-alert" 
@@ -107,7 +122,7 @@
               <td><select id="add-pt-curve0" class="curve-select"></select></td>
               <td rowspan="2">
                 <input id="other" type="checkbox" 
-		   title="Take other solution&#xA;(in case of a circle)." />
+                   title="Take other solution&#xA;(in case of a circle)." />
               </td>
             </tr>
             <tr>
@@ -206,20 +221,67 @@
         </tr>
       </table>
     </div>
+    <div id="dlg-expression" rows="3" cols="60">
+       <textarea title="Enter mathematical expression" id="expression-input">
+       1+2+3
+       </textarea>
+    </div>
+    <div id="dlg-limits">
+      <table id="tbl-limits-input">
+        <tr>
+          <td>X: </td>
+          <td>min</td><td><input id="xmin" size="5"></td>
+          <td>
+            <span id="xmin-error" class="ui-icon ui-icon-alert xymm"</span>
+          </td>
+          <td>Max</td><td><input id="xmax" size="5"></td>
+          <td>
+            <span id="xmax-error" class="ui-icon ui-icon-alert xymm"</span>
+          </td>
+        </tr>
+        <tr>
+          <td>Y: </td>
+          <td>min</td><td><input id="ymin" size="5"></td>
+          <td>
+            <span id="ymin-error" class="ui-icon ui-icon-alert xymm"</span>
+          </td>
+          <td>Max</td><td><input id="ymax" size="5"></td>
+          <td>
+            <span id="ymax-error" class="ui-icon ui-icon-alert xymm"</span>
+          </td>
+        </tr>
+      </table>
+    </div>
     <table id="elements-box">
       <tr>
-	<th colspan="2">
-	  <button id="elements-toggle" title="Elements Expand/Collapse">E
-	  </button>
-	  Elements
-	</th>
+        <th colspan="2">
+          <button id="elements-toggle" title="Elements Expand/Collapse">E
+          </button>
+          Elements
+        </th>
       </tr>
       <tr>
-	<td>
-	  <table id="elements">
-	    <tr><th>Name</th><th>Value</th></tr>
-	  </table>
-	</td>
+        <td>
+          <table id="elements">
+            <tr><th>Name</th><th>Value</th></tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+    <table id="expressions-box">
+      <tr>
+        <th colspan="2">
+          <button id="expressions-toggle" title="Expressions Expand/Collapse">E
+          </button>
+          Expressions
+        </th>
+      </tr>
+      <tr>
+        <td>
+          <table id="expressions">
+            <tr><th>Math/JS</th><th>Value</th></tr>
+          </table>
+        </td>
       </tr>
     </table>
     <div style="display:none" id="div-dialog-error">

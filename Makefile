@@ -1,5 +1,11 @@
 # 
 
+ifneq ($(emv),)
+emv:
+	@echo $($(emv))
+endif
+
+
 SRCS = \
 	Makefile \
 	geeoh.html \
@@ -8,7 +14,8 @@ SRCS = \
 
 SRCS += fslocal.html fslocal.js
 
-TGZ = /tmp/geeoh.tgz
+TGZDIR = /tmp
+TGZ = ${TGZDIR}/geeoh.tgz
 
 
 lgeeoh.html: Makefile geeoh.html

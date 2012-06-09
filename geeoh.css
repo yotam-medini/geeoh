@@ -1,9 +1,22 @@
 /* styles for geeoh */
 
+.tab-pref, .tr-pref, .td-pref
+{
+  border: 0px;
+}
+
 /* #elements */
-table,th, td
+table, th, td
 {
   border: 2px solid black;
+}
+
+.xymm
+{
+  float: left;
+  margin-right: .3em;
+  // foreground: red;
+  background: red;
 }
 
 .element-selected
@@ -15,7 +28,15 @@ table,th, td
 {
   /* float:left; */
   position:absolute;
-  top:60%;
+  top:50%;
+  left:10%;
+}
+
+#expressions-box
+{
+  /* float:left; */
+  position:absolute;
+  top:70%;
   left:10%;
 }
 

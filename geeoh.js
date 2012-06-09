@@ -6,29 +6,27 @@
     function debug_log0(message) {}
 
     function debug_log(message) {
-        if (!debug_win)
-        {
+        var c, html, entry;
+        if (!debug_win) {
             debug_win = window.open("about:blank", "GeeOH-Debug",
                 "width=300,height=300,scrollbars=1,resizable=1");
-            var html = "<html><head><title>GeeOH Debug</title></head><body>" +
+            html = "<html><head><title>GeeOH Debug</title></head><body>" +
                 '<div id="debug">Hello1<br></div>' +
                 "</body></html>";
             debug_win.document.open();
             debug_win.document.write(html);
             debug_win.document.close();
         }
-        var c = debug_win.document.getElementById("debug");
-        if (c)
-        {
-            var entry = document.createElement("div");
+        c = debug_win.document.getElementById("debug");
+        if (c) {
+            entry = document.createElement("div");
             entry.appendChild(document.createTextNode(message));
             c.appendChild(entry);
         }
     }
 
     function af(a, n) {
-        var s = "";
-        var sep = "";
+        var s = "", sep = "";
         for (var i = 0; i < a.length; i++) {
             s += sep + a[i].toFixed(n);
             sep = ", ";
@@ -183,6 +181,8 @@
         debug_log("my geeoh ready begin");
         $("#toolbar").tabs({collapsible: true});
 
+        $("#check-axes").prop("checked", true);
+
         var w = $(window).width();
         var h = $(window).height();
         debug_log("w="+w + ", h="+h);
@@ -199,8 +199,12 @@
         var pointer = $("#pointer").draggable();
         $("#tool-box").draggable();
         $("#elements-box").draggable();
+        $("#expressions-box").draggable();
         $("#elements-toggle").click(function () {
              $("#elements").slideToggle();
+        });
+        $("#expressions-toggle").click(function () {
+             $("#expressions").slideToggle();
         });
 
         var dlg_point = $("#dlg-point");
@@ -276,6 +280,7 @@
                 }
                 return found;
             },
+            scalar: function () { return null; },
             is_point: function () { return false; },
             is_segment: function () { return false; },
             is_circle: function () { return false; },
@@ -338,17 +343,13 @@
                     $("#" + sxy[i] + "-input").val(this.xy[i]);
                 }
             },
-            str: function () { return this.str2(); },
+            str: function () { return "•" + paf(this.xy, 2); },
             toJSON: function () {
                 return {
                     'type': 'point',
                     'name': this.name,
                     'xy': this.xy
                 };
-            },
-            str2: function () {
-               return "("+this.xy[0].toFixed(2) +
-                   ", " + this.xy[1].toFixed(2) + ")";
             },
             draw: function (canvas, ctx) {
                 if (this.valid) { canvas.point_draw(ctx, this); }
@@ -485,6 +486,7 @@
             //   = x1y0-x0y0-x0y1+x0y0 = x1y0 - x0y1
             //   = x1y1-x0y1-x1y1+x1y0 = x1y0 - x0y1
             update: function () {
+                debug_log0("line_2points.update");
                 var p0 = this.depon[0], p1 = this.depon[1];
                 // debug_log("L2Ps update: p0="+p0.str() + ", p1="+p1.str());
                 var x0 = p0.xy[0], y0 = p0.xy[1], x1 = p1.xy[0], y1 = p1.xy[1];
@@ -522,8 +524,8 @@
                 return inside;
             },
             str: function () {
-                return "-(" + digits_sub(this.depon[0].name) + ", " +
-                    digits_sub(this.depon[1].name) + ")-";
+                return "⤎(" + digits_sub(this.depon[0].name) + ", " +
+                    digits_sub(this.depon[1].name) + ")⤏";
             },
             typename: function () { return 'line_2points'; },
             toJSON: function () {
@@ -536,12 +538,28 @@
         });
 
         var line_segment = $.extend(true, {}, line_2points, {
+            super_update: line_2points.update,
+            length: 0.,
+            update: function () {
+                var A = this.depon[0].xy, B = this.depon[1].xy;
+                var dx = B[0] - A[0];
+                var dy = B[1] - A[1];
+                var d2 = dx*dx + dy*dy;
+                this.length = Math.sqrt(d2);                
+                // debug_log("line_segment.update 1");
+                this.super_update();
+                // debug_log("line_segment.update 2");
+                return this;
+            },
             is_segment: function () { return true; },
             str: function () {
                 return "[" + digits_sub(this.depon[0].name) + ", " +
                     digits_sub(this.depon[1].name) + "]"; },
             draw: function (canvas, ctx) {
                 canvas.segment_draw(ctx, this.depon[0], this.depon[1]);
+            },
+            scalar: function () { 
+                return this.length;
             },
             candidate_label_points: function (rect, delta) {
                 var mid = $.extend(true, {}, point)
@@ -616,8 +634,8 @@
                 }
             },
             str: function () {
-                return "⨉(" + this.depon[0].name + ", " +
-                    this.depon[1].name + ")";
+                return "⨉(" + digits_sub(this.depon[0].name) + ", " +
+                    digits_sub(this.depon[1].name) + ")";
             },
             toJSON: function () {
                 return {
@@ -677,8 +695,9 @@
                 dlg_circle.dialog("open");
             },
             str: function () {
-               return "⊙(" + this.depon[0].name + ", [" +
-                   this.depon[1].name + ", " + this.depon[2].name + "])";
+               return "⊙(" + digits_sub(this.depon[0].name) + ", [" +
+                   digits_sub(this.depon[1].name) + ", " + 
+                   digits_sub(this.depon[2].name) + "])";
             },
             toJSON: function () {
                 return {
@@ -729,8 +748,8 @@
                 }
             },
             str: function () {
-                return "⨉(⊙" + this.depon[0].name + ", " +
-                    this.depon[1].name + ")";
+                return "⨉(⊙" + digits_sub(this.depon[0].name) + ", " +
+                    digits_sub(this.depon[1].name) + ")";
             },
             toJSON: function () {
                 return {
@@ -794,8 +813,8 @@
             },
             tabi: 1,
             str: function () {
-                return "⨉(⊙" + this.depon[0].name + ", " +
-                    "⊙" + this.depon[1].name + ")";
+                return "⨉(⊙" + digits_sub(this.depon[0].name) + ", " +
+                    "⊙" + digits_sub(this.depon[1].name) + ")";
             },
             toJSON: function () {
                 return {
@@ -809,6 +828,7 @@
 
         var angle = $.extend(true, {}, element, {
             value: 0.,
+            scalar: function () { return value; }
         });
 
         var angle_3pt = $.extend(true, {}, angle, {
@@ -1182,13 +1202,21 @@
             var line_left, line_right, line_bottom, line_top;
             var dtag1, pt_rad, angle_rad, delta_label;
             return {
+                rect_get: function () { return rect_required; },
+                rect_set: function (rectnew) {
+                    rect_required = rectnew;
+                    debug_log("rect_required="+rect_required);
+                    this.redraw();
+                },
                 redraw: function () {
                     var ctx = c.getContext("2d");
                     ctx.clearRect(0, 0, w, h);
                     ctx.fillStyle = "#d7d7d7";
                     ctx.fillRect(0, 0, w, h);
                     this.minmax_set();
-                    this.axis_draw(ctx);
+                    if ($("#check-axes").prop("checked")) {
+                        this.axis_draw(ctx);
+                    }
                     // debug_log("|elements|="+elements.length);
                     var rect = [ [x0, x0 + dx], [y0, y0 + dy] ];
                     for (var i = 0; i < elements.length; i++) {
@@ -1353,6 +1381,7 @@
             };
         }();
 
+        $("#check-axes").click(function () { canvas.redraw(); });
         var redraw = function () {
             canvas.redraw();
             etable.redraw();
@@ -1629,6 +1658,94 @@
             }
         });
 
+        debug_log("dlg-expression: #"+$("#dlg-expression")[0]);
+        var dlg_expression = $("#dlg-expression");
+        $(".keypad-popup").css("z-index", 99999);
+        $("#expression-input").keypad({
+            keypadOnly: false,
+            "layout": [
+               "ςερτυθιοπ" + $.keypad.CLEAR,
+               "ασδφγηξκλ",
+               "ζχψωβνμ" + $.keypad.CLOSE
+            ]
+        });
+        dlg_expression.dialog({
+            autoOpen: false,
+            title: "Add Expression",
+            width: $(window).width()/2,
+            height: $(window).height()/2,
+            modal: true,
+            open: function (event, ui) {
+                debug_log("dlg_expression.open cb");
+                var edit_mode = dlg_expression.data("edit_mode");
+                var t = (edit_mode ? "Edit" : "Add") + " Expression";
+                dlg_expression.dialog("option", "title", t);
+            },
+            buttons: {
+                "OK": function () {
+                    var e = $.extend(true, {}, expression)
+                        .set($("#expression-input").val());
+                    expressions.push(e);
+                    $(this).dialog("close");
+                    extable.redraw();
+                },
+                Cancel: function () { $(this).dialog("close"); }
+            }
+        });
+
+        var dlg_limits = $("#dlg-limits");
+        dlg_limits.dialog({
+            autoOpen: false,
+            title: "Set Limits Angle",
+            width: $(window).width()/2,
+            height: $(window).height()/2,
+            modal: true,
+            open: function (event, ui) {
+                var i, j, xymm;
+                var rect = canvas.rect_get();
+                debug_log("dlg-limits.open cb");
+                for (i = 0; i < 2; i++) {
+                    for (j = 0; j < 2; j++) {
+                       xymm = "xy".substr(i, 1) + ["min", "max"][j];
+                       $("#" + xymm).val(rect[i][j]);
+                       $("#" + xymm + "-error").css("display", "none");
+                    }
+                }
+            },
+            buttons: {
+                "OK": function () {
+                    var i, j, xymm, s, v, err, allok = true;
+                    var rectnew = [[null, null], [null, null]];
+                    for (i = 0; i < 2; i++) {
+                        for (j = 0; j < 2; j++) {
+                           xymm = "xy".substr(i, 1) + ["min", "max"][j];
+                           s = $("#" + xymm).val();
+                           debug_log("i="+i+", j="+j+", s="+s);
+                           err = isNaN(s);
+                           if (!err) {
+                              rectnew[i][j] = v = Number(s);
+                              err = !(j === 0 ? v <= -1. : v >= 1.);
+                              if (err) { allok = false; }
+                           }
+                           $("#" + xymm + "-error")
+                               .css("display", err ? "block" : "none");
+                        }
+                    }
+                    debug_log("allok="+allok);
+                    if (allok) {
+                        canvas.rect_set(rectnew);
+                        $(this).dialog("close");
+                    }
+                },
+                Cancel: function () { $(this).dialog("close"); }
+            }
+        });
+
+        $("#b-limits").click(function () { 
+            debug_log("b-limits");
+            dlg_limits.dialog("open"); 
+        });
+
         $(".add").click(function () {
             debug_log("element_edit: re-enable input name=");
             $(".element-name").removeAttr('disabled');
@@ -1698,8 +1815,98 @@
             }
         });
 
+        $("#add-expression").click(function () {
+            dlg_expression.dialog("open");
+        });
+
         $(".name-error").css("display", "none");
         redraw();
+
+        var expression = {
+            user_text: "0",
+            valid: true,
+            js_text: "0",
+            value: 0,
+            dirty: false,
+            set: function (text) {
+                this.user_text = text;
+                debug_log("expression.set: user_text="+this.user_text);
+                this.dirty = true;
+                return this;
+            },
+            evaluate: function (elements) {
+               var ei, e, v;
+               if (this.dirty) {
+                   var mathfuns = /(cos|sin|tan|acos|asin|atan|sqrt)/g;
+                   var jst = this.user_text;
+                   this.dirty = false;
+                   debug_log("expression.set: jst="+jst);
+                   jst = jst.replace(mathfuns, "Math.$1");
+                   debug_log("after Math.: jst="+jst);
+                   for (ei = 0; ei < elements.length; ei++) {
+                       e = elements[ei];
+                       v = e.scalar();
+                       if (v !== null) { 
+                           jst = this.name2value(jst, e.name, v); 
+                       }
+                   }
+                   this.js_text = jst;
+                   try {
+                       this.value = eval(jst);
+                   } catch(err) {
+                       this.value = err;
+                   }
+               }
+            },
+            name2value: function (jst, s, v) {
+                var i;
+                var non_letters = "[^A-Za-zα-ψ0-9]";
+                var sre = "(?^|" + non_letters + ")(" + 
+                    s + ")(?$|" + non_letters + ")";
+                var re = new RegExp(sre, "g");
+                debug_log("name2value: jst="+jst + ", s="+s + ", v="+v +
+                    ", result.length="+result.length);
+                jst.replace(re, v);
+                debug_log("name2value: return jst="+jst);
+                return jst;
+            }
+        };
+
+        var expressions = [];
+        var extable = function () {
+            return {
+                redraw: function () {
+                    debug_log("extable.redraw");
+                    var any_selected = false;
+                    var tbl = $("#expressions");
+                    var tbl0 = tbl[0]
+                    var ei, e;
+                    // Remove rows, but the title
+                    while (tbl[0].childNodes.length > 1) {
+                        tbl0.removeChild(tbl0.lastChild);
+                    }
+                    for (var ei = 0; ei < expressions.length; ei++) {
+                        var e = expressions[ei];
+                        debug_log("ei="+ei+", e="+e);
+                        e.evaluate(elements);
+                        debug_log("user_text="+e.user_text + ", js="+e.js_text);
+                        var ujs = $("<table>")
+                            .append($("<tr>")
+                                .append($("<td>")
+                                    .text(e.user_text)))
+                            .append($("<tr>")
+                                .append($("<td>")
+                                    .text(e.js_text)));
+                        $(tbl0).append($("<tr>")
+                            .append($("<td>")
+                                .append(ujs))
+                            .append($("<td>")
+                                .text(e.value))
+                            );
+                    }
+                }
+            }
+        }();
 
     });
 
