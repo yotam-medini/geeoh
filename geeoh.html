@@ -287,36 +287,53 @@
       </table>
     </div>
     <table id="elements-box">
-      <tr>
-        <th colspan="2">
-          <button id="elements-toggle" title="Elements Expand/Collapse">E
-          </button>
-          Elements
-        </th>
-      </tr>
-      <tr>
-        <td>
-          <table id="elements">
-            <tr><th>Name</th><th>Value</th></tr>
-          </table>
-        </td>
-      </tr>
+      <thead>
+        <tr>
+          <th colspan="2">
+            <button id="elements-toggle" title="Elements Expand/Collapse">E
+            </button>
+            Elements
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <table id="elements">
+              <thead>
+                <tr><th>Name</th><th>Value</th></tr>
+              </thead>
+              <tbody id="elements-tbody">
+              </tbody>
+            </table>
+          </td>
+        </tr>
+      </tbody>
     </table>
     <table id="expressions-box">
-      <tr>
-        <th colspan="2">
-          <button id="expressions-toggle" title="Expressions Expand/Collapse">E
-          </button>
-          Expressions
-        </th>
-      </tr>
-      <tr>
-        <td>
-          <table id="expressions">
-            <tr><th>Math/JS</th><th>Value</th></tr>
-          </table>
-        </td>
-      </tr>
+      <thead>
+        <tr>
+          <th colspan="2">
+            <button id="expressions-toggle"
+              title="Expressions Expand/Collapse">E
+            </button>
+            Expressions
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <table id="expressions">
+              <thead>
+                <tr><th>Math/JS</th><th>Value</th></tr>
+              </thead>
+              <tbody id="expressions-tbody">
+              </tbody>
+            </table>
+          </td>
+        </tr>
+      </tbody>
     </table>
     <div style="display:none" id="div-dialog-error">
       <p>

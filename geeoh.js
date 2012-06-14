@@ -140,6 +140,17 @@
             $("#div-dialog-warning").dialog("open");
         };
 
+        var array_iup = function(a, ei) {
+            debug_log("array_iup #="+a.length + ", ei="+ei);
+            if (ei > 0) {
+                var head = a.slice(0, ei - 1);
+                var mid = [a[ei], a[ei - 1]];
+                var tail = a.slice(ei + 1);
+                a = $.merge($.merge($.merge([], head), mid), tail);
+            }
+            return a;
+        };
+
         var xy_points_around = function (x, y, r) {
             var pts = [];
             var f = label_shift_factors;
@@ -1117,10 +1128,7 @@
                     warning("Element '" + elements[ei].name +
                         "' needs '" + upname + "'");
                 } else {
-                    var head = elements.slice(0, ei - 1);
-                    var mid = [elements[ei], elements[ei - 1]];
-                    var tail = elements.slice(ei + 1);
-                    elements = $.merge($.merge($.merge([], head), mid), tail);
+                    elements = array_iup(elements, ei);
                     etable.redraw();
                 }
             }
@@ -1129,12 +1137,8 @@
             return {
                 redraw: function () {
                     var any_selected = false;
-                    var tbl = $("#elements");
-                    var tbl0 = tbl[0]
-                    // Remove rows, but the title
-                    while (tbl[0].childNodes.length > 1) {
-                        tbl0.removeChild(tbl0.lastChild);
-                    }
+                    var tbody = $("#elements-tbody");
+                    tbody.empty();
                     for (var i = 0; i < elements.length + 1; i++) {
                         var e, classes = "element-row";
                         if (i < elements.length) {
@@ -1197,7 +1201,7 @@
                                     )
                             );
                         }
-                        tbl.append(tr);
+                        tbody.append(tr);
                     }
                     $(".element-row").click(function () {
                         var ei = $(this).attr("ei");
@@ -1889,16 +1893,12 @@
                 redraw: function () {
                     debug_log("extable.redraw");
                     var any_selected = false;
-                    var tbl = $("#expressions");
-                    var tbl0 = tbl[0]
-                    var ei, e;
-                    // Remove rows, but the title
-                    while (tbl[0].childNodes.length > 1) {
-                        tbl0.removeChild(tbl0.lastChild);
-                    }
-                    for (var ei = 0; ei < expressions.length; ei++) {
-                        var e = expressions[ei];
-                        debug_log("ei="+ei+", e="+e);
+                    var tbody = $("#expressions-tbody");
+                    var i, e;
+                    tbody.empty();
+                    for (var i = 0; i < expressions.length; i++) {
+                        var e = expressions[i];
+                        debug_log("i="+i+", e="+e);
                         e.evaluate(elements);
                         debug_log("user_text="+e.user_text + ", js="+e.js_text);
                         var ujs = $("<table>")
@@ -1908,11 +1908,60 @@
                             .append($("<tr>")
                                 .append($("<td>")
                                     .text(e.js_text)));
-                        $(tbl0).append($("<tr>")
+                        tbody.append($("<tr>")
                             .append($("<td>")
                                 .append(ujs))
                             .append($("<td>")
                                 .text(e.value))
+                                .append($('<button>')
+                                    .html("Edit")
+                                    .button({
+                                        text: false,
+                                        icons: {
+                                            primary: "ui-icon-pencil"
+                                        }})
+                                        .click(function (ei) {
+                                            return function () {
+                                                expressions_edit(ei); }
+                                        }(i))
+                                    )
+                                .append($('<button>')
+                                    .html("Remove")
+                                    .button({
+                                        text: false,
+                                        icons: {
+                                            primary: "ui-icon-trash"
+                                        }})
+                                        .click(function (ei) {
+                                            debug_log("exp-remove out");
+                                            return function () {
+                                                debug_log("exp-remove in #="
+                                                  + expressions.length + 
+                                                  "ei="+ei);
+                                                expressions = $.merge(
+                                                    expressions.slice(0, ei),
+                                                    expressions.slice(ei + 1));
+                                                debug_log("> #="
+                                                    + expressions.length);
+                                                extable.redraw();
+                                            }
+                                        }(i))
+                                    )
+                                .append($('<button>')
+                                    .html("Up")
+                                    .button({
+                                        text: false,
+                                        icons: {
+                                            primary: "ui-icon-arrow-1-n"
+                                        }})
+                                        .click(function (ei) {
+                                            return function () {
+                                                expressions = array_iup(
+                                                    expressions, ei);
+                                                extable.redraw();
+                                            }
+                                        }(i))
+                                    )
                             );
                     }
                 }
