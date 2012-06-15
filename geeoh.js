@@ -5,6 +5,8 @@
 
     function debug_log0(message) {}
 
+    function debug_log_dummy(message) {}
+
     function debug_log(message) {
         var c, html, entry;
         if (!debug_win) {
@@ -1702,7 +1704,7 @@
                 "OK": function () {
                     var e = $.extend(true, {}, expression)
                         .set($("#expression-input").val());
-                    expressions.push(e);
+                    dlg_expression.data("cb")(e);
                     $(this).dialog("close");
                     extable.redraw();
                 },
@@ -1833,6 +1835,10 @@
         });
 
         $("#add-expression").click(function () {
+            dlg_expression.data("edit_mode", false);
+            dlg_expression.data("cb", function (e) {
+                expressions.push(e);
+            });
             dlg_expression.dialog("open");
         });
 
@@ -1888,6 +1894,17 @@
         };
 
         var expressions = [];
+        var expression_edit = function (ei) {
+            debug_log("expression_edit ei="+ei);
+            var e = expressions[ei];
+            // dlg_expression.
+            dlg_expression.data("edit_mode", true);
+            $("#expression-input").val(e.user_text)
+            dlg_expression.data("cb", function (e) {
+                expressions[ei] = e;
+            });
+            dlg_expression.dialog("open");
+        };
         var extable = function () {
             return {
                 redraw: function () {
@@ -1922,7 +1939,7 @@
                                         }})
                                         .click(function (ei) {
                                             return function () {
-                                                expressions_edit(ei); }
+                                                expression_edit(ei); }
                                         }(i))
                                     )
                                 .append($('<button>')
