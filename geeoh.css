@@ -1,5 +1,15 @@
 /* styles for geeoh */
 
+table
+{
+  border-collapse:collapse;
+}
+
+#th-show
+{
+  // background: url("ui-icon-gear");
+}
+s
 .tab-pref, .tr-pref, .td-pref
 {
   border: 0;
@@ -15,7 +25,11 @@
   padding-left: 24px;
 }
 
-/* table, th, td */
+#elements-tbody tr
+{
+  border: 2px solid red;
+}
+
 #elements-box,
 #elements-box table,
 #elements-box tr,
@@ -27,6 +41,12 @@
 {
   border: 2px solid black;
 }
+
+// #elements-box td,
+// #expressions-box td
+// {
+//   border: 1px solid black;
+// }
 
 .xymm
 {
@@ -61,4 +81,9 @@
 {
   /* float:left; */
   padding: 12px;
+}
+
+#version
+{
+  font-size:small;
 }

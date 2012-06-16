@@ -16,7 +16,10 @@
     <script type="text/javascript" src="geeoh.js"></script>
   </head>
   <body>
-    <h1>Geometry Exploration Environment &mdash; Off Hand!</h1>
+    <h1>
+      Geometry Exploration Environment &mdash; Off Hand!
+      <span id="version" title="Version"></span>
+    </h1>
     <div id="toolbar">
       <ul>
         <li><a href="#tab-add"><span>Add</span></a></li>
@@ -301,7 +304,10 @@
           <td>
             <table id="elements">
               <thead>
-                <tr><th>Name</th><th>Value</th></tr>
+                <tr>
+                  <th>Name</th><th>Value</th><th>Actions</th>
+                  <th><span id="th-show" class="ui-icon-gear"></span></th>
+                </tr>
               </thead>
               <tbody id="elements-tbody">
               </tbody>

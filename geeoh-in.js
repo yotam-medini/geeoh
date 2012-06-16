@@ -7,7 +7,7 @@
 
     function debug_log_dummy(message) {}
 
-    function debug_log(message) {
+    function debug_log_real(message) {
         var c, html, entry;
         if (!debug_win) {
             debug_win = window.open("about:blank", "GeeOH-Debug",
@@ -26,6 +26,8 @@
             c.appendChild(entry);
         }
     }
+
+    function debug_log(message) { DEBUG_LOG_CHOOSE(message) }
 
     function af(a, n) {
         var s = "", sep = "";
@@ -192,6 +194,7 @@
         };
 
         debug_log("my geeoh ready begin");
+        $("#version").html("β yyymmdd-HHMMSS");
         $("#toolbar").tabs({collapsible: true});
 
         $("#check-axes").prop("checked", true);
@@ -283,6 +286,7 @@
             valid: true,
             depon: [], // List of elements, this depends on
             selected: false,
+            flags: 0,
             edit: function (ei) { debug_log("Dummmy edit"); return false; },
             name_set: function (s) { this.name = s; return this; },
             update: function () { debug_log("Dummy update"); },
@@ -1142,7 +1146,7 @@
                     var tbody = $("#elements-tbody");
                     tbody.empty();
                     for (var i = 0; i < elements.length + 1; i++) {
-                        var e, classes = "element-row";
+                        var e, classes = "element-row", checkbox;
                         if (i < elements.length) {
                             e = elements[i];
                             any_selected = any_selected || e.selected;
@@ -1202,6 +1206,37 @@
                                         }(i))
                                     )
                             );
+                            debug_log("Adding checkbox flags="+e.flags);
+                            // view flag overrides label flags
+                            checkbox = $('<input type="checkbox">')
+                                .prop("checked", (e.flags & 0x1) == 0)
+                                .click(function (ei) {
+                                    return function() {
+                                        var flag = elements[ei].flags & 0x1;
+                                        debug_log("ei="+ei+", f="+flag);
+                                        if (flag == 0) {
+                                            elements[ei].flags |= 0x3;
+                                        } else {
+                                            elements[ei].flags &= ~0x3;
+                                        }
+                                    }
+                                }(i));
+                            tr.append($("<td>").append(checkbox));
+                            // label flag, leaves view flag alone
+                            checkbox = $('<input type="checkbox">')
+                                .prop("checked", (e.flags & 0x2) == 0)
+                                .click(function (ei) {
+                                    return function() {
+                                        var flag = elements[ei].flags & 0x2;
+                                        debug_log("ei="+ei+", f="+flag);
+                                        if (flag == 0) {
+                                            elements[ei].flags |= 0x2;
+                                        } else {
+                                            elements[ei].flags &= ~0x2;
+                                        }
+                                    }
+                                }(i));
+                            tr.append($("<td>").append(checkbox));
                         }
                         tbody.append(tr);
                     }

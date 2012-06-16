@@ -5,6 +5,7 @@ emv:
 	@echo $($(emv))
 endif
 
+now := $(shell date --utc "+%Y-%m-%d-%H%M%S") utc
 
 SRCS = \
 	Makefile \
@@ -22,11 +23,17 @@ lgeeoh.html: Makefile geeoh.html
 	sed -e 's=http://ajax.googleapis.com/ajax/libs/=jq/=g' \
 	  < geeoh.html > $@
 
-rgeeoh.js: Makefile geeoh.js
+geeoh.js: geeoh-in.js Makefile
 	sed \
-	 -e 's=function debug_log(message)=function debug_log_co(message)=' \
-	 -e 's=function debug_log_dummy(message)=function debug_log(message)=' \
-	  < geeoh.js > $@
+	 -e 's=yyymmdd-HHMMSS=${now}=' \
+	 -e 's=DEBUG_LOG_CHOOSE=debug_log_real=' \
+	  < $< > $@
+
+rgeeoh.js: geeoh-in.js Makefile
+	sed \
+	 -e 's=yyymmdd-HHMMSS=${now}=' \
+	 -e 's=DEBUG_LOG_CHOOSE=debug_log_dummy=' \
+	  < $< > $@
 
 tgz: ${TGZ}
 ${TGZ} : ${SRCS}
