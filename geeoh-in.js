@@ -2094,6 +2094,9 @@
             }
         }();
 
+        $("#canvas-center").draggable();
+        $("#geeoh-canvas").resizable();
+
         var redraw = function () {
             canvas.redraw();
             etable.redraw();
