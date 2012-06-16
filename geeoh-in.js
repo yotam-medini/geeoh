@@ -33,6 +33,19 @@
 
     function debug_log(message) { DEBUG_LOG_CHOOSE(message) }
 
+    function best_fixed(x, max_precision) {
+        if (max_precision == undefined) {
+            max_precision = $("#select-precision").val();
+            debug_log("best_fixed: max_precision="+max_precision);
+        }
+        var s = "", p, match = false;
+        for (p = 0; (p <= max_precision) && !match; p++) {
+            s = x.toFixed(p);
+            match = (x == s);
+        }
+        return s;
+    }
+
     function af(a, n) {
         var s = "", sep = "";
         for (var i = 0; i < a.length; i++) {
@@ -293,6 +306,7 @@
             flags: 0,
             edit: function (ei) { debug_log("Dummmy edit"); return false; },
             name_set: function (s) { this.name = s; return this; },
+            flags_set: function (f) { this.flags = f; return this; },
             update: function () { debug_log("Dummy update"); },
             needs: function (element_name) {
                 var found = false;
@@ -367,11 +381,16 @@
                     $("#" + sxy[i] + "-input").val(this.xy[i]);
                 }
             },
-            str: function () { return "•" + paf(this.xy, 2); },
+            str: function () { 
+                var xy = this.xy;
+                return "•" + "(" + best_fixed(xy[0]) + ", " + 
+                    best_fixed(xy[1]) + ")";
+            },
             toJSON: function () {
                 return {
                     'type': 'point',
                     'name': this.name,
+                    'flags': this.flags,
                     'xy': this.xy
                 };
             },
@@ -556,6 +575,7 @@
                 return {
                     'type': this.typename(),
                     'name': this.name,
+                    'flags': this.flags,
                     'pts': [this.depon[0].name, this.depon[1].name]
                 };
             },
@@ -668,6 +688,7 @@
                 return {
                     'type': "point_2lines",
                     'name': this.name,
+                    'flags': this.flags,
                     'lines': [this.depon[0].name, this.depon[1].name]
                 };
             },
@@ -730,6 +751,7 @@
                 return {
                     'type': "circle",
                     'name': this.name,
+                    'flags': this.flags,
                     'center': this.depon[0].name,
                     'segment': [this.depon[1].name, this.depon[2].name]
                 };
@@ -782,6 +804,7 @@
                 return {
                     'type': "point_circle_line",
                     'name': this.name,
+                    'flags': this.flags,
                     'cl': [this.depon[0].name, this.depon[1].name],
                     'other': this.other
                 };
@@ -847,6 +870,7 @@
                 return {
                     'type': "point_2circles",
                     'name': this.name,
+                    'flags': this.flags,
                     'circles': [this.depon[0].name, this.depon[1].name],
                     'other': this.other
                 };
@@ -855,7 +879,7 @@
 
         var angle = $.extend(true, {}, element, {
             value: 0.,
-            scalar: function () { return value; }
+            scalar: function () { return this.value; }
         });
 
         var angle_3pt = $.extend(true, {}, angle, {
@@ -931,6 +955,7 @@
                 return {
                    'type': 'angle',
                    'name': this.name,
+                    'flags': this.flags,
                    'pts': [
                        this.depon[0].name,
                        this.depon[1].name,
@@ -979,21 +1004,28 @@
             var e = null;
             var typename = ejson['type'];
             var name = ejson['name'];
+            var flags = 0;
+            if ("flags" in ejson) {
+                flags = ejson['flags'];
+            }
             // debug_log("type="+typename + ", name="+name);
             if (typename === 'point') {
                 var xy = ejson['xy'];
                 e = $.extend(true, {}, point)
                     .name_set(name)
+                    .flags_set(flags)
                     .xy_set(xy[0], xy[1]);
             } else if (typename === 'line_2points') {
                 var pts = names_to_elements(ejson['pts']);
                 e = $.extend(true, {}, line_2points)
                     .name_set(name)
+                    .flags_set(flags)
                     .points_set(pts[0], pts[1]);
             } else if (typename === 'line_segment') {
                 var pts = names_to_elements(ejson['pts']);
                 e = $.extend(true, {}, line_segment)
                     .name_set(name)
+                    .flags_set(flags)
                     .points_set(pts[0], pts[1]);
             } else if (typename === 'circle') {
                 // debug_log('making circle');
@@ -1006,26 +1038,31 @@
                 // debug_log("c_seg_names="+c_seg_names + ", c_seg="+c_seg);
                 e = $.extend(true, {}, circle_center_segment)
                     .name_set(name)
+                    .flags_set(flags)
                     .center_segment_set(c_seg[0], c_seg[1], c_seg[2]);
             } else if (typename === "point_2lines") {
                 var lines = names_to_elements(ejson['lines']);
                 e = $.extend(true, {}, point_2lines)
-                   .name_set(name)
-                   .curves_set(lines[0], lines[1]);
+                    .name_set(name)
+                    .flags_set(flags)
+                    .curves_set(lines[0], lines[1]);
             } else if (typename === "point_circle_line") {
                 var cl = names_to_elements(ejson['cl']);
                 e = $.extend(true, {}, point_circle_line)
                     .name_set(name)
+                    .flags_set(flags)
                     .curves_set(cl[0], cl[1], ejson['other'])
             } else if (typename === "point_2circles") {
                 var circles = names_to_elements(ejson['circles']);
                 e = $.extend(true, {}, point_2circles)
                     .name_set(name)
+                    .flags_set(flags)
                     .curves_set(circles[0], circles[1], ejson['other'])
             } else if (typename === "angle") {
                 var pts = names_to_elements(ejson['pts']);
                 e = $.extend(true, {}, angle_3pt)
                     .name_set(name)
+                    .flags_set(flags)
                     .points_set(pts[0], pts[1], pts[2]);
             }
             return e;
@@ -1922,6 +1959,7 @@
                        if (v !== null) { 
                            jst = this.name2value(jst, e.name, v); 
                        }
+                       debug_log("ei="+ei + ", name="+e.name + ", jst="+jst);
                    }
                    this.js_text = jst;
                    try {
@@ -1932,10 +1970,27 @@
                }
             },
             name2value: function (jst, s, v) {
-                var sre = "\\b(" + s + ")\\b";
-                var re = new RegExp(sre, "g");
-                debug_log("name2value: jst="+jst + ", s="+s + ", v="+v);
-                jst = jst.replace(re, v);
+                var tail_start = 0, p, pend, tail;
+                while (tail_start >= 0) {
+                    p = jst.substr(tail_start).search(s);
+                    tail_start = -1; // pessimistic
+                    if (p >= 0) {
+                        pend = p + s.length;
+                        tail = jst.substr(pend);
+                        if ((tail === "") || 
+                            (tail.substr(0, 1).search(/\d/) < 0)) {
+                            jst = jst.substr(0, p) + v;
+                            tail_start = jst.length;
+                            jst = jst + tail;
+                        }
+                    }
+                }
+                if (false) { // Standard Javascript RegExp fails with greek:(
+                    var sre = "\\b(" + s + ")\\b";
+                    var re = new RegExp(sre, "g");
+                    debug_log("name2value: jst="+jst + ", s="+s + ", v="+v);
+                    jst = jst.replace(re, v);
+                }
                 debug_log("name2value: return jst="+jst);
                 return jst;
             },
@@ -1962,27 +2017,32 @@
                     debug_log("extable.redraw");
                     var any_selected = false;
                     var tbody = $("#expressions-tbody");
+                    var show_js = $("#check-expjs").prop("checked");
                     var i, e;
                     tbody.empty();
                     for (var i = 0; i < expressions.length; i++) {
-                        var e = expressions[i];
+                        var e = expressions[i], svalue;
                         debug_log("i="+i+", e="+e);
                         e.evaluate(elements);
                         debug_log("user_text="+e.user_text + ", js="+e.js_text);
-                        var ujs = $("<table>")
-                            .append($("<tr>")
-                                .append($("<td>")
-                                    .text(e.user_text)))
-                            .append($("<tr>")
-                                .append($("<td>")
-                                    .text(e.js_text)));
+                        var ujs = e.user_text;
+                        if (show_js) {
+                            ujs = $("<table>")
+                                .append($("<tr>")
+                                    .append($("<td>")
+                                        .text(e.user_text)))
+                                .append($("<tr>")
+                                    .append($("<td>")
+                                        .text(e.js_text)));
+                        }
+                        svalue = e.value;
+                        if (!isNaN(svalue)) { svalue = best_fixed(svalue); }
                         tbody.append($("<tr>")
                             .append($("<td>")
                                 .append(ujs))
                             .append($("<td>")
-                                .text(e.value))
-                                .append($('<button>')
-                                    .html("Edit")
+                                .text(svalue))
+                                .append($('<button title="Edit">')
                                     .button({
                                         text: false,
                                         icons: {
@@ -1993,8 +2053,7 @@
                                                 expression_edit(ei); }
                                         }(i))
                                     )
-                                .append($('<button>')
-                                    .html("Remove")
+                                .append($('<button title="Remove">')
                                     .button({
                                         text: false,
                                         icons: {
@@ -2015,8 +2074,7 @@
                                             }
                                         }(i))
                                     )
-                                .append($('<button>')
-                                    .html("Up")
+                                .append($('<button title="Up">')
                                     .button({
                                         text: false,
                                         icons: {
@@ -2041,6 +2099,18 @@
             etable.redraw();
             extable.redraw();
         };
+
+        $("#select-precision").change(function () {
+            debug_log("redraw for new precision");
+            etable.redraw();
+            extable.redraw();
+        });
+
+        $("#check-expjs").change(function () {
+            debug_log("rewrite for new JS setting");
+            extable.redraw();
+        });
+
         redraw();
 
 
