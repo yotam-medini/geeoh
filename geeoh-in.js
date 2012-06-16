@@ -320,8 +320,11 @@
                 for (var ci = 0; ci < candidates.length; ci++) {
                     var cpt = candidates[ci];
                     var d2_nearest = Number.MAX_VALUE;
+                    var e;
                     for (var ei = 0; ei < elements.length; ei++) {
-                        if (this != elements[ei]) { // ignore distance to myself
+                        e = elements[ei];
+                        if ((this != e) &&  // ignore distance to myself
+                           ((e.flags & FLAG_HIDE) == 0)) {
                             var d2 = elements[ei].distance2_to(cpt);
                             if (d2_nearest > d2) { d2_nearest = d2; }
                         }
