@@ -3,6 +3,10 @@
 
     var debug_win;
 
+    // flags
+    var FLAG_HIDE = 0x1;
+    var FLAG_HIDE_LABEL = 0x2;
+
     function debug_log0(message) {}
 
     function debug_log_dummy(message) {}
@@ -1209,31 +1213,40 @@
                             debug_log("Adding checkbox flags="+e.flags);
                             // view flag overrides label flags
                             checkbox = $('<input type="checkbox">')
-                                .prop("checked", (e.flags & 0x1) == 0)
+                                .prop("checked", (e.flags & FLAG_HIDE) == 0)
                                 .click(function (ei) {
                                     return function() {
-                                        var flag = elements[ei].flags & 0x1;
+                                        var flag = 
+                                            elements[ei].flags & FLAG_HIDE;
+                                        var mflags = 
+                                            FLAG_HIDE | FLAG_HIDE_LABEL;
                                         debug_log("ei="+ei+", f="+flag);
                                         if (flag == 0) {
-                                            elements[ei].flags |= 0x3;
+                                            elements[ei].flags |= mflags;
                                         } else {
-                                            elements[ei].flags &= ~0x3;
+                                            elements[ei].flags &= ~mflags;
                                         }
+                                        redraw();
                                     }
                                 }(i));
                             tr.append($("<td>").append(checkbox));
                             // label flag, leaves view flag alone
                             checkbox = $('<input type="checkbox">')
-                                .prop("checked", (e.flags & 0x2) == 0)
+                                .prop("checked",
+                                    (e.flags & FLAG_HIDE_LABEL) == 0)
                                 .click(function (ei) {
                                     return function() {
-                                        var flag = elements[ei].flags & 0x2;
+                                        var flag = elements[ei].flags &
+                                            FLAG_HIDE_LABEL
                                         debug_log("ei="+ei+", f="+flag);
                                         if (flag == 0) {
-                                            elements[ei].flags |= 0x2;
+                                            elements[ei].flags |= 
+                                                FLAG_HIDE_LABEL;
                                         } else {
-                                            elements[ei].flags &= ~0x2;
+                                            elements[ei].flags &= 
+                                                ~FLAG_HIDE_LABEL;
                                         }
+                                        redraw();
                                     }
                                 }(i));
                             tr.append($("<td>").append(checkbox));
@@ -1280,16 +1293,19 @@
                     for (var i = 0; i < elements.length; i++) {
                         var e = elements[i];
                         // debug_log("canvas.redraw: e["+i+"]=" + e);
-                        if (e.valid) {
+                        if (e.valid && ((e.flags & FLAG_HIDE) == 0)) {
                             e.draw(this, ctx);
-                            var p = e.best_label_point(
-                                elements, rect, delta_label);
-                            if (p !== null) {
-                                // ctx.font = "Italic 30px";
-                                ctx.font = "italic 12pt sans-serif";
-                                ctx.textAlign = "center";
-                                ctx.strokeText(digits_sub(e.name),
-                                    this.x2canvas(p[0]), this.y2canvas(p[1]));
+                            if ((e.flags & FLAG_HIDE_LABEL) == 0) {
+                                var p = e.best_label_point(
+                                    elements, rect, delta_label);
+                                if (p !== null) {
+                                    // ctx.font = "Italic 30px";
+                                    ctx.font = "italic 12pt sans-serif";
+                                    ctx.textAlign = "center";
+                                    ctx.strokeText(digits_sub(e.name),
+                                        this.x2canvas(p[0]), 
+                                        this.y2canvas(p[1]));
+                                }
                             }
                         }
                     }
