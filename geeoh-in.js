@@ -1175,8 +1175,7 @@
                                 .text(e.str()));
                         if (i < elements.length) {
                             tr.append($('<td>')
-                                .append($('<button>')
-                                    .html("Edit")
+                                .append($('<button title="Edit">')
                                     .button({
                                         text: false,
                                         icons: {
@@ -1187,8 +1186,7 @@
                                                 element_edit(ei); }
                                         }(i))
                                     )
-                                .append($('<button>')
-                                    .html("Remove")
+                                .append($('<button title="Remove">')
                                     .button({
                                         text: false,
                                         icons: {
@@ -1200,8 +1198,7 @@
                                             }
                                         }(i))
                                     )
-                                .append($('<button>')
-                                    .html("Up")
+                                .append($('<button title="Up">')
                                     .button({
                                         text: false,
                                         icons: {
