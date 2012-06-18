@@ -1303,6 +1303,7 @@
         }();
 
         var canvas = function () {
+            var background = "#d7d7d7";
             var rect_required = [[-2, 6], [-2, 6]]; // Xmin, Xmax, Ymin, Ymax
             var min_max = undefined;
             var x0, dx, y0, dy;
@@ -1310,6 +1311,11 @@
             var line_left, line_right, line_bottom, line_top;
             var dtag1, pt_rad, angle_rad, delta_label;
             return {
+                background_get: function() { return background; },
+                background_set: function(v) { 
+                    background = v; 
+                    this.redraw();
+                },
                 rect_get: function () { return rect_required; },
                 rect_set: function (rectnew) {
                     rect_required = rectnew;
@@ -1319,7 +1325,7 @@
                 redraw: function () {
                     var ctx = c.getContext("2d");
                     ctx.clearRect(0, 0, w, h);
-                    ctx.fillStyle = "#d7d7d7";
+                    ctx.fillStyle = background;
                     ctx.fillRect(0, 0, w, h);
                     this.minmax_set();
                     if ($("#check-axes").prop("checked")) {
@@ -2113,6 +2119,18 @@
             debug_log("rewrite for new JS setting");
             extable.redraw();
         });
+
+        $("#color-background").val(canvas.background_get());
+        $("#color-background").change(function () {
+            var regColorcode = /^(#)?([0-9a-fA-F]{3})([0-9a-fA-F]{3})?$/;
+            if (regColorcode.test(this.value)) {
+               canvas.background_set(this.value);
+            } else {
+               $(this).val(canvas.background_get());
+            }
+
+        });
+        
 
         redraw();
 
