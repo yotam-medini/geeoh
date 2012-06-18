@@ -36,7 +36,7 @@
     function best_fixed(x, max_precision) {
         if (max_precision == undefined) {
             max_precision = $("#select-precision").val();
-            debug_log("best_fixed: max_precision="+max_precision);
+            // debug_log("best_fixed: max_precision="+max_precision);
         }
         var s = "", p, match = false;
         for (p = 0; (p <= max_precision) && !match; p++) {
@@ -648,7 +648,7 @@
                 debug_log0("point_2curves.curves_set: l0="+l0.str() +
                     ", l1="+l1.str());
                 this.depon = [l0, l1];
-                this.other = false;
+                this.other = other;
                 this.update();
                 return this;
             },
@@ -818,7 +818,7 @@
                 var c0 = this.depon[0];
                 var c1 = this.depon[1];
                 debug_log("point_2circles::update v0="+
-                    c0.valid + ", v1="+c1.v1);
+                    c0.valid + ", v1="+c1.valid);
                 if (c0.valid && c1.valid) {
                     var c0x = c0.center.xy[0];
                     var c0y = c0.center.xy[1];
@@ -1976,10 +1976,20 @@
                }
             },
             name2value: function (jst, s, v) {
-                var tail_start = 0, p, pend, tail;
+                var tail_start = 0, p, pend, tail, c2;
                 while (tail_start >= 0) {
                     p = jst.substr(tail_start).search(s);
                     tail_start = -1; // pessimistic
+                    if (p >= 0) {
+                        c2 = jst.charAt(p - 1) + jst.charAt(p + s.length);
+                        if (c2.search(/[0-9a-zA-Z]/) < 0) {
+                            tail = jst.substr(p + s.length);
+                            jst = jst.substr(0, p) + v;
+                            tail_start = jst.length;
+                            jst = jst + tail;
+                        }
+                    }
+                  if (false) {
                     if (p >= 0) {
                         pend = p + s.length;
                         tail = jst.substr(pend);
@@ -1990,6 +2000,7 @@
                             jst = jst + tail;
                         }
                     }
+                  }
                 }
                 if (false) { // Standard Javascript RegExp fails with greek:(
                     var sre = "\\b(" + s + ")\\b";
@@ -2102,6 +2113,9 @@
 
         $("#canvas-center").draggable();
         $("#geeoh-canvas").resizable();
+        $("#geeoh-canvas").resize(function () {
+            debug_log("canvas resized");
+        });
 
         var redraw = function () {
             canvas.redraw();
