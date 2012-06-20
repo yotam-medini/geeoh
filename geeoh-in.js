@@ -1447,6 +1447,8 @@
                         y0 -= (dnew - dy)/0;
                         dy = dnew;
                     }
+                    debug_log("minmax_set: c.width="+c.width + 
+                        ", c.height="+c.height);
                     dtag1 = Math.max(6, Math.min(c.width, c.height)/0x100);
                     delta_label = this.canvas2g(
                         Math.max(16, Math.min(c.width, c.height)/0x40));
@@ -2113,8 +2115,8 @@
 
         $("#canvas-center").draggable();
         $("#geeoh-canvas").resizable();
-        $("#geeoh-canvas").resize(function () {
-            debug_log("canvas resized");
+        $("#canvas-center").resize(function () {
+            debug_log("canvas-center resized");
         });
 
         var redraw = function () {
