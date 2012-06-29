@@ -1389,10 +1389,6 @@
                     ctx.clearRect(0, 0, w, h);
                     ctx.fillStyle = background;
                     ctx.fillRect(0, 0, w, h);
-                  ctx.fillStyle = "#f00";
-                  ctx.fillRect(0, 0, 100, 100);
-                  ctx.fillRect(w - 100, h - 100, 100, 100);
-                  ctx.fillStyle = background;
                     this.minmax_set();
                     if ($("#check-axes").prop("checked")) {
                         this.axis_draw(ctx);
