@@ -36,14 +36,21 @@
             <td><button id="add-circle" class="add">Circle</button></td>
             <td><button id="add-angle" class="add">Angle</button></td>
             <td><button id="add-expression" class="add">Expression</button></td>
+            <td width="30%"></td>
+            <td align="right"><button id="redraw">Redraw</button></td>
           </tr>
         </table>
       </div>
       <div id="tab-pref">
-        <table class="tab-pref" border="0">
+        <table class="tab-pref" border="0" width="100%">
+          <col width="40%" />
+          <col width="30%" />
+          <col width="30%" />
           <tr border="0">
             <td class="td-pref-sub" border="0">
               <table class="tab-pref" border="0">
+                <col width="20%" />
+                <col width="80%" />
                 <tr class="tr-pref">
                   <td class="td-pref" class="td-pref-left">
                     <input id="check-axes" type="checkbox"
@@ -57,6 +64,16 @@
                       title="Show Javascript translation&#013of expressions"/>
                   </td>
                   <td class="td-pref">Javascript Expression</td>
+                </tr>
+                <tr class="tr-pref">
+                  <td>Draggable:</td>
+                  <td>
+                    <input value="canvas" type="radio" name="radio-drag"
+                      checked="checked" />
+                    Canvas
+                    <input value="points" type="radio" name="radio-drag" />
+                    Points
+                  </td>
                 </tr>
               </table>
             </td>
@@ -73,7 +90,7 @@
                     <select id="select-precision">
                       <option value="0">0</option>
                       <option value="1">1</option>
-                      <option value="2">2</option>
+                      <option value="2" selected="selected">2</option>
                       <option value="3">3</option>
                       <option value="4">4</option>
                       <option value="5">5</option>
@@ -82,13 +99,50 @@
                     </select>
                   </td>
                 </tr>
-                <tr>
+              </table>
+            </td>
+            <td class="td-pref-sub">
+              <table class="tab-pref" border="0">
+                <tr class="tr-pref">
                   <td>Background</td>
                   <td>
                     <input 
                       id="color-background" 
                       type="text" 
                       value="#dddddd" 
+                      maxlength="7" size="7"
+                      />
+                  </td>
+                </tr>
+                <tr class="tr-pref">
+                  <td>Points</td>
+                  <td>
+                    <input 
+                      id="color-points"
+                      type="text" 
+                      value="#338833"
+                      maxlength="7" size="7"
+                      />
+                  </td>
+                </tr>
+                <tr class="tr-pref">
+                  <td>Near</td>
+                  <td>
+                    <input 
+                      id="color-near" 
+                      type="text" 
+                      value="#eedd00"
+                      maxlength="7" size="7"
+                      />
+                  </td>
+                </tr>
+                <tr class="tr-pref">
+                  <td>Active</td>
+                  <td>
+                    <input 
+                      id="color-active" 
+                      type="text" 
+                      value="#ee1111"
                       maxlength="7" size="7"
                       />
                   </td>
@@ -120,9 +174,10 @@
         <a href="geeoh-help.html" target="_blank">See more…</a>.
       </div>
     </div>
-    <center id="canvas-center">
-      <canvas id="geeoh-canvas" width="90%" height="90%"></canvas>
+    <center id="canvas-center" width="90%" height="50%">
+      <canvas id="geeoh-canvas" width="90%" height="50%"></canvas>
     </center>
+    <div id="pointer"></div>
     <div id="dlg-point">
       <table>
         <tr><td>Name</td>

@@ -1,23 +1,31 @@
 /* styles for geeoh */
 
+html, body { height: 100%; width: 100%; margin: 0; }
+
 table
 {
   border-collapse:collapse;
+}
+
+#tool-box
+{
+  // width: 100%;
 }
 
 #th-show
 {
   // background: url("ui-icon-gear");
 }
-s
+
 .tab-pref, .tr-pref, .td-pref
 {
   border: 0;
 }
 
-.td-pref-sub
+.td-pref-sub td
 {
   width: 40%;
+  font-size:80%;
 }
 
 .td-pref-left
@@ -80,7 +88,16 @@ s
 #canvas-center
 {
   /* float:left; */
+  // width: 100%;
+  // height: 70%;
   padding: 12px;
+}
+
+#geeoh-canvas
+{
+  // width: 90%;
+  // height: 70%;
+  padding: 0px;
 }
 
 #version

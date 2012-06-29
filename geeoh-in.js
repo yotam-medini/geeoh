@@ -33,6 +33,17 @@
 
     function debug_log(message) { DEBUG_LOG_CHOOSE(message) }
 
+    function findPos(obj) { // Donated by `lwburk` on StackOverflow
+        var curleft = 0, curtop = 0;
+        if (obj.offsetParent) {
+            do {
+                curleft += obj.offsetLeft;
+                curtop += obj.offsetTop;
+            } while (obj = obj.offsetParent);
+            return { x: curleft, y: curtop };
+        }
+    }
+
     function best_fixed(x, max_precision) {
         if (max_precision == undefined) {
             max_precision = $("#select-precision").val();
@@ -100,7 +111,8 @@
         if (Math.abs(x) + Math.abs(y) > epsilon) {
             ret = Math.atan2(y, x); // in HTML5 y grows down
         }
-        debug_log("xy=("+x+","+y+")"+", ret="+ret.toFixed(2));
+        debug_log("xy=("+x+","+y+")"+", ret="+
+            (isNaN(ret) ? "NaN" : ret.toFixed(2)));
         return ret;
     }
 
@@ -126,6 +138,9 @@
             [0, -1],
             [sqrt2d2, -sqrt2d2]
         ];
+
+        var redraw_timeout_handler;
+        var move_timeout_handler;
 
         var error = function (error_msg) {
             $("#errormsg").html(error_msg);
@@ -225,12 +240,12 @@
         h = rnd(7*h/8);
         debug_log("For Canvas: w="+w + ", h="+h);
         var ec = $("#geeoh-canvas");
-        var c = ec[0];
+        var c = ec[0]; // to be removed!
         // ec.width(w).height(h);
         c.width = w; c.height = h;
 
         var pointer = $("#pointer").draggable();
-        $("#tool-box").draggable();
+        // $("#tool-box").draggable();
         $("#elements-box").draggable();
         $("#expressions-box").draggable();
         $("#elements-toggle").click(function () {
@@ -317,6 +332,7 @@
             },
             scalar: function () { return null; },
             is_point: function () { return false; },
+            is_absolute: function () { return false; },
             is_segment: function () { return false; },
             is_circle: function () { return false; },
             is_curve: function () { return false; },
@@ -390,12 +406,19 @@
                 return {
                     'type': 'point',
                     'name': this.name,
+
                     'flags': this.flags,
                     'xy': this.xy
                 };
             },
+            color: function () { return $("#color-points").val(); },
             draw: function (canvas, ctx) {
-                if (this.valid) { canvas.point_draw(ctx, this); }
+                if (this.valid) { 
+                    if (ctx === undefined) {
+                        ctx = canvas.getContext("2d");
+                    }
+                    canvas.point_draw_color(ctx, this, this.color()); 
+                }
             },
             distance2_to: function (xy) {
                 var d2 = Number.MAX_VALUE;
@@ -408,6 +431,14 @@
             },
             candidate_label_points: function (rect, delta) {
                 return xy_points_around(this.xy[0], this.xy[1], delta);
+            },
+        });
+
+        var point_absolute = $.extend(true, {}, point, {
+            near: false,
+            is_absolute: function () { return true; },
+            color: function () {
+                return $(this.near ? "#color-near" : "#color-points").val(); 
             },
         });
 
@@ -644,6 +675,7 @@
         var point_2curves = $.extend(true, {}, point, {
             depon: [null, null],
             other: false,
+            color: function () { return "#111"; },
             curves_set: function (l0, l1, other) {
                 debug_log0("point_2curves.curves_set: l0="+l0.str() +
                     ", l1="+l1.str());
@@ -946,6 +978,20 @@
                     ", value="+this.value.toFixed(2));
                 return this;
             },
+            edit: function (ei) {
+                debug_log("angle.edit: ei="+ei);
+                $("#angle-name-input").val(this.name);
+                points_options_set(ei);
+                for (var i = 0; i < 3; i++) {
+                    $("#angle-pt" + i + "-select").val(this.depon[i].name)
+                        .attr("selected", true);
+                }
+                dlg_angle.data("edit_mode", true);
+                dlg_angle.data('cb', function (c) {
+                    elements_replace_update(ei, c);
+                });
+                dlg_angle.dialog("open");
+            },
             str: function () {
                 return "∡(" + digits_sub(this.depon[0].name) + "," +
                     digits_sub(this.depon[1].name) + "," +
@@ -980,7 +1026,7 @@
                         ", label_delta="+this.label_delta);
                     var dy = xy[1] - (v1.xy[1] + cs[0]*this.label_delta);
                     d2 = dx*dx + dy*dy;
-                    debug_log("A.d2to: d2="+d2.toFixed(2));
+                    // debug_log("A.d2to: d2="+d2.toFixed(2));
                 }
                 return d2;
             },
@@ -1011,7 +1057,7 @@
             // debug_log("type="+typename + ", name="+name);
             if (typename === 'point') {
                 var xy = ejson['xy'];
-                e = $.extend(true, {}, point)
+                e = $.extend(true, {}, point_absolute)
                     .name_set(name)
                     .flags_set(flags)
                     .xy_set(xy[0], xy[1]);
@@ -1311,6 +1357,11 @@
             var line_left, line_right, line_bottom, line_top;
             var dtag1, pt_rad, angle_rad, delta_label;
             return {
+                ecanvas: $("#geeoh-canvas"),
+                ctx2d: $("#geeoh-canvas")[0].getContext("2d"),
+                // ctx2d: this.ecanvas[0].getContext("2d"),
+                cwidth: 0,
+                cheight: 0,
                 background_get: function() { return background; },
                 background_set: function(v) { 
                     background = v; 
@@ -1323,10 +1374,25 @@
                     this.redraw();
                 },
                 redraw: function () {
-                    var ctx = c.getContext("2d");
+                    var cc = $("#canvas-center");
+                    var wiw = window.innerWidth;
+                    var wih = window.innerHeight;
+                    debug_log("canvas.redraw cc: w="+cc.innerWidth() +
+                        ", h="+cc.innerHeight() +
+                        ", window: w="+wiw +  ", h="+wih);
+                    var ctx = this.ecanvas[0].getContext("2d");
+                    var w = this.cwidth = (11*wiw)/12
+                    var h = this.cheight = (5*Math.max(wih - 0x80, 0x80))/6;
+                    debug_log("canvas.redraw w="+w + ", h="+h);
+                    this.ecanvas[0].width = w; // clear
+                    this.ecanvas[0].height = h; // clear
                     ctx.clearRect(0, 0, w, h);
                     ctx.fillStyle = background;
                     ctx.fillRect(0, 0, w, h);
+                  ctx.fillStyle = "#f00";
+                  ctx.fillRect(0, 0, 100, 100);
+                  ctx.fillRect(w - 100, h - 100, 100, 100);
+                  ctx.fillStyle = background;
                     this.minmax_set();
                     if ($("#check-axes").prop("checked")) {
                         this.axis_draw(ctx);
@@ -1359,16 +1425,54 @@
                     var cx1 = this.x2canvas(1), cy1 = this.y2canvas(1);
 
                     // X axis
-                    this.seg_cdraw(ctx, [0, cy0], [c.width, cy0]);
+                    this.seg_cdraw(ctx, [0, cy0], [this.cwidth, cy0]);
                     this.seg_cdraw(ctx, [cx1, cy0 - dtag1], [cx1, cy0 + dtag1]);
 
                     // Y axis
-                    this.seg_cdraw(ctx, [cx0, 0], [cx0, c.height]);
+                    this.seg_cdraw(ctx, [cx0, 0], [cx0, this.cheight]);
                     this.seg_cdraw(ctx, [cx0 - dtag1, cy1], [cx0 + dtag1, cy1]);
                 },
-                point_draw: function (ctx, p) {
+                draw_near_point: function(xy) {
+                    var i, e, d2;
+                    var inear = -1, oldnear = -1, d2near = Number.MAX_VALUE;
+                    for (i = 0; i < elements.length; i++) {
+                        e = elements[i];
+                        if (e.is_absolute()) {
+                            if (e.near) { oldnear = i; }
+                            d2 = e.distance2_to(xy);
+                            debug_log("e[i="+i + "]: d2="+d2 + 
+                                 ", near="+e.near);
+                            if (d2near > d2) {
+                               d2near = d2;
+                               inear = i;
+                            }
+                        }
+                    }
+                    debug_log("oldnear="+oldnear + ", inear="+inear);
+                    if (inear != oldnear) {
+                        if (oldnear != -1) {
+                            e = elements[oldnear];
+                            e.near = false;
+                            e.draw(this, this.ctx2d);
+                        }
+                        if (inear != -1) {
+                            e = elements[inear];
+                            debug_log("inear="+inear + ", e="+e +
+                             ", this="+this + 
+                             ", (c==?)="+(this === canvas));
+                            e.near = true;
+                            e.draw(this, this.ctx2d);
+                        }
+                    }
+                },
+                point_draw_color: function (ctx, p, color) {
+                    debug_log("point_draw_color: color="+color);
+                    ctx.fillStyle = color;
                     var cxy = [this.x2canvas(p.xy[0]), this.y2canvas(p.xy[1])];
                     return this.pt_cdraw(ctx, cxy);
+                },
+                point_draw: function (ctx, p) {
+                    return this.point_draw_color(ctx, p, "#111");
                 },
                 pt_cdraw: function (ctx, pt) {
                     ctx.beginPath();
@@ -1433,27 +1537,28 @@
                 minmax_set: function () {
                     // debug_log("minmax_set called");
                     var rr = rect_required; // abbreviation
+                    var w = this.cwidth;
+                    var h = this.cheight;
                     x0 = rr[0][0];
                     y0 = rr[1][0];
                     dx = rr[0][1] - rr[0][0];
                     dy = rr[1][1] - rr[1][0];
-                    var dxh = dx * c.height, dyw = dy * c.width;
+                    var dxh = dx * h, dyw = dy * w;
                     if (dxh < dyw) {
-                        var dnew = dyw/c.height;
+                        var dnew = dyw/h;
                         x0 -= (dnew - dx)/2;
                         dx = dnew;
                     } else {
-                        dnew = dxh/c.width;
+                        dnew = dxh/w;
                         y0 -= (dnew - dy)/0;
                         dy = dnew;
                     }
-                    debug_log("minmax_set: c.width="+c.width + 
-                        ", c.height="+c.height);
-                    dtag1 = Math.max(6, Math.min(c.width, c.height)/0x100);
+                    debug_log("minmax_set: w="+w + ", h="+h);
+                    dtag1 = Math.max(6, Math.min(w, h)/0x100);
                     delta_label = this.canvas2g(
-                        Math.max(16, Math.min(c.width, c.height)/0x40));
-                    pt_rad = Math.max(3, Math.min(c.width, c.height)/0x200);
-                    angle_rad = Math.max(12, Math.min(c.width, c.height)/0x100);
+                        Math.max(16, Math.min(w, h)/0x40));
+                    pt_rad = Math.max(3, Math.min(w, h)/0x200);
+                    angle_rad = Math.max(12, Math.min(w, h)/0x100);
                     this.point_lb = $.extend(true, {}, point).xy_set(x0, y0);
                     this.point_rb = $.extend(true, {}, point)
                         .xy_set(x0 + dx, y0);
@@ -1469,6 +1574,12 @@
                         .points_set(this.point_lb, this.point_rb);
                     this.line_top = $.extend(true, {}, line_2points)
                         .points_set(this.point_lt, this.point_rt);
+                    var cx0 = this.x2canvas(0);
+                    var cy0 = this.y2canvas(0);
+                    var gx0 = this.canvas2x(cx0);
+                    var gy0 = this.canvas2y(cy0);
+                    debug_log("cx0="+cx0 + ", cy0="+cy0 +
+                        ", gx0="+gx0 + ", gy0="+gy0);
                 },
                 pt2canvas: function (pt) {
                     return [this.x2canvas(pt[0]), this.y2canvas(pt[1])];
@@ -1476,14 +1587,15 @@
                 canvas2pt: function (cpt) {
                     return [this.canvas2x(cpt[0]), this.canvas2y(cpt[1])];
                 },
-                g2canvas: function (d) { return (c.width * d) / dx; },
-                canvas2g: function (p) { return (dx * p) / c.width; },
-                x2canvas: function (x) { return (c.width * (x - x0)) / dx; },
+                g2canvas: function (d) { return (this.cwidth * d) / dx; },
+                canvas2g: function (p) { return (dx * p) / this.cwidth; },
+                x2canvas: function (x) {
+                    return (this.cwidth * (x - x0)) / dx; },
                 y2canvas: function (y) {
-                    return (c.height * (y0 + dy - y)) / dy; },
-                canvas2x: function (cx) { return x0 + (cx * dx)/c.width; },
+                    return (this.cheight * (y0 + dy - y)) / dy; },
+                canvas2x: function (cx) { return x0 + (cx * dx)/this.cwidth; },
                 canvas2y: function (cy) {
-                    return y0 + dy - (cy * dy)/c.height; },
+                    return y0 + dy - (cy * dy)/this.cheight; },
                 digits_sub: function (s) {
                     var ns = "";
                     for (var i = 0; i < s.length; i++)
@@ -1504,12 +1616,49 @@
 
         canvas.redraw();
         ec.mousemove(function (e) {
-            var relx = e.pageX, rely = e.pageY;
-            var position = ec.position();
-            var cx = e.pageX - position.left, cy = e.pageY - position.top;
-            var xy = canvas.canvas2pt([cx, cy]);
-            pointer.text("("+xy[0].toFixed(2) + ", " + xy[1].toFixed(2)+")");
-            });
+            if (move_timeout_handler !== undefined) {
+                clearTimeout(move_timeout_handler);
+            }
+	    move_timeout_handler = setTimeout(function () {
+
+                var relx = e.pageX, rely = e.pageY;
+                var position = ec.position();
+                var offset = ec.offset();
+                var cx = e.pageX - position.left, cy = e.pageY - position.top;
+                var cx = e.pageX - offset.left, cy = e.pageY - offset.top;
+                var xy = canvas.canvas2pt([cx, cy]);
+                canvas.draw_near_point(xy);
+
+                var xyfmt = "("+best_fixed(xy[0]) + ", " + 
+                    best_fixed(xy[1])+")";
+
+                pointer.text(xyfmt +
+                   ", cx="+cx.toFixed(2) + ", cy="+cy.toFixed(2) +
+                   ", pageX="+e.pageX.toFixed(2) + 
+                   ", pageY="+e.pageY.toFixed(2) +
+                   ", position: L="+position.left.toFixed(2) + 
+                   ", T="+position.top.toFixed(2) +
+                   ", offset: L="+offset.left.toFixed(2) + 
+                   ", T="+offset.top.toFixed(2) +
+                   ", Eoffset: L="+ec[0].offsetLeft.toFixed(2) + 
+                   ", T="+ec[0].offsetTop.toFixed(2) +
+                   ", scroll: left="+$(window).scrollLeft() +
+                   ",  top="+$(window).scrollTop()
+                 );
+                 var bb = ec[0].getBoundingClientRect();
+                 var mx = (e.clientX - bb.left);
+                 var my = (e.clientY - bb.top);
+    if (false) {
+                 pointer.text("("+best_fixed(xy[0]) + ", " + 
+                 best_fixed(xy[1])+")"
+                  + ", mx="+mx + ", my="+my);
+                 var fxy = findPos(ec[0]);
+                 pointer.text("("+best_fixed(xy[0]) + ", " + 
+                 best_fixed(xy[1])+")" + ", f: x="+fxy.x + ", y="+fxy.y);
+    }
+             
+            }, 200);
+        });
 
         var name_xy = ["pt-name", "line-name", "circle-name", "x", "y"];
         var sxy = ["x", "y"];
@@ -1520,6 +1669,7 @@
                 return function () {
                    $("#" + name_xy[k] + "-error").css('display', 'none');
                 }}(i));
+                
         }
 
         add_pt_tabs.tabs();
@@ -1562,7 +1712,7 @@
                             ok = ok && sok;
                         }
                         if (ok) {
-                            var pt = $.extend(true, {}, point)
+                            var pt = $.extend(true, {}, point_absolute)
                                 .xy_set(xy[0], xy[1]);
                         }
                     } else { // tabi == 1 ==> intersection
@@ -1714,7 +1864,8 @@
 
         var dlg_angle = $("#dlg-angle");
         $(".keypad-popup").css("z-index", 9999);
-        $("#angle-name-input").keypad({
+        var dlg_angle_name_input = $("#angle-name-input")
+        dlg_angle_name_input.keypad({
             "layout": [
                // see: http://en.wikipedia.org/wiki/Keyboard_layout#Greek
                //      http://unifont.org/keycurry/KeyCurryIPA.html
@@ -1735,9 +1886,14 @@
                 var edit_mode = dlg_angle.data("edit_mode");
                 var lni = $("#angle-name-input");
                 if (edit_mode) {
+                    $("#angle-name-error").css('display', 'none');
                     lni.attr('disabled', true);
+                    // dlg_angle_name_input.keypad('hide');
                 } else {
                     lni.removeAttr('disabled');
+                    // $("#angle-name-input").keypad('enable');
+                    // $("#angle-name-input").keypad('show');
+                    // dlg_angle_name_input.keypad('show');
                 }
                 var t = (edit_mode ? "Edit" : "Add") + " Angle";
                 dlg_angle.dialog("option", "title", t);
@@ -1811,7 +1967,7 @@
         var dlg_limits = $("#dlg-limits");
         dlg_limits.dialog({
             autoOpen: false,
-            title: "Set Limits Angle",
+            title: "Set Limits",
             width: $(window).width()/2,
             height: $(window).height()/2,
             modal: true,
@@ -2113,17 +2269,59 @@
             }
         }();
 
-        $("#canvas-center").draggable();
-        $("#geeoh-canvas").resizable();
+if (false) {
+        // $("#canvas-center").draggable();
         $("#canvas-center").resize(function () {
             debug_log("canvas-center resized");
         });
+        // $("#geeoh-canvas").resizable();
+        $("#geeoh-canvas").resize(function () {
+            debug_log("geeoh-canvas resized");
+            if (redraw_timeout_handler !== undefined) {
+                debug_log("clear redraw timeout");
+                clearTimeout(redraw_timeout_handler);
+            }
+	    redraw_timeout_handler = setTimeout(function () {
+                debug_log("resized: TO --> redraw");
+                canvas.redraw();
+            }, 200);
+        });
+}
+        // $("#geeoh-canvas").resizable({handles: "nw, ne, sw, se"});
+        $(window).resize(function () {
+            debug_log("window resized");
+            if (redraw_timeout_handler !== undefined) {
+                debug_log("clear redraw timeout");
+                clearTimeout(redraw_timeout_handler);
+            }
+	    redraw_timeout_handler = setTimeout(function () {
+                debug_log("resized: TO --> redraw");
+                canvas.redraw();
+            }, 200);
+        });
 
         var redraw = function () {
+            debug_log("function: redraw");
             canvas.redraw();
             etable.redraw();
             extable.redraw();
         };
+        $("#redraw").click(redraw);
+
+
+        $("input[name='radio-drag']").change(function () {
+            var mode = $(this).val();
+            debug_log("radio change: " + mode);
+            if (mode === "canvas") {
+                debug_log("draggable canvas");
+                // $("#canvas-center").draggable("enable");
+                $("#canvas-center").draggable();
+            } else if (mode === "points") {
+                debug_log("draggable points");
+                // $("#canvas-center").draggable("disable");
+                $("#canvas-center").draggable("destroy");
+            }
+        });
 
         $("#select-precision").change(function () {
             debug_log("redraw for new precision");
@@ -2135,6 +2333,8 @@
             debug_log("rewrite for new JS setting");
             extable.redraw();
         });
+
+
 
         $("#color-background").val(canvas.background_get());
         $("#color-background").change(function () {
