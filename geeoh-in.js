@@ -7,6 +7,20 @@
     var FLAG_HIDE = 0x1;
     var FLAG_HIDE_LABEL = 0x2;
 
+    // colors
+    var color_enum = {
+        background: 0,
+        points: 1,
+        near: 2,
+        active: 3,
+        N: 4
+    };
+    var color_entity_name = new Array(color_enum.N);
+    color_entity_name[color_enum.background] = "background";
+    color_entity_name[color_enum.points] = "points";
+    color_entity_name[color_enum.near] = "near";
+    color_entity_name[color_enum.active] = "active";
+    
     function debug_log0(message) {}
 
     function debug_log_dummy(message) {}
@@ -280,6 +294,27 @@
 
         var elements = [];
 
+        var near_active_get = function (xy) {
+            var i, e, d2;
+            var inear = -1, old_near = -1, d2near = Number.MAX_VALUE;
+            var iactive = -1, old_active = -1;
+            for (i = 0; i < elements.length; i++) {
+                e = elements[i];
+                if (e.is_absolute()) {
+                    if (e.near) { old_near = i; }
+                    if (e.active) { old_active = i; }
+                    d2 = e.distance2_to(xy);
+                    debug_log("e[i="+i + "]: d2="+d2 + 
+                         ", near="+e.near);
+                    if (d2near > d2) {
+                       d2near = d2;
+                       inear = i;
+                    }
+                }
+            }
+            return [inear, old_near, old_active, d2near];
+        };
+
         var points_options_set = function (ei) {
             var pt_elements = elements.slice(0, ei).filter(
                 function (e) { return e.is_point(); });
@@ -436,9 +471,11 @@
 
         var point_absolute = $.extend(true, {}, point, {
             near: false,
+            active: false,
             is_absolute: function () { return true; },
             color: function () {
-                return $(this.near ? "#color-near" : "#color-points").val(); 
+                return $("#color-" + (this.active ? "active" : 
+                    (this.near ? "near" : "points"))).val(); 
             },
         });
 
@@ -1349,21 +1386,42 @@
         }();
 
         var canvas = function () {
-            var background = "#d7d7d7";
+            // var background = "#d7d7d7";
             var rect_required = [[-2, 6], [-2, 6]]; // Xmin, Xmax, Ymin, Ymax
-            var min_max = undefined;
             var x0, dx, y0, dy;
             var point_lb, point_rb, point_lt, point_rt;
             var line_left, line_right, line_bottom, line_top;
-            var dtag1, pt_rad, angle_rad, delta_label;
+            var dtag1, pt_rad, angle_rad, delta_label, delta_active;
             return {
                 ecanvas: $("#geeoh-canvas"),
                 ctx2d: $("#geeoh-canvas")[0].getContext("2d"),
                 // ctx2d: this.ecanvas[0].getContext("2d"),
                 cwidth: 0,
                 cheight: 0,
-                background_get: function() { return background; },
+                colors: function () {
+                    var a = new Array(color_enum.N);
+                    a[color_enum.background] = "#d7d7d7";
+                    a[color_enum.points] =     "#338833";
+                    a[color_enum.near] =       "#eedd00";
+                    a[color_enum.active] =     "#ee1111";
+                    return a;
+                }(),
+                iactive: -1,
+                point_moving: false,
+		saved_image: document.createElement("canvas"),
+                color_get: function(ci) { return this.colors[ci]; },
+                color_set: function(ci, v) { 
+                    this.colors[ci] = v;  
+                    this.redraw(); 
+                },
+                // background_get: function() { return background; },
+                background_get: function() { 
+                    return this.colors[color_enum.background];
+                },
                 background_set: function(v) { 
+                    this.color_set(color_enum.background, v);
+                },
+                background_setOLD: function(v) { 
                     background = v; 
                     this.redraw();
                 },
@@ -1387,7 +1445,7 @@
                     this.ecanvas[0].width = w; // clear
                     this.ecanvas[0].height = h; // clear
                     ctx.clearRect(0, 0, w, h);
-                    ctx.fillStyle = background;
+                    ctx.fillStyle = this.colors[color_enum.background];
                     ctx.fillRect(0, 0, w, h);
                     this.minmax_set();
                     if ($("#check-axes").prop("checked")) {
@@ -1428,27 +1486,20 @@
                     this.seg_cdraw(ctx, [cx0, 0], [cx0, this.cheight]);
                     this.seg_cdraw(ctx, [cx0 - dtag1, cy1], [cx0 + dtag1, cy1]);
                 },
-                draw_near_point: function(xy) {
-                    var i, e, d2;
-                    var inear = -1, oldnear = -1, d2near = Number.MAX_VALUE;
-                    for (i = 0; i < elements.length; i++) {
-                        e = elements[i];
-                        if (e.is_absolute()) {
-                            if (e.near) { oldnear = i; }
-                            d2 = e.distance2_to(xy);
-                            debug_log("e[i="+i + "]: d2="+d2 + 
-                                 ", near="+e.near);
-                            if (d2near > d2) {
-                               d2near = d2;
-                               inear = i;
-                            }
-                        }
+                draw_near_active_point: function(xy) {
+                    var e;
+                    var a = near_active_get(xy);
+                    var inear = a[0], old_near = a[1], old_active = a[2];
+                    var d2near = a[3];
+                    if ((inear != -1) && (d2near < delta_active)) {
+                        this.iactive = inear;
                     }
-                    debug_log("oldnear="+oldnear + ", inear="+inear);
-                    if (inear != oldnear) {
-                        if (oldnear != -1) {
-                            e = elements[oldnear];
+                    debug_log("old_near="+old_near + ", inear="+inear);
+                    if ((inear != old_near) || (this.iactive != old_active)) {
+                        if (old_near != -1) {
+                            e = elements[old_near];
                             e.near = false;
+                            e.active = false;
                             e.draw(this, this.ctx2d);
                         }
                         if (inear != -1) {
@@ -1457,9 +1508,55 @@
                              ", this="+this + 
                              ", (c==?)="+(this === canvas));
                             e.near = true;
+                            if (this.iactive != -1) {
+                                e.active = true;
+                            }
                             e.draw(this, this.ctx2d);
                         }
                     }
+                },
+                last_drag_xy: undefined,
+                point_move_begin: function () {
+		    this.point_moving = true;
+		    this.saved_image.width = this.cwidth + pt_rad;
+		    this.saved_image.height = this.cheight + pt_rad;
+		    var ctx_saved = this.saved_image.getContext("2d");
+		    ctx_saved.drawImage(this.ecanvas[0], 0, 0);
+		},
+                drag_active_point: function (xy) {
+                    debug_log("drag_active_point");
+                    var ctx = this.ctx2d;
+		    var cx, cy, cxy;
+                    ctx.fillStyle = this.colors[color_enum.active];
+                    if (this.last_drag_xy !== undefined) {
+                        debug_log("last: ("+this.last_drag_xy[0]+","+
+                           this.last_drag_xy[1]+")");
+                        // this.pt_cdraw(ctx, this.last_drag_xy);
+			cx = this.last_drag_xy[0];
+			cy = this.last_drag_xy[1];
+                        debug_log0("drag_active_point: ctx="+ctx + 
+				  ", si="+this.saved_image +
+                           ", cx="+cx + ", cy="+cy + ", pt_rad="+pt_rad);
+                        ctx.drawImage(this.saved_image, 0, 0);
+                        ctx.drawImage(this.saved_image, cx, cy, pt_rad, pt_rad,
+                            cx, cy, pt_rad, pt_rad);
+                        ctx.drawImage(this.saved_image, cx, cy, pt_rad, pt_rad,
+                            cx, cy, pt_rad, pt_rad);
+                    }
+                    var cx = this.x2canvas(xy[0]);
+                    var cy = this.y2canvas(xy[1]);
+                    var cxy = [cx, cy];
+                    debug_log("new: ("+xy[0]+","+xy[1]+")");
+                    this.last_drag_xy = cxy;
+                    return this.pt_cdraw(ctx, cxy);
+                },
+                point_move_end: function () {
+                    var e = elements[canvas.iactive];
+                    var cx = this.last_drag_xy[0];
+                    var cy = this.last_drag_xy[1];
+                    this.point_moving = false;
+                    e.xy_set(this.canvas2x(cx), this.canvas2y(cy));
+                    elements_replace_update(canvas.iactive, e);
                 },
                 point_draw_color: function (ctx, p, color) {
                     debug_log("point_draw_color: color="+color);
@@ -1535,6 +1632,7 @@
                     var rr = rect_required; // abbreviation
                     var w = this.cwidth;
                     var h = this.cheight;
+                    var da;
                     x0 = rr[0][0];
                     y0 = rr[1][0];
                     dx = rr[0][1] - rr[0][0];
@@ -1553,6 +1651,8 @@
                     dtag1 = Math.max(6, Math.min(w, h)/0x100);
                     delta_label = this.canvas2g(
                         Math.max(16, Math.min(w, h)/0x40));
+                    da = Math.min(dx, dy)/0x40;
+                    delta_active = da*da;
                     pt_rad = Math.max(3, Math.min(w, h)/0x200);
                     angle_rad = Math.max(12, Math.min(w, h)/0x100);
                     this.point_lb = $.extend(true, {}, point).xy_set(x0, y0);
@@ -1586,9 +1686,9 @@
                 g2canvas: function (d) { return (this.cwidth * d) / dx; },
                 canvas2g: function (p) { return (dx * p) / this.cwidth; },
                 x2canvas: function (x) {
-                    return (this.cwidth * (x - x0)) / dx; },
+                    return Math.round((this.cwidth * (x - x0)) / dx); },
                 y2canvas: function (y) {
-                    return (this.cheight * (y0 + dy - y)) / dy; },
+                    return Math.round((this.cheight * (y0 + dy - y)) / dy); },
                 canvas2x: function (cx) { return x0 + (cx * dx)/this.cwidth; },
                 canvas2y: function (cy) {
                     return y0 + dy - (cy * dy)/this.cheight; },
@@ -1623,11 +1723,17 @@
                 var cx = e.pageX - position.left, cy = e.pageY - position.top;
                 var cx = e.pageX - offset.left, cy = e.pageY - offset.top;
                 var xy = canvas.canvas2pt([cx, cy]);
-                canvas.draw_near_point(xy);
+                if (canvas.point_moving) {
+                    canvas.drag_active_point(xy);
+                } else {
+                    canvas.draw_near_active_point(xy);
+                }
 
                 var xyfmt = "("+best_fixed(xy[0]) + ", " + 
                     best_fixed(xy[1])+")";
 
+                pointer.text(xyfmt);
+if (false) {
                 pointer.text(xyfmt +
                    ", cx="+cx.toFixed(2) + ", cy="+cy.toFixed(2) +
                    ", pageX="+e.pageX.toFixed(2) + 
@@ -1644,16 +1750,38 @@
                  var bb = ec[0].getBoundingClientRect();
                  var mx = (e.clientX - bb.left);
                  var my = (e.clientY - bb.top);
-    if (false) {
-                 pointer.text("("+best_fixed(xy[0]) + ", " + 
-                 best_fixed(xy[1])+")"
-                  + ", mx="+mx + ", my="+my);
-                 var fxy = findPos(ec[0]);
-                 pointer.text("("+best_fixed(xy[0]) + ", " + 
-                 best_fixed(xy[1])+")" + ", f: x="+fxy.x + ", y="+fxy.y);
-    }
+}
              
             }, 200);
+        });
+
+        ec.mousedown(function () {
+            debug_log("mousedown");
+            if (canvas.iactive != -1) {
+                canvas.point_move_begin();
+            }
+        });
+        ec.mouseup(function () {
+            debug_log("mouseup");
+            if (canvas.point_moving) {
+                canvas.point_move_end();
+            }
+        });
+        ec.mouseleave(function () {
+            debug_log("mouseleave");
+            if (canvas.iactive !== -1) {
+                var e = elements[canvas.iactive];
+                e.near = false;
+                e.active = false;
+                canvas.iactive = -1;
+            }
+            if (canvas.point_moving) {
+                var e = elements[canvas.iactive];
+                e.near = e.active = false;
+                canvas.iactive = -1;
+                canvas.point_moving = false;
+                canvas.redraw();
+            }
         });
 
         var name_xy = ["pt-name", "line-name", "circle-name", "x", "y"];
@@ -2329,7 +2457,6 @@ if (false) {
             debug_log("rewrite for new JS setting");
             extable.redraw();
         });
-
 
 
         $("#color-background").val(canvas.background_get());
