@@ -1522,6 +1522,7 @@
 		    this.saved_image.height = this.cheight + pt_rad;
 		    var ctx_saved = this.saved_image.getContext("2d");
 		    ctx_saved.drawImage(this.ecanvas[0], 0, 0);
+                    this.ecanvas.css('cursor', 'move');
 		},
                 drag_active_point: function (xy) {
                     debug_log("drag_active_point");
@@ -1557,6 +1558,7 @@
                     this.point_moving = false;
                     e.xy_set(this.canvas2x(cx), this.canvas2y(cy));
                     elements_replace_update(canvas.iactive, e);
+                    this.ecanvas.css('cursor', 'default');
                 },
                 point_draw_color: function (ctx, p, color) {
                     debug_log("point_draw_color: color="+color);
@@ -1769,17 +1771,16 @@ if (false) {
         });
         ec.mouseleave(function () {
             debug_log("mouseleave");
+            var redraw_needed = (canvas.iactive !== -1)|| canvas.point_moving;
             if (canvas.iactive !== -1) {
                 var e = elements[canvas.iactive];
                 e.near = false;
                 e.active = false;
                 canvas.iactive = -1;
+                canvas.ecanvas.css('cursor', 'default');
             }
-            if (canvas.point_moving) {
-                var e = elements[canvas.iactive];
-                e.near = e.active = false;
-                canvas.iactive = -1;
-                canvas.point_moving = false;
+            canvas.point_moving = false;
+            if (redraw_needed) {
                 canvas.redraw();
             }
         });

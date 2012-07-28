@@ -2,7 +2,7 @@
 
 html, body { height: 100%; width: 100%; margin: 0; }
 
-table
+table 
 {
   border-collapse:collapse;
 }
@@ -15,6 +15,12 @@ table
 #th-show
 {
   // background: url("ui-icon-gear");
+}
+
+.draggable-box
+{
+  background: white;
+  opacity: 0.6;
 }
 
 .tab-pref, .tr-pref, .td-pref
