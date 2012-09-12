@@ -80,6 +80,7 @@
                                             debug_log("Play path=" +
                                                 iot.curr_path + 
                                                 ", fn="+ve[0]);
+                                            iot.fget(ve[0]);
                                         };
                                     }(this, e)))
                         .append($("<td>")
@@ -143,6 +144,31 @@
                         "text": text
                     },
                     this.fput_cb);
+            },
+            fget_cb: function (data) {
+                debug_log("fput_cb");
+                var err = "", edata = "";
+                try { edata = JSON.parse(data); }
+                catch(ex) { err = ex; edata = null;}
+                debug_log("fget_cb: data="+data + ", edata="+edata);
+                if (err) {
+                   debug_log("fget_cb: err="+err);
+                } else {
+                   var text = edata['text'];
+                   debug_log("fget_cb: text="+text);
+                   $("#json-text").val(text);
+                }
+                io.refresh();
+            },
+            fget: function (fn) {
+                debug_log("fget: path="+this.curr_path + ", fn="+fn);
+                $.post(this.cgi_url,
+                    {
+                        "action": "fget",
+                        "path": this.curr_path,
+                        "fn": fn,
+                    },
+                    this.fget_cb);
             }
         };
 
