@@ -169,13 +169,37 @@
                         "fn": fn,
                     },
                     this.fget_cb);
-            }
+            },
+            mkdir_cb: function (data) {
+                debug_log("mkdir_cb");
+                var err = "", edata = "";
+                try { edata = JSON.parse(data); }
+                catch(ex) { err = ex; edata = null;}
+                debug_log("fget_cb: data="+data + ", edata="+edata);
+                if (err) {
+                   debug_log("fget_cb: err="+err);
+                }
+                io.refresh();
+            },
+            mkdir: function (dn) {
+                debug_log("mkdir:  path="+this.curr_path + ", dn="+dn);
+                $.post(this.cgi_url,
+                     {
+                        "action": "mkdir",
+                        "path": this.curr_path,
+                        "dn": dn,
+                    },
+                    this.mkdir_cb);
+           }
         };
 
         debug_log("io.cgi="+io.cgi_url);
         $("#tree-refresh").click(function() { io.refresh(); });
         $("#save").click(function() {
             io.fput($("#filename").val(), $("#json-text").val());
+        });
+        $("#mkdir").click(function() {
+            io.mkdir($("#filename").val());
         });
     });
 
