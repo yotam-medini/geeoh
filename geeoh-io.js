@@ -36,6 +36,17 @@
         var io = {
             curr_path: "", // user data
             cgi_url: "cgi-bin/geeoh-io.cgi",
+            cb_json_get: function(cb_name, data) {
+                debug_log("cb_json_get: cb="+cb_name);
+                var err = "", edata = "";
+                try { edata = JSON.parse(data); }
+                catch(ex) { err = ex; edata = null;}
+                debug_log("data="+data + ", edata="+edata);
+                if (err) {
+                   debug_log(cb_name + ": err="+err);
+                }
+                return edata;
+            },
             table_fill: function (dlist, flist) {
                 var tbody = $("#tbody-data");
                 tbody.empty();
@@ -116,11 +127,8 @@
             },
             tree_refresh_cb: function (vthis) { 
                 return function (data) {
-                    var err = "", edata = "";
-                    try { edata = JSON.parse(data); }
-                    catch(ex) { err = ex; edata = null;}
-                    debug_log("tree_refresh_cb: data="+data + ", edata="+edata);
-                    if (!err) {
+                    var edata = vthis.cb_json_get("tree_refresh_cb", data);
+                    if (edata) {
                         vthis.table_fill(edata["dlist"], edata["flist"]);
                     }
                 }
@@ -150,14 +158,7 @@
             },
             fput_cb: function (vthis) { 
                 return function (data) {
-                    debug_log("fput_cb");
-                    var err = "", edata = "";
-                    try { edata = JSON.parse(data); }
-                    catch(ex) { err = ex; edata = null;}
-                    debug_log("fput_cb: data="+data + ", edata="+edata);
-                    if (err) {
-                       debug_log("fput_cb: err="+err);
-                    }
+                    vthis.cb_json_get("fput_cb", data);
                     vthis.refresh();
                 }
             },
@@ -174,14 +175,9 @@
             },
             fget_cb: function (vthis) { 
                 return function (data) {
-                    debug_log("fput_cb");
-                    var err = "", edata = "";
-                    try { edata = JSON.parse(data); }
-                    catch(ex) { err = ex; edata = null;}
-                    debug_log("fget_cb: data="+data + ", edata="+edata);
-                    if (err) {
-                       debug_log("fget_cb: err="+err);
-                    } else {
+                    debug_log("fget_cb");
+                    var edata = vthis.cb_json_get("fget_cb", data);
+                    if (edata) {
                        var text = edata['text'];
                        debug_log("fget_cb: text="+text);
                        $("#json-text").val(text);
@@ -202,13 +198,7 @@
             mkdir_cb: function (vthis) {
                 return function (data) {
                     debug_log("mkdir_cb");
-                    var err = "", edata = "";
-                    try { edata = JSON.parse(data); }
-                    catch(ex) { err = ex; edata = null;}
-                    debug_log("mkdir_cb: data="+data + ", edata="+edata);
-                    if (err) {
-                       debug_log("mkdir_cb: err="+err);
-                    }
+                    var edata = vthis.cb_json_get("mkdir_cb", data);
                     vthis.refresh();
                 }
             },
@@ -225,13 +215,7 @@
             del_cb: function (vthis) {
                 return function (data) {
                     debug_log("del_cb");
-                    var err = "", edata = "";
-                    try { edata = JSON.parse(data); }
-                    catch(ex) { err = ex; edata = null;}
-                    debug_log("del_cb: data="+data + ", edata="+edata);
-                    if (err) {
-                       debug_log("del_cb: err="+err);
-                    }
+                    vthis.cb_json_get("del_cb", data);
                     vthis.refresh();
                 }
             },
