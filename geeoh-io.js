@@ -115,7 +115,7 @@
                 }
             },
             tree_refresh_cb: function (vthis) { 
-                    return function (data) {
+                return function (data) {
                     var err = "", edata = "";
                     try { edata = JSON.parse(data); }
                     catch(ex) { err = ex; edata = null;}
@@ -148,16 +148,18 @@
                     ", udcp="+this.curr_path);
                 this.refresh();
             },
-            fput_cb: function (data) {
-                debug_log("fput_cb");
-                var err = "", edata = "";
-                try { edata = JSON.parse(data); }
-                catch(ex) { err = ex; edata = null;}
-                debug_log("fput_cb: data="+data + ", edata="+edata);
-                if (err) {
-                   debug_log("fput_cb: err="+err);
+            fput_cb: function (vthis) { 
+                return function (data) {
+                    debug_log("fput_cb");
+                    var err = "", edata = "";
+                    try { edata = JSON.parse(data); }
+                    catch(ex) { err = ex; edata = null;}
+                    debug_log("fput_cb: data="+data + ", edata="+edata);
+                    if (err) {
+                       debug_log("fput_cb: err="+err);
+                    }
+                    vthis.refresh();
                 }
-                io.refresh();
             },
             fput: function (fn, text) {
                 debug_log("fput: fn="+fn + ", text="+text);
@@ -168,22 +170,24 @@
                         "fn": fn,
                         "text": text
                     },
-                    this.fput_cb);
+                    this.fput_cb(this));
             },
-            fget_cb: function (data) {
-                debug_log("fput_cb");
-                var err = "", edata = "";
-                try { edata = JSON.parse(data); }
-                catch(ex) { err = ex; edata = null;}
-                debug_log("fget_cb: data="+data + ", edata="+edata);
-                if (err) {
-                   debug_log("fget_cb: err="+err);
-                } else {
-                   var text = edata['text'];
-                   debug_log("fget_cb: text="+text);
-                   $("#json-text").val(text);
+            fget_cb: function (vthis) { 
+                return function (data) {
+                    debug_log("fput_cb");
+                    var err = "", edata = "";
+                    try { edata = JSON.parse(data); }
+                    catch(ex) { err = ex; edata = null;}
+                    debug_log("fget_cb: data="+data + ", edata="+edata);
+                    if (err) {
+                       debug_log("fget_cb: err="+err);
+                    } else {
+                       var text = edata['text'];
+                       debug_log("fget_cb: text="+text);
+                       $("#json-text").val(text);
+                    }
+                    vthis.refresh();
                 }
-                io.refresh();
             },
             fget: function (fn) {
                 debug_log("fget: path="+this.curr_path + ", fn="+fn);
@@ -193,18 +197,20 @@
                         "path": this.curr_path,
                         "fn": fn,
                     },
-                    this.fget_cb);
+                    this.fget_cb(this));
             },
-            mkdir_cb: function (data) {
-                debug_log("mkdir_cb");
-                var err = "", edata = "";
-                try { edata = JSON.parse(data); }
-                catch(ex) { err = ex; edata = null;}
-                debug_log("mkdir_cb: data="+data + ", edata="+edata);
-                if (err) {
-                   debug_log("mkdir_cb: err="+err);
+            mkdir_cb: function (vthis) {
+                return function (data) {
+                    debug_log("mkdir_cb");
+                    var err = "", edata = "";
+                    try { edata = JSON.parse(data); }
+                    catch(ex) { err = ex; edata = null;}
+                    debug_log("mkdir_cb: data="+data + ", edata="+edata);
+                    if (err) {
+                       debug_log("mkdir_cb: err="+err);
+                    }
+                    vthis.refresh();
                 }
-                io.refresh();
             },
             mkdir: function (dn) {
                 debug_log("mkdir: path="+this.curr_path + ", dn="+dn);
@@ -214,18 +220,20 @@
                         "path": this.curr_path,
                         "dn": dn,
                     },
-                    this.mkdir_cb);
+                    this.mkdir_cb(this));
             },
-            del_cb: function (data) {
-                debug_log("del_cb");
-                var err = "", edata = "";
-                try { edata = JSON.parse(data); }
-                catch(ex) { err = ex; edata = null;}
-                debug_log("del_cb: data="+data + ", edata="+edata);
-                if (err) {
-                   debug_log("del_cb: err="+err);
+            del_cb: function (vthis) {
+                return function (data) {
+                    debug_log("del_cb");
+                    var err = "", edata = "";
+                    try { edata = JSON.parse(data); }
+                    catch(ex) { err = ex; edata = null;}
+                    debug_log("del_cb: data="+data + ", edata="+edata);
+                    if (err) {
+                       debug_log("del_cb: err="+err);
+                    }
+                    vthis.refresh();
                 }
-                io.refresh();
             },
             del: function (t, e) {
                 debug_log("del: "+t+ " path="+this.curr_path + ", e="+e);
@@ -236,7 +244,7 @@
                         "path": this.curr_path,
                         "e": e,
                     },
-                    this.del_cb);
+                    this.del_cb(this));
             }
         };
 
