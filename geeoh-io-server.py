@@ -75,6 +75,8 @@ Usage:                   # [Default]
                 self.fget(client)
             elif cmd == "mkdir":
                 self.mkdir(client)
+            elif cmd == "del":
+                self.edel(client)
             else:
                 self.log("Bad command: %s" % cmd)
             self.log("Client served")
@@ -159,6 +161,30 @@ Usage:                   # [Default]
         except Exception, why:
             self.log("dn=%s, why: %s" % (adn, why))
             err = "Failed to mkdir %s" % dn
+        self.send_data(client, err)
+
+
+    def edel(self, client):
+        self.log("");
+        t = self.recv_data(client)
+        e = self.recv_data(client)
+        ae = "%s/%s" % (self.udir, e);
+        self.log("t=%s, ae=%s" % (t, ae))
+        err = ""
+        if t == "d":
+            try:
+                os.rmdir(ae)
+            except Exception, why:
+                self.log("ae=%s, why: %s" % (ae, why))
+                err = "Failed to delete directory %s" % e
+        elif t == "f":
+            try:
+                os.unlink(ae,)
+            except Exception, why:
+                self.log("dn=%s, why: %s" % (ae, why))
+                err = "Failed to delete directory %s" % e
+        else:
+            err = "Illegal del type: '%s'" % t
         self.send_data(client, err)
 
 

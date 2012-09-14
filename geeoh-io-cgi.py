@@ -78,6 +78,8 @@ Usage:                   # [Default]
             self.fget();
         elif action == "mkdir":
             self.mkdir();
+        elif action == "del":
+            self.edel();
         else:
             self.log("Unsupported action: '%s'" % action)
             self.result = {'error': "Bad action: %s" % action}
@@ -139,6 +141,21 @@ Usage:                   # [Default]
         self.log("dn='%s" % (dn))
         self.csend_data("mkdir")
         self.csend_data(dn)
+        err = self.recv_data(self.csocket)
+        if err:
+            self.result['error'] = "Error %s" % err
+
+
+    def edel(self):
+        self.log("")
+        upath = self.form.getfirst("path", "")
+        t = self.form.getfirst("t", "")
+        e = self.form.getfirst("e", "")
+        ae = "%s/%s" % (upath, e) if upath else e
+        self.log("t=%s, ae='%s" % (t, ae))
+        self.csend_data("del")
+        self.csend_data(t)
+        self.csend_data(ae)
         err = self.recv_data(self.csocket)
         if err:
             self.result['error'] = "Error %s" % err

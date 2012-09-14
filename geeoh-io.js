@@ -63,7 +63,20 @@
                                         };
                                     }(e)))
                         .append($("<td>")
-                            .text(e)));
+                            .text(e))
+                        .append($("<td>")
+                            .append($('<button title="Delete">')
+                                .button({
+                                    text: false,
+                                    icons: {
+                                        primary: "ui-icon-trash"
+                                    }}))
+                                    .click(function (ve) {
+                                        return function (ei) {
+                                           debug_log("delete: "+ve);
+                                           io.del("d", ve);
+                                        };
+                                    }(e))));
                 }
                 for (var i = 0; i < flist.length; i++) {
                     var e = flist[i];
@@ -88,7 +101,20 @@
                         .append($("<td>")
                             .text(e[1]).css("text-align", "right"))
                         .append($("<td>")
-                            .text(ymdhms(e[2]))));
+                            .text(ymdhms(e[2])))
+                        .append($("<td>")
+                            .append($('<button title="Delete">')
+                                .button({
+                                    text: false,
+                                    icons: {
+                                        primary: "ui-icon-trash"
+                                    }}))
+                                    .click(function (ve) {
+                                        return function (ei) {
+                                           debug_log("delete: "+ve[0]);
+                                           io.del("f", ve[0]);
+                                        };
+                                    }(e))));
                 }
             },
             tree_refresh_cb: function (data) {
@@ -175,22 +201,44 @@
                 var err = "", edata = "";
                 try { edata = JSON.parse(data); }
                 catch(ex) { err = ex; edata = null;}
-                debug_log("fget_cb: data="+data + ", edata="+edata);
+                debug_log("mkdir_cb: data="+data + ", edata="+edata);
                 if (err) {
-                   debug_log("fget_cb: err="+err);
+                   debug_log("mkdir_cb: err="+err);
                 }
                 io.refresh();
             },
             mkdir: function (dn) {
-                debug_log("mkdir:  path="+this.curr_path + ", dn="+dn);
+                debug_log("mkdir: path="+this.curr_path + ", dn="+dn);
                 $.post(this.cgi_url,
-                     {
+                    {
                         "action": "mkdir",
                         "path": this.curr_path,
                         "dn": dn,
                     },
                     this.mkdir_cb);
-           }
+            },
+            del_cb: function (data) {
+                debug_log("del_cb");
+                var err = "", edata = "";
+                try { edata = JSON.parse(data); }
+                catch(ex) { err = ex; edata = null;}
+                debug_log("del_cb: data="+data + ", edata="+edata);
+                if (err) {
+                   debug_log("del_cb: err="+err);
+                }
+                io.refresh();
+            },
+            del: function (t, e) {
+                debug_log("del: "+t+ " path="+this.curr_path + ", e="+e);
+                $.post(this.cgi_url,
+                    {
+                        "action": "del",
+                        "t": t,
+                        "path": this.curr_path,
+                        "e": e,
+                    },
+                    this.del_cb);
+            }
         };
 
         debug_log("io.cgi="+io.cgi_url);
