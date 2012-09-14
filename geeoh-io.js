@@ -42,6 +42,7 @@
                 var udcp = this.curr_path;
                 if (udcp === "") { udcp = "/"; }
                 $("#th-path").empty().html(udcp);
+                var vthis = this;
                 for (var i = 0; i < dlist.length; i++) {
                     var e = dlist[i];
                     tbody.append($("<tr>")
@@ -53,13 +54,9 @@
                                         primary: "ui-icon-folder-open"
                                     }}))
                                     .click(function (ve) {
-                                        //debug_log("folder-open: "+e +
-                                        //", ei="+ei);
                                         return function (ei) {
                                            debug_log("folder-open: "+ve);
-                                           io.cdir(ve);
-                                           //user_data_current_path = ve;
-                                           //io.refresh();
+                                           vthis.cdir(ve);
                                         };
                                     }(e)))
                         .append($("<td>")
@@ -74,7 +71,7 @@
                                     .click(function (ve) {
                                         return function (ei) {
                                            debug_log("delete: "+ve);
-                                           io.del("d", ve);
+                                           vthis.del("d", ve);
                                         };
                                     }(e))));
                 }
@@ -112,18 +109,20 @@
                                     .click(function (ve) {
                                         return function (ei) {
                                            debug_log("delete: "+ve[0]);
-                                           io.del("f", ve[0]);
+                                           vthis.del("f", ve[0]);
                                         };
                                     }(e))));
                 }
             },
-            tree_refresh_cb: function (data) {
-                var err = "", edata = "";
-                try { edata = JSON.parse(data); }
-                catch(ex) { err = ex; edata = null;}
-                debug_log("tree_refresh_cb: data="+data + ", edata="+edata);
-                if (!err) {
-                    io.table_fill(edata["dlist"], edata["flist"]);
+            tree_refresh_cb: function (vthis) { 
+                    return function (data) {
+                    var err = "", edata = "";
+                    try { edata = JSON.parse(data); }
+                    catch(ex) { err = ex; edata = null;}
+                    debug_log("tree_refresh_cb: data="+data + ", edata="+edata);
+                    if (!err) {
+                        vthis.table_fill(edata["dlist"], edata["flist"]);
+                    }
                 }
             },
             refresh: function () {
@@ -133,7 +132,7 @@
                         "action": "refresh",
                         "path": this.curr_path
                     },
-                    this.tree_refresh_cb);
+                    this.tree_refresh_cb(this));
             },
             cdir: function (subdir) {
                 if (this.curr_path === "") {
