@@ -31,12 +31,15 @@
             }
             return edata;
         },
-        dir_get_consume: function (dlist, flist) { },
+        dir_get_consume: function (dlist, flist) { 
+            debug_log("dir_get_consume: abstract");
+        },
         dir_get_cb: function (vthis) { 
             return function (data) {
+                debug_log("dir_get_cb=");
                 var edata = vthis.cb_json_get("dir_get_cb", data);
                 if (edata) {
-                    vthis.dir_get_cb(edata["dlist"], edata["flist"]);
+                    vthis.dir_get_consume(edata["dlist"], edata["flist"]);
                 }
             }
         },
@@ -49,11 +52,11 @@
                 },
                 this.dir_get_cb(this));
         },
-        fput_done: function () { },
+        fput_done: function (vthis) { },
         fput_cb: function (vthis) { 
             return function (data) {
                 vthis.cb_json_get("fput_cb", data);
-                vthis.fput_done("fput_cb", data);
+                vthis.fput_done(vthis);
             }
         },
         fput: function (path, fn, text) {
@@ -107,12 +110,12 @@
                 },
                 this.mkdir_cb(this));
         },
-        del_done: function () { },
+        del_done: function (vthis) { },
         del_cb: function (vthis) {
             return function (data) {
                 debug_log("del_cb");
                 vthis.cb_json_get("del_cb", data);
-                vthis.del_done();
+                vthis.del_done(vthis);
             }
         },
         del: function (t, path, e) {
@@ -144,21 +147,11 @@
         return s;
     }
 
-    var ioui = {
+    var ioui = $.extend(true, {}, io, {
         curr_path: "", // user data
         cgi_url: "cgi-bin/geeoh-io.cgi",
-        cb_json_get: function(cb_name, data) {
-            debug_log("cb_json_get: cb="+cb_name);
-            var err = "", edata = "";
-            try { edata = JSON.parse(data); }
-            catch(ex) { err = ex; edata = null;}
-            debug_log("data="+data + ", edata="+edata);
-            if (err) {
-               debug_log(cb_name + ": err="+err);
-            }
-            return edata;
-        },
-        table_fill: function (dlist, flist) {
+        dir_get_consume: function (dlist, flist) {
+            debug_log("ioui.dir_get_consume");
             var tbody = $("#tbody-data");
             tbody.empty();
             var udcp = this.curr_path;
@@ -193,7 +186,7 @@
                                 .click(function (ve) {
                                     return function (ei) {
                                        debug_log("delete: "+ve);
-                                       vthis.del("d", ve);
+                                       vthis.ui_del("d", ve);
                                     };
                                 }(e))));
             }
@@ -231,27 +224,13 @@
                                 .click(function (ve) {
                                     return function (ei) {
                                        debug_log("delete: "+ve[0]);
-                                       vthis.del("f", ve[0]);
+                                       vthis.ui_del("f", ve[0]);
                                     };
                                 }(e))));
             }
         },
-        tree_refresh_cb: function (vthis) { 
-            return function (data) {
-                var edata = vthis.cb_json_get("tree_refresh_cb", data);
-                if (edata) {
-                    vthis.table_fill(edata["dlist"], edata["flist"]);
-                }
-            }
-        },
-        refresh: function () {
-            debug_log("tree-refresh: cgi="+this.cgi_url);
-            $.post(this.cgi_url,
-                {
-                    "action": "refresh",
-                    "path": this.curr_path
-                },
-                this.tree_refresh_cb(this));
+        ui_dir_get: function () {
+            this.dir_refresh();
         },
         cdir: function (subdir) {
             if (this.curr_path === "") {
@@ -265,93 +244,46 @@
             }
             debug_log("subdir="+subdir + 
                 ", udcp="+this.curr_path);
-            this.refresh();
+            this.dir_refresh();
         },
-        fput_cb: function (vthis) { 
-            return function (data) {
-                vthis.cb_json_get("fput_cb", data);
-                vthis.refresh();
-            }
+        fput_done: function (vthis) { 
+            vthis.dir_refresh();
         },
-        fput: function (fn, text) {
-            debug_log("fput: fn="+fn + ", text="+text);
-            $.post(this.cgi_url,
-                {
-                    "action": "fput",
-                    "path": this.curr_path,
-                    "fn": fn,
-                    "text": text
-                },
-                this.fput_cb(this));
+        ui_fput: function (fn, text) {
+            this.fput(this.curr_path, fn, text);
         },
-        fget_cb: function (vthis) { 
-            return function (data) {
-                debug_log("fget_cb");
-                var edata = vthis.cb_json_get("fget_cb", data);
-                if (edata) {
-                   var text = edata['text'];
-                   debug_log("fget_cb: text="+text);
-                   $("#json-text").val(text);
-                }
-                vthis.refresh();
-            }
+        fget_consume: function (text) { 
+            debug_log("fget_consume");
+            $("#json-text").val(text);
         },
-        fget: function (fn) {
-            debug_log("fget: path="+this.curr_path + ", fn="+fn);
-            $.post(this.cgi_url,
-                {
-                    "action": "fget",
-                    "path": this.curr_path,
-                    "fn": fn,
-                },
-                this.fget_cb(this));
+        mkdir_done: function (vthis) {
+            vthis.dir_refresh();
         },
-        mkdir_cb: function (vthis) {
-            return function (data) {
-                debug_log("mkdir_cb");
-                var edata = vthis.cb_json_get("mkdir_cb", data);
-                vthis.refresh();
-            }
-        },
-        mkdir: function (dn) {
+        ui_mkdir: function (dn) {
             debug_log("mkdir: path="+this.curr_path + ", dn="+dn);
-            $.post(this.cgi_url,
-                {
-                    "action": "mkdir",
-                    "path": this.curr_path,
-                    "dn": dn,
-                },
-                this.mkdir_cb(this));
+            this.mkdir(this.curr_path, dn);
         },
-        del_cb: function (vthis) {
-            return function (data) {
-                debug_log("del_cb");
-                vthis.cb_json_get("del_cb", data);
-                vthis.refresh();
-            }
+        del_done: function (vthis) {
+            vthis.dir_refresh();
         },
-        del: function (t, e) {
-            debug_log("del: "+t+ " path="+this.curr_path + ", e="+e);
-            $.post(this.cgi_url,
-                {
-                    "action": "del",
-                    "t": t,
-                    "path": this.curr_path,
-                    "e": e,
-                },
-                this.del_cb(this));
+        ui_del: function (t, e) {
+            debug_log("ui_del: "+t+ " path="+this.curr_path + ", e="+e);
+            this.del(t, this.curr_path, e);
+        },
+        dir_refresh: function () {
+            this.dir_get(this.curr_path);
         }
-    };
+    });
 
     $(document).ready(function () {
 
         debug_log("io.cgi="+ioui.cgi_url);
-        $("#tree-refresh").click(function() { ioui.refresh(); });
+        $("#tree-refresh").click(function() { ioui.ui_dir_get(); });
         $("#save").click(function() {
-            ioui.fput($("#filename").val(), $("#json-text").val());
+            ioui.ui_fput($("#filename").val(), $("#json-text").val());
         });
         $("#mkdir").click(function() {
-            ioui.mkdir($("#filename").val());
+            ioui.ui_mkdir($("#filename").val());
         });
     });
 
