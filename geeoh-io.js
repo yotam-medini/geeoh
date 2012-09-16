@@ -17,6 +17,7 @@
 
     var io = {
         cgi_url: "cgi-bin/geeoh-io.cgi",
+        id_table: "",
         error: function (msg) {
             debug_log(cb_name + ": err="+err);
         },
@@ -148,11 +149,19 @@
     }
 
     var ioui = $.extend(true, {}, io, {
+        // The following id-s must be initialized by user
+        id_table_tbody: "",
+        id_dirget: "",
+        id_filename: "",
+        id_save: "",
+        id_mkdir: "",
+        id_json_text: "",
+        
         curr_path: "", // user data
         cgi_url: "cgi-bin/geeoh-io.cgi",
         dir_get_consume: function (dlist, flist) {
             debug_log("ioui.dir_get_consume");
-            var tbody = $("#tbody-data");
+            var tbody = $("#"+this.id_table_tbody);
             tbody.empty();
             var udcp = this.curr_path;
             if (udcp === "") { udcp = "/"; }
@@ -276,12 +285,40 @@
         },
         dir_refresh: function () {
             this.dir_get(this.curr_path);
+        },
+        init: function (
+            v_id_table_tbody,
+            v_id_dirget,
+            v_id_filename,
+            v_id_save,
+            v_id_mkdir,
+            v_id_json_text) {
+
+            this.id_table_tbody = v_id_table_tbody;
+            this.id_dirget = v_id_dirget;
+            this.id_filename = v_id_filename;
+            this.id_save = v_id_save;
+            this.id_mkdir = v_id_mkdir;
+            this.id_json_text = v_id_json_text;
+
+            $("#"+v_id_dirget).click(function() { ioui.ui_dir_get(); });
+            $("#"+v_id_save).click(function() {
+                ioui.ui_fput($("#" + v_id_filename).val(),
+                    $("#" + v_id_json_text).val());
+            });
+            $("#" + v_id_mkdir).click(function() {
+                ioui.ui_mkdir($("#" + v_id_filename).val());
+            });
         }
+
     });
 
     $(document).ready(function () {
 
         debug_log("io.cgi="+ioui.cgi_url);
+        ioui.init("tbody-data", "tree-refresh", 
+            "filename", "save", "mkdir", "json-text");
+      if (false) {
         $("#tree-refresh").click(function() { ioui.ui_dir_get(); });
         $("#save").click(function() {
             ioui.ui_fput($("#filename").val(), $("#json-text").val());
@@ -289,6 +326,7 @@
         $("#mkdir").click(function() {
             ioui.ui_mkdir($("#filename").val());
         });
+      }
     });
 
 })();
