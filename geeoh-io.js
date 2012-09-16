@@ -82,12 +82,12 @@
                 }
             }
         },
-        fget: function (fn) {
+        fget: function (path, fn) {
             debug_log("fget: path="+this.curr_path + ", fn="+fn);
             $.post(this.cgi_url,
                 {
                     "action": "fget",
-                    "path": this.curr_path,
+                    "path": path,
                     "fn": fn,
                 },
                 this.fget_cb(this));
@@ -205,7 +205,7 @@
                                         debug_log("Play path=" +
                                             iot.curr_path + 
                                             ", fn="+ve[0]);
-                                        iot.fget(ve[0]);
+                                        iot.ui_fget(ve[0]);
                                     };
                                 }(this, e)))
                     .append($("<td>")
@@ -256,11 +256,15 @@
             debug_log("fget_consume");
             $("#json-text").val(text);
         },
+        ui_fget: function (fn) {
+            debug_log("ui_fget: fn="+fn);
+            this.fget(this.curr_path, fn);
+        },
         mkdir_done: function (vthis) {
             vthis.dir_refresh();
         },
         ui_mkdir: function (dn) {
-            debug_log("mkdir: path="+this.curr_path + ", dn="+dn);
+            debug_log("ui_mkdir: path="+this.curr_path + ", dn="+dn);
             this.mkdir(this.curr_path, dn);
         },
         del_done: function (vthis) {
