@@ -253,6 +253,8 @@
             }
             debug_log("subdir="+subdir + 
                 ", udcp="+this.curr_path);
+            $("#" + this.id_filename).val("");
+            $("#" + this.id_json_text).val("");
             this.dir_refresh();
         },
         fput_done: function (vthis) { 
@@ -263,11 +265,12 @@
         },
         fget_consume: function (text) { 
             debug_log("fget_consume");
-            $("#json-text").val(text);
+            $("#" + this.id_json_text).val(text);
         },
         ui_fget: function (fn) {
             debug_log("ui_fget: fn="+fn);
             this.fget(this.curr_path, fn);
+            $("#" + this.id_filename).val(fn);
         },
         mkdir_done: function (vthis) {
             vthis.dir_refresh();

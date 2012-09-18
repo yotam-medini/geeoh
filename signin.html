@@ -1,0 +1,72 @@
+<?php session_start(); ?>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Sign In testing</title>
+    <link rel="stylesheet"
+        href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/base/jquery-ui.css" />
+    <script type="text/javascript"
+      src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js">
+    </script>
+    <script type="text/javascript"
+      src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js">
+    </script>
+    <script type="text/javascript" src="signin.js"></script>
+  </head>
+  <body>
+    <h1>Sign In &mdash; Testing</h1>
+    <div id="signin-status">
+      <table id="tbl-signin-status">
+        <tr id="tr-signin-status">
+	</tr>
+      </table>
+    </div>
+    <hr>
+    <button id="debug-clear">Debug Clear</button>
+    <div id="debug">debug area</div>
+
+    <div id="dlg-signin">
+      <table width="100%" border="0" cellspacing="4" cellpadding="0">
+	<tr>
+	  <td width="76">Name</td>
+	  <td width="3">:</td>
+	  <td width="305">
+	    <input name="name" type="text" id="signin-name" size="30">
+	  </td>
+	</tr>
+	<tr>
+	  <td>password</td>
+	  <td>:</td>
+	  <td>
+	    <input name="password" type="password" id="signin-pw" size="30">
+	  </td>
+	</tr>
+      </table>
+    </div>
+
+    <div id="dlg-signup">
+      <table width="100%" border="0" cellspacing="4" cellpadding="0">
+	<tr>
+	  <td width="76">Name</td>
+	  <td width="3">:</td>
+	  <td width="305">
+	    <input name="name" type="text" id="signup-name" size="30">
+	  </td>
+	</tr>
+	<tr>
+	  <td>E-mail</td>
+	  <td>:</td>
+	  <td><input name="email" type="text" id="signup-email" size="30"></td>
+	</tr>
+	<tr>
+	  <td>password</td>
+	  <td>:</td>
+	  <td>
+	    <input name="password" type="password" id="signup-pw" size="30">
+	  </td>
+	</tr>
+      </table>
+    </div>
+
+  </body>
+</html>
