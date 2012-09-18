@@ -70,23 +70,6 @@
                         signin_cb);
                     debug_log("okdbg: after post");
                  },
-                "OK": function () {
-                    debug_log("ok1");
-                    $(this).dialog("close");
-                    var vname = $("#signin-name").val();
-                    var vpw = $("#signin-pw").val();
-                    debug_log("ok2: name="+vname + ", pw="+vpw);
- if (false) {
-                    $.post("cgi-bin/callshow.py", // "signin.php",
-                        {
-                            "name": vname,
-                            "pw": vpw
-                        },
-                        signin_cb);
- }
-                    debug_log("ok1 after post");
-                    $(this).dialog("close");
-                },
                 "Cancel": function () { $(this).dialog("close"); }
             }
         });
