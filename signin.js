@@ -44,7 +44,7 @@
         update_status();
 
         function signin_cb(data) {
-            debug_log("signin: data="+data);
+            debug_log("signin_cb: data="+data);
         }
 
         dlg_signin.dialog({
@@ -54,7 +54,7 @@
             height: $(window).height()/2,
             modal: true,
             buttons: {
-                "OKdbg": function () {
+                "OK": function () {
                     debug_log("okdbg");
                     var vname = $("#signin-name").val();
                     debug_log("okdbg: name="+vname);
@@ -62,8 +62,9 @@
                     debug_log("okdbg: pw="+vpw);
                     $(this).dialog("close");
                     debug_log("okdbg: closed=");
-                    $.post("cgi-bin/callshow.py", // "signin.php",
+                    $.post("signin.php", // "cgi-bin/signin.php",
                         {
+                            "action": "signin",
                             "name": vname,
                             "pw": vpw
                         },

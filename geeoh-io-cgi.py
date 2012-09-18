@@ -26,6 +26,8 @@ Usage:                   # [Default]
   %s
   [-h | -help | --help]  # This message
   -portfn <fn>           # file with listening port
+  -user <name>           # User signed in (or guest)
+  -noheader              # Suppress response header 
 """[1:] % self.argv[0])
         
         
@@ -34,6 +36,8 @@ Usage:                   # [Default]
         self.sprelog = "(%d) " % os.getpid()
         self.log("")
         self.portfn = None
+        self.user = "guest"
+        self.output_header = True
         ai = 1
         while ai < len(argv) and self.mayrun():
             opt = argv[ai]
@@ -42,6 +46,10 @@ Usage:                   # [Default]
                 self.usage()
             elif opt == '-portfn':
                 self.portfn = argv[ai]; ai += 1;
+            elif opt == '-user':
+                self.user = argv[ai]; ai += 1;
+            elif opt == '-noheader':
+                self.output_header = False
             else:
                 self.error("Unsupported option: '%s'" % opt)
         if self.ok():
