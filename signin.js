@@ -87,6 +87,7 @@
             }
         });
 
+        $("#debug-clear").click(function () { $("#debug").empty(); });
     });
 
 })();
