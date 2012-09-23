@@ -45,6 +45,11 @@
 
         function signin_cb(data) {
             debug_log("signin_cb: data="+data);
+            if (data.substr(0, 7) == "error: ") {
+                error_message(data.substr(7));
+            } else {
+                debug_log("signin SUCCESS");
+            }
         }
 
         dlg_signin.dialog({

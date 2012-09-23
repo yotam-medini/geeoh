@@ -13,6 +13,7 @@ default:
 local-install: \
 	${WTARGET}/${BASE}.html \
 	${WTARGET}/${BASE}.js \
+	${WTARGET}/error.js \
 	${WTARGET}/${BASE}.php \
 	${WTARGET}/config.php \
 
@@ -21,7 +22,7 @@ ${WTARGET}/${BASE}.html: ${BASE}.html ${MAKEFILE_LIST}
 	  -e 's=http://ajax.googleapis.com/ajax/libs/=../jq/=g' \
 	  < $< > $@
 
-${WTARGET}/${BASE}.js: ${BASE}.js
+${WTARGET}/%.js: %.js
 	cp $< $@
 
 ${WTARGET}/%.php: %.php
@@ -30,6 +31,7 @@ ${WTARGET}/%.php: %.php
 TGZ_FILES = \
 	${MAKEFILE_LIST} \
 	${BASE}.html \
+	error.js \
 	${BASE}.js \
 	${BASE}.php \
 	config.php \

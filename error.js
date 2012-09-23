@@ -31,12 +31,12 @@
 	$(dialog_message).dialog("open");
     }
 
-    function error_message(message) {
+    jQuery.error_message = function (message) {
         debug_log("error_message: " + message);
         ew_message(message, "Error", "ui-icon-alert");
     }
 
-    function warn_message(message) {
+    jQuery.warn_message = function (message) {
         debug_log("warn_message: " + message);
         ew_message(message, "Warning", "ui-icon-info");
     }
@@ -55,13 +55,6 @@
 	    .append(element_text_message));
 	$("body").append(dialog_message);
 
-	var call = 0;
-	$("#b-err").click(function () { 
-	    error_message("b-err clicked " + (call++));
-        });
-	$("#b-warn").click(function () { 
-	    warn_message("b-warn clicked " + (call++));
-        });
     });
 
 })();

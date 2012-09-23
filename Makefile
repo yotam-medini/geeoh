@@ -5,7 +5,9 @@ emv:
 	@echo $($(emv))
 endif
 
-now := $(shell date --utc "+%Y-%m-%d-%H%M%S") utc
+nowymdhm := $(shell date --utc "+%Y-%m-%d-%H%M")
+tnow := $(shell date --utc "+%Y-%m-%d-%H%M%S")
+now = ${tnow} utc
 
 SRCS = \
 	Makefile \
@@ -58,3 +60,9 @@ ${RTGZ} : ${RELFILES}
 	tar czf $@ ${RELFILES}
 	tar tvzf $@; ls -lG $@
 
+TBZ2 = /tmp/geeoh-${nowymdhm}.tbz2
+hg-tbz: ${TBZ2}
+
+${TBZ2}:
+	hg archive $@
+	tar tvjf $@; ls -lG $@
