@@ -11,8 +11,8 @@
 
     debug_log("Begin1");
 
-    function ew_message(message, stitle, ui_icon) {
-        debug_log("ew_message: " + message);
+    function _message(message, stitle, ui_icon, confirm_cb) {
+        debug_log("_message: " + message);
 	// $(element_icon).html("...icon... ");
 	$(element_icon).removeClass().addClass("ui-icon " + ui_icon);
 	$(element_text_message).html(message);
@@ -22,23 +22,43 @@
 	    width: 3*$(window).width()/5,
 	    height: 3*$(window).height()/5,
 	    modal: true,
-	    buttons: {
-		"Ok" : function () {
-		    $(this).dialog("close");
+	    buttons: function () {
+	        if (confirm_cb) {
+		    return {
+			"Ok" : function () {
+			    $(this).dialog("close");
+			    confirm_cb(true);
+			},
+			"Cancel" : function () {
+			    $(this).dialog("close");
+			    confirm_cb(false);
+			}
+		    }
+		} else {
+		    return {
+			"Ok" : function () {
+			    $(this).dialog("close");
+			}
+		    }
 		}
-	    }
+	    }()
 	}).parent().addClass("ui-state-error");
 	$(dialog_message).dialog("open");
     }
 
     jQuery.error_message = function (message) {
         debug_log("error_message: " + message);
-        ew_message(message, "Error", "ui-icon-alert");
+        _message(message, "Error", "ui-icon-alert");
     }
 
     jQuery.warn_message = function (message) {
         debug_log("warn_message: " + message);
-        ew_message(message, "Warning", "ui-icon-info");
+        _message(message, "Warning", "ui-icon-info");
+    }
+
+    jQuery.confirm_message = function (message, confirm_cb) {
+        debug_log("warn_message: " + message);
+        _message(message, "Confirm", "ui-icon-circle-check", confirm_cb);
     }
 
     $(document).ready(function () {

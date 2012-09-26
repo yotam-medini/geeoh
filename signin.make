@@ -15,6 +15,7 @@ local-install: \
 	${WTARGET}/${BASE}.js \
 	${WTARGET}/error.js \
 	${WTARGET}/${BASE}.php \
+	${WTARGET}/confirm.php \
 	${WTARGET}/config.php \
 
 ${WTARGET}/${BASE}.html: ${BASE}.html ${MAKEFILE_LIST}
@@ -35,6 +36,7 @@ TGZ_FILES = \
 	${BASE}.js \
 	${BASE}.php \
 	config.php \
+	confirm.php \
 
 TGZ = /tmp/${BASE}.tgz
 tgz:
