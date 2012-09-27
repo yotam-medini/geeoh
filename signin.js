@@ -104,7 +104,33 @@
             height: $(window).height()/2,
             modal: true,
             buttons: {
-                "OK": function () { debug_log("ok"); },
+                "OK": function () { 
+		    var pw = $("signup-pw").val();
+		    var pw2 = $("signup-pw2").val();
+		    if (pw === pw2) {
+                        $(this).dialog("close");
+                        $.post("signin.php",
+                            {
+                                "action": "signup",
+                                "name": $("#signup-name").val(),
+                                "email": $("#signup-email").val(),
+                                "pw": pw
+                            },
+                            function (data) {
+                                debug_log("reset callback: data="+data);
+                                if (data.substr(0, 7) == "error: ") {
+                                    $.error_message(data.substr(7));
+                                } else {
+                                    debug_log("signin SUCCESS");
+                                    $.warn_message("Confirmation mail sent");
+                                }
+                                user_signed = null;
+                                update_status();
+                            });
+		    } else {
+                        $.error_message("Password verification failure");
+                    }
+		},
                 "cancel": function () { $(this).dialog("close"); }
             }
         });

@@ -26,18 +26,42 @@ function generate_random_string($len) {
     return $pw;
 }
 
-function email_send($email, $confirm_code, $pw) {
+function email_send($email, $confirm_code, $gen_pw) {
     $subject = "Your GEEOH confirmation link here";
     $header = "From: GEEOH administrator <yotam.medini@gmail.com>";
-    // $header .= "\r\nReply-To: DoNotReply";
+    $header .= "\r\nReply-To: DoNotReply";
     $message = "Your Comfirmation link \r\n";
     $message .= "Click on this link to activate your account \r\n";
     $message .= "http://localhost/~yotam/geeoh/confirm.php?passkey=$confirm_code";
-    if ($pw) {
-        $message .= "\r\nWith new password: $pw";
+    if ($gen_pw) {
+        $message .= "\r\nWith new password: $gen_pw";
     }
 
     return mail($email, $subject, $message, $header);
+}
+
+function set_temporary_confirm($name, $email, $user_pw=null) {
+    $pw = $user_pw;
+    $gen_pw = null;
+    if (is_null($user_pw)) {
+        $pw = $gen_pw = generate_random_string(8);
+    }
+    $pw_encypted = sha1($pw);
+    $confirm_code = md5(uniqid(rand()));
+    $now = time();
+    $sql = "INSERT INTO $tbl_temporary" .
+        "(confirm_code, name, email, password, time)" .
+        "VALUES('$confirm_code', '$name', '$email', '$member_pw', $now)";
+    $result = mysql_query($sql);
+    if ($result) {
+        if (email_send($email, $confirm_code, $gen_pw)) {
+            echo "reset sent, gen_pw=$gen_pw";
+        } else {
+            echo "error: Email sending failed";
+        }
+    } else {
+        echo "error: Failed to insert confirmatiom code";
+    }
 }
 
 $action = mysql_real_escape_string(post_value('action'));
@@ -64,12 +88,27 @@ if ($action === "signin") {
 } else if ($action === "signout") {
     $_SESSION['login'] = false;
     echo "login := false"; 
+} else if ($action === "signup") {
+    $_SESSION['login'] = false;
+    $sql = "SELECT * FROM $tbl_registered WHERE binary name ='$name'" .
+        " or email = '$email'";
+    $result = mysql_query($sql);
+    $count = 0;
+    if ($result) {
+	$count = mysql_num_rows($result);
+        if ($count == 0) {
+        } else {
+            echo "error: name or e-mail already registered"; 
+        }
+    } else {
+        echo "error: SQL query failed"; 
+    }
 } else if ($action === "reset") {
     // echo "reset: email=$email";
     $_SESSION['login'] = false;
     $sql = "SELECT * FROM $tbl_registered WHERE email = '$email'";
     $result = mysql_query($sql);
-    $count = 0;
+    $count = -1;
     if ($result) {
 	$count = mysql_num_rows($result);
         // echo "count=$count, result=$result";
