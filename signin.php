@@ -26,22 +26,32 @@ function generate_random_string($len) {
     return $pw;
 }
 
-function email_send($email, $confirm_code, $gen_pw) {
+function email_send($signin_conf, $to, $confirm_code, $gen_pw) {
     $subject = "Your GEEOH confirmation link here";
-    $header = "From: GEEOH administrator <yotam.medini@gmail.com>";
-    $header .= "\r\nReply-To: DoNotReply";
     $message = "Your Comfirmation link \r\n";
     $message .= "Click on this link to activate your account \r\n";
-    $message .= "http://localhost/~yotam/geeoh/confirm.php?passkey=$confirm_code";
+    $message .= $signin_conf['web-site'];
+    $message .= "/confirm.php?passkey=$confirm_code";
     if ($gen_pw) {
         $message .= "\r\nWith new password: $gen_pw";
     }
 
-    return mail($email, $subject, $message, $header);
+    return mail($to, $subject, $message, $signin_conf['email-header']);
 }
 
-function set_temporary_confirm($name, $email, $user_pw, $tbl_temporary,
-    $fdbg=null) {
+function email_by_name($signin_conf, $name, $message) {
+    $tbl = $signin_conf['tbl-reg'];
+    $sql = "SELECT * FROM $tbl WHERE binary name = '$name'";
+    $result = mysql_query($sql);
+    $count = ($result) ? mysql_num_rows($result) : -1;
+    if ($count == 1) {
+        $rows = mysql_fetch_array($result);
+        $to = $rows['email'];
+        mail($to, "GEEOH request done", $message, $signin_conf['email-header']);
+    }
+}
+
+function set_temporary_confirm($signin_conf, $name, $to, $user_pw, $fdbg=null) {
     $ok = false;
     $pw = $user_pw;
     $gen_pw = null;
@@ -54,12 +64,13 @@ function set_temporary_confirm($name, $email, $user_pw, $tbl_temporary,
     }
     $confirm_code = md5(uniqid(rand()));
     $now = time();
-    $sql = "INSERT INTO $tbl_temporary " .
+    $tbl = $signin_conf['tbl-temp'];
+    $sql = "INSERT INTO $tbl " .
         "(confirm_code, name, email, password, time)" .
         "VALUES('$confirm_code', '$name', '$email', '$pw_encypted', $now)";
     $result = mysql_query($sql);
     if ($result) {
-        if (email_send($email, $confirm_code, $gen_pw)) {
+        if (email_send($signin_conf, $to, $confirm_code, $gen_pw)) {
             echo "reset sent"; // gen_pw=$gen_pw";
         } else {
             echo "error: Email sending failed";
@@ -72,7 +83,6 @@ function set_temporary_confirm($name, $email, $user_pw, $tbl_temporary,
 $action = mysql_real_escape_string(post_value('action'));
 $name = mysql_real_escape_string(post_value('name'));
 $email = mysql_real_escape_string(post_value('email'));
-// $pw = mysql_real_escape_string(sha1(post_value('pw')));
 $user_pw = post_value('pw');
 
 $fdbg = fopen("/tmp/signin-php.log", "a");
@@ -89,6 +99,7 @@ if ($action === "signin") {
 	$count = mysql_num_rows($result);
 	if ($count == 1) {
 	    $_SESSION['login'] = 1;
+	    $_SESSION['name'] = $name;
 	    echo "ok";
 	} else {
 	    echo "error: Signing in failed";
@@ -98,9 +109,11 @@ if ($action === "signin") {
     }
 } else if ($action === "signout") {
     $_SESSION['login'] = false;
+    $_SESSION['name'] = null;
     echo "login := false"; 
 } else if ($action === "signup") {
     $_SESSION['login'] = false;
+    $_SESSION['name'] = null;
     $sql = "SELECT * FROM $tbl_registered WHERE binary name ='$name'" .
         " or email = '$email'";
     $result = mysql_query($sql);
@@ -108,7 +121,7 @@ if ($action === "signin") {
     if ($result) {
 	$count = mysql_num_rows($result);
         if ($count == 0) {
-            set_temporary_confirm($name, $email, $user_pw, $tbl_temporary,
+            set_temporary_confirm($$signin_conf, $name, $email, $user_pw,
                 $fdbg);
         } else {
             echo "error: name or e-mail already registered"; 
@@ -119,6 +132,7 @@ if ($action === "signin") {
 } else if ($action === "reset") {
     // echo "reset: email=$email";
     $_SESSION['login'] = false;
+    $_SESSION['name'] = null;
     $sql = "SELECT * FROM $tbl_registered WHERE email = '$email'";
     $result = mysql_query($sql);
     $count = -1;
@@ -129,15 +143,36 @@ if ($action === "signin") {
             $rows = mysql_fetch_array($result);
             $name = $rows['name'];
             $email = $rows['email'];
-            set_temporary_confirm($name, $email, null, $tbl_temporary);
+            set_temporary_confirm($signin_conf, $name, $email, null);
         } else {
             echo "error: E-mail address not found"; 
         }
     } else {
         echo "error: SQL query failed"; 
     }
+} else if ($action === "pwnew") {
+    if ($fdbg) { fprintf($fdbg, "pwnew: \n"); }
+    if ($name === $_SESSION['name']) {
+        email_by_name($signin_conf, $name,
+            "Your password for account '$name' is changed as requested");
+        $pw_encypted = sha1($user_pw);
+        $sql = "UPDATE $tbl_registered SET password = '$pw_encypted' " .
+            "WHERE binary name = '$name'";
+        $result = mysql_query($sql);
+        if ($fdbg) { fprintf($fdbg, "result " . ($result ? "1" : "0") ."\n"); }
+    } else {    
+        echo "error: logged user differ";
+    }
+} else if ($action === "remove") {
+    if ($name === $_SESSION['name']) {
+        email_by_name($signin_conf, $name, 
+            "Your account '$name' is removed as requested");
+        $sql = "DELETE FROM $tbl_registered WHERE binary name ='$name'";
+        $result = mysql_query($sql);
+    }
 } else {
     $_SESSION['login'] = false;
+    $_SESSION['name'] = null;
     echo "error: Bad action: $action"; 
 }
 

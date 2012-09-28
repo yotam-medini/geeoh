@@ -29,16 +29,11 @@
 			    $(this).dialog("close");
 			    confirm_cb(true);
 			},
-			"Cancel" : function () {
-			    $(this).dialog("close");
-			    confirm_cb(false);
-			}
+			"Cancel" : function () { $(this).dialog("close"); }
 		    }
 		} else {
 		    return {
-			"Ok" : function () {
-			    $(this).dialog("close");
-			}
+			"Ok" : function () { $(this).dialog("close"); }
 		    }
 		}
 	    }()
@@ -54,6 +49,11 @@
     jQuery.warn_message = function (message) {
         debug_log("warn_message: " + message);
         _message(message, "Warning", "ui-icon-info");
+    }
+
+    jQuery.info_message = function (message) {
+        debug_log("info_message: " + message);
+        _message(message, "Info", "ui-icon-info");
     }
 
     jQuery.confirm_message = function (message, confirm_cb) {

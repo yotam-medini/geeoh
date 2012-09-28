@@ -29,22 +29,7 @@
                                 "background-color": "#eee"})
                             .click(function () { dlg_uctl.dialog("open"); })
                         )
-                    )
-                .append($("<td>")
-                    .append($('<button title="logout">')
-                        .button({label: "Sign Out"})
-                            .click(function () {
-                                debug_log("Logout");
-                                $.post("signin.php",
-                                    {
-                                        "action": "signout",
-                                    },
-                                    function (data) {
-                                        debug_log("signout cb: data="+data);
-                                        user_signed = null;
-                                        update_status();
-                                    })
-                            })));
+                    );
             } else {
                 tr
                 .append($("<td>")
@@ -183,8 +168,30 @@
             modal: true,
             buttons: {
                 "OK": function () {
-                     $(this).dialog("close");
-                },
+		    var pw = $("#uctl-pw").val();
+		    var pw2 = $("#uctl-pw2").val();
+		    if (pw === pw2) {
+                        $(this).dialog("close");
+                        debug_log("Change pw="+pw);
+                        $.post("signin.php",
+                            {
+                                "action": "pwnew",
+                                "name": user_signed,
+                                "pw": pw
+                            },
+                            function (data) {
+                                debug_log("reset callback: data="+data);
+                                if (data.substr(0, 7) == "error: ") {
+                                    $.error_message(data.substr(7));
+                                } else {
+                                    debug_log("signin SUCCESS");
+                                    $.info_message("New password set");
+                                }
+                            });
+		    } else {
+                        $.error_message("Password verification failure");
+                    }
+		},
                 "cancel": function () { $(this).dialog("close"); }
             }
         });
@@ -193,6 +200,41 @@
             $(dlg_signin).dialog("close");
             $(dlg_reset).dialog("open");
         });
+
+        $("#logout").click(function () {
+            debug_log("Logout");
+            $(dlg_uctl).dialog("close");
+            $.post("signin.php",
+                {
+                    "action": "signout",
+                },
+                function (data) {
+                    debug_log("signout cb: data="+data);
+                    user_signed = null;
+                    update_status();
+                })
+        });
+
+        $("#uremove").click(function () {
+            debug_log("User Remove ");
+            $(dlg_uctl).dialog("close");
+            $.confirm_message("Are you sure you want to remove account?" +
+                 "<br>Note that your data may be erased as well",
+                 function () {
+                    $.post("signin.php",
+                        {
+                            "action": "remove",
+                            name: user_signed
+                        },
+                        function (data) {
+                            debug_log("uremove cb: data="+data);
+                            user_signed = null;
+                            update_status();
+                        });
+                 });
+        });
+
+
         $("#debug-clear").click(function () { $("#debug").empty(); });
     });
 
