@@ -14,17 +14,24 @@
         var dlg_signin = $("#dlg-signin");
         var dlg_signup = $("#dlg-signup");
         var dlg_reset = $("#dlg-reset");
+        var dlg_uctl = $("#dlg-user-control");
+
         function update_status () {
             var tr = $("#tr-signin-status");
             tr.empty();
             debug_log("update_status: user_signed="+user_signed);
             if (user_signed) {
                 tr.append($("<td>")
-                    .text(user_signed)
-                          .css({"color": "green", "background-color": "#eee"})
-                         )
+                    .append($('<button" title=' + 
+                        '"User logged in.\nLogin/Update/Remove...">')
+                        .button({label: user_signed})
+                            .css({"color": "green",
+                                "background-color": "#eee"})
+                            .click(function () { dlg_uctl.dialog("open"); })
+                        )
+                    )
                 .append($("<td>")
-                    .append($('<button" title="logout">')
+                    .append($('<button title="logout">')
                         .button({label: "Sign Out"})
                             .click(function () {
                                 debug_log("Logout");
@@ -163,6 +170,20 @@
                                                "<br>to: " + e_address);
                             }
                         });
+                },
+                "cancel": function () { $(this).dialog("close"); }
+            }
+        });
+
+        dlg_uctl.dialog({
+            autoOpen: false,
+            title: "User Control ",
+            width: $(window).width()/2,
+            height: $(window).height()/2,
+            modal: true,
+            buttons: {
+                "OK": function () {
+                     $(this).dialog("close");
                 },
                 "cancel": function () { $(this).dialog("close"); }
             }
