@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once('config.php');
+include('config.php');
 
 function post_value($key) {
     $ret = "";
@@ -40,22 +40,27 @@ function email_send($email, $confirm_code, $gen_pw) {
     return mail($email, $subject, $message, $header);
 }
 
-function set_temporary_confirm($name, $email, $user_pw=null) {
+function set_temporary_confirm($name, $email, $user_pw, $tbl_temporary,
+    $fdbg=null) {
+    $ok = false;
     $pw = $user_pw;
     $gen_pw = null;
     if (is_null($user_pw)) {
         $pw = $gen_pw = generate_random_string(8);
     }
     $pw_encypted = sha1($pw);
+    if ($fdbg) {
+        fprintf($fdbg, "stc: pw_encypted=$pw_encypted\n");
+    }
     $confirm_code = md5(uniqid(rand()));
     $now = time();
-    $sql = "INSERT INTO $tbl_temporary" .
+    $sql = "INSERT INTO $tbl_temporary " .
         "(confirm_code, name, email, password, time)" .
-        "VALUES('$confirm_code', '$name', '$email', '$member_pw', $now)";
+        "VALUES('$confirm_code', '$name', '$email', '$pw_encypted', $now)";
     $result = mysql_query($sql);
     if ($result) {
         if (email_send($email, $confirm_code, $gen_pw)) {
-            echo "reset sent, gen_pw=$gen_pw";
+            echo "reset sent"; // gen_pw=$gen_pw";
         } else {
             echo "error: Email sending failed";
         }
@@ -67,11 +72,17 @@ function set_temporary_confirm($name, $email, $user_pw=null) {
 $action = mysql_real_escape_string(post_value('action'));
 $name = mysql_real_escape_string(post_value('name'));
 $email = mysql_real_escape_string(post_value('email'));
-$pw = mysql_real_escape_string(sha1(post_value('pw')));
+// $pw = mysql_real_escape_string(sha1(post_value('pw')));
+$user_pw = post_value('pw');
+
+$fdbg = fopen("/tmp/signin-php.log", "a");
+fprintf($fdbg, "action=$action, user_pw=$user_pw\n");
 
 if ($action === "signin") {
+    $pw_encypted = sha1($user_pw);
+    fprintf($fdbg, "pw_encypted=$pw_encypted\n");
     $sql = "SELECT * FROM $tbl_registered "
-       . "WHERE binary name = '$name' AND  binary password = '$pw'";
+       . "WHERE binary name = '$name' AND  binary password = '$pw_encypted'";
     $result = mysql_query($sql);
     $count = 0;
     if ($result) {
@@ -97,6 +108,8 @@ if ($action === "signin") {
     if ($result) {
 	$count = mysql_num_rows($result);
         if ($count == 0) {
+            set_temporary_confirm($name, $email, $user_pw, $tbl_temporary,
+                $fdbg);
         } else {
             echo "error: name or e-mail already registered"; 
         }
@@ -116,23 +129,7 @@ if ($action === "signin") {
             $rows = mysql_fetch_array($result);
             $name = $rows['name'];
             $email = $rows['email'];
-            $confirm_code = md5(uniqid(rand()));
-            $gen_pw = generate_random_string(8);
-            $member_pw = sha1($gen_pw);
-            $now = time();
-            $sql = "INSERT INTO $tbl_temporary" .
-                "(confirm_code, name, email, password, time)" .
-                "VALUES('$confirm_code', '$name', '$email', '$member_pw', $now)";
-            $result = mysql_query($sql);
-            if ($result) {
-                if (email_send($email, $confirm_code, $gen_pw)) {
-                    echo "reset sent, gen_pw=$gen_pw";
-                } else {
-                    echo "error: Email sending failed";
-                }
-            } else {
-                echo "error: Failed to insert confirmatiom code";
-            }
+            set_temporary_confirm($name, $email, null, $tbl_temporary);
         } else {
             echo "error: E-mail address not found"; 
         }

@@ -13,7 +13,7 @@ default:
 local-install: \
 	${WTARGET}/${BASE}.html \
 	${WTARGET}/${BASE}.js \
-	${WTARGET}/error.js \
+	${WTARGET}/message.js \
 	${WTARGET}/${BASE}.php \
 	${WTARGET}/confirm.php \
 	${WTARGET}/config.php \
@@ -32,7 +32,7 @@ ${WTARGET}/%.php: %.php
 TGZ_FILES = \
 	${MAKEFILE_LIST} \
 	${BASE}.html \
-	error.js \
+	message.js \
 	${BASE}.js \
 	${BASE}.php \
 	config.php \

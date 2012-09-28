@@ -105,10 +105,11 @@
             modal: true,
             buttons: {
                 "OK": function () { 
-		    var pw = $("signup-pw").val();
-		    var pw2 = $("signup-pw2").val();
+		    var pw = $("#signup-pw").val();
+		    var pw2 = $("#signup-pw2").val();
 		    if (pw === pw2) {
                         $(this).dialog("close");
+                        debug_log("signup: pw="+pw+".");
                         $.post("signin.php",
                             {
                                 "action": "signup",
@@ -122,7 +123,7 @@
                                     $.error_message(data.substr(7));
                                 } else {
                                     debug_log("signin SUCCESS");
-                                    $.warn_message("Confirmation mail sent");
+                                    $.info_message("Confirmation mail sent");
                                 }
                                 user_signed = null;
                                 update_status();
