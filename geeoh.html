@@ -13,6 +13,10 @@
       src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js">
     </script>
     <script type="text/javascript" src="jquery.keypad.min.js"></script>
+    <script type="text/javascript" src="debug.js"></script>
+    <script type="text/javascript" src="message.js"></script>
+    <script type="text/javascript" src="signin.js"></script>
+    <script type="text/javascript" src="geeoh-io.js"></script>
     <script type="text/javascript" src="geeoh.js"></script>
   </head>
   <body>
@@ -153,19 +157,35 @@
         </table>
       </div>
       <div id="tab-io">
-        <table>
+        <table width="100%" border="1" cellspacing="6">
           <tr>
             <td>
               <table>
                 <tr>
-                  <td><button id="json-in" type="button">JSON in</button></td>
-                </tr>
-                <tr>
-                  <td><button id="json-out" type="button">JSON out</button></td>
+                  <td>
+                    <table>
+                      <tr>
+                        <td>
+                           <button id="json-in" type="button">JSON in</button>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <button id="json-out" type="button">JSON out</button>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                  <td><textarea id="json-text" col="50"></textarea></td>
                 </tr>
               </table>
             </td>
-            <td><textarea id="json-text" col="50"></textarea></td>
+            <td>
+              <table id="tbl-signin-status">
+                <tr id="tr-signin-status">
+                </tr>
+              </table>
+            </td>
           </tr>
         </table>
       </div>
@@ -426,5 +446,102 @@
         <span id="warnmsg"></span>
       </p>
     </div>
+
+    <div id="dlg-signin">
+      <table width="100%" border="0" cellspacing="4" cellpadding="0">
+        <tr>
+          <td width="76">Name</td>
+          <td width="3">:</td>
+          <td width="305">
+            <input name="name" type="text" id="signin-name" size="30">
+          </td>
+        </tr>
+        <tr>
+          <td>Password</td>
+          <td>:</td>
+          <td>
+            <input name="password" type="password" id="signin-pw" size="30">
+          </td>
+        </tr>
+      </table>
+      <input type="button" id="forgot" value="Forgot...">
+    </div>
+
+    <div id="dlg-reset">
+      <table width="100%" border="0" cellspacing="4" cellpadding="0">
+        <tr>
+          <td>E-mail</td>
+          <td>:</td>
+          <td>
+            <input name="email" type="text" id="reset-email" size="30">
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <div id="dlg-signup">
+      <table width="100%" border="0" cellspacing="4" cellpadding="0">
+        <tr>
+          <td width="76">Name</td>
+          <td width="3">:</td>
+          <td width="305">
+            <input name="name" type="text" id="signup-name" size="30">
+          </td>
+        </tr>
+        <tr>
+          <td>E-mail</td>
+          <td>:</td>
+          <td><input name="email" type="text" id="signup-email" size="30"></td>
+        </tr>
+        <tr>
+          <td>Password</td>
+          <td>:</td>
+          <td>
+            <input name="password" type="password" id="signup-pw" size="30">
+          </td>
+        </tr>
+        <tr>
+          <td>Re-Type</td>
+          <td>:</td>
+          <td>
+            <input name="password" type="password" id="signup-pw2" size="30">
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <div id="dlg-user-control">
+      <table width="100%" border="0" cellspacing="12" cellpadding="0">
+        <tr>
+          <td><input type="button" id="logout" value="Sign Out"></td>
+          <td><input type="button" id="uremove" value="Remove Account"></td>
+        </tr>
+      </table>
+      <table width="100%" border="1" cellspacing="4" cellpadding="0">
+        <tr><td>
+          <table width="100%" border="0" cellspacing="4" cellpadding="0">
+            <tr>
+              <th colspan="3">Change password</th>
+            </tr>
+            <tr>
+              <td>password</td>
+              <td>:</td>
+              <td>
+                <input name="password" type="password" id="uctl-pw" size="30">
+              </td>
+            </tr>
+            <tr>
+              <td>Re-Type</td>
+              <td>:</td>
+              <td>
+                <input name="password" type="password" id="uctl-pw2" size="30">
+              </td>
+            </tr>
+          </table>
+        </td></tr>
+      </table>
+    </div>
+
+
   </body>
 </html>

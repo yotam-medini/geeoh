@@ -19,6 +19,7 @@ now = ${tnow} utc
 
 SRCS = \
 	Makefile \
+	debug.js \
 	geeoh.html \
 	geeoh.css \
 	geeoh-in.js \
@@ -31,7 +32,7 @@ SRCS = \
 
 SRCS += fslocal.html fslocal.js
 
-# geeoh.js - is an exception
+# geeoh.js debug.js - are exceptions
 INSTALLED_JSS = \
 	geeoh-io.js \
 	message.js \
@@ -41,8 +42,17 @@ INSTALLED_CSSS = \
 	geeoh.css \
 
 INSTALLED_JSS_CSSS = $(INSTALLED_JSS) $(INSTALLED_CSSS)
-W_INST_JSS = $(foreach f, $(INSTALLED_JSS), $(WTARGET)/$(f))
 W_INST_JSS_CSSS = $(foreach f, $(INSTALLED_JSS_CSSS), $(WTARGET)/$(f))
+INST_KEYPAD = \
+	jquery.keypad.min.js \
+	jquery.keypad.css
+W_INST_KEYPAD = $(foreach f, $(INST_KEYPAD), $(WTARGET)/$(f))
+
+INSTALLED_PYS = \
+	cs.py \
+	geeoh-io-cgi.py \
+	geeoh-io-server.py
+B_INST_PYS = $(foreach f, $(INSTALLED_PYS), $(BTARGET)/$(f))
 
 RELFILES = \
 	geeoh.html \
@@ -60,14 +70,13 @@ default:
 install: \
 	${WTARGET}/geeoh.html \
 	${WTARGET}/geeoh.js \
-	${WTARGET}/geeoh.css \
-	${WTARGET}/geeoh-io.js \
-	${WTARGET}/message.js \
-	${WTARGET}/signin.js \
+	${WTARGET}/debug.js \
+	${W_INST_JSS_CSSS} \
+	${W_INST_KEYPAD} \
+	${WTARGET}/jquery.keypad.min.js \
+	${WTARGET}/jquery.keypad.css \
 	${WTARGET}/cgi-bin/geeoh-io.cgi \
-	${BTARGET}/cs.py \
-	${BTARGET}/geeoh-io-cgi.py \
-	${BTARGET}/geeoh-io-server.py
+	${B_INST_PYS} \
 
 lgeeoh.html: Makefile geeoh.html
 	sed \
@@ -89,8 +98,14 @@ geeoh-0.js: geeoh-in.js Makefile
 	 -e 's=DEBUG_LOG_CHOOSE=debug_log_dummy=' \
 	  < $< > $@
 
-${WTARGET}/geeoh.html: geeoh.html
+${WTARGET}/geeoh.html: geeoh.html Makefile
+ifeq ($(LOCAL),1)
+	sed \
+	  -e 's=http://ajax.googleapis.com/ajax/libs/=../jq/=g' \
+	  < $< > $@
+else
 	cp $< @$
+endif
 
 
 ifeq ($(LOCAL),1)
@@ -104,19 +119,29 @@ else
 endif
 
 ${W_INST_JSS_CSSS}: ${WTARGET}/%: %
-	@echo dep=$< target=$
 	$(call YUI_CP,$<,$@)
 
-
 $(WTARGET)/geeoh.js: geeoh-0.js
-ifeq (${LOCAL},)
-	  yui-compressor --preserve-semi -o $@ $<
+	$(call YUI_CP,$<,$@)
+
+$(WTARGET)/debug.js: debug.js Makefile
+ifeq ($(LOCAL),1)
+	sed -e 's=DEBUG_LOG_CHOOSE=debug_log_real='  < $< > $@
 else
-	  cp $< $@
+	sed -e 's=DEBUG_LOG_CHOOSE=debug_log_dummy='  < $< | \
+	yui-compressor --preserve-semi --type js > $@
 endif
 
-# $(foreach f,$(W_INST_JSS_CSSS),$(call YUI_CP,$(f)))
+${W_INST_KEYPAD}: ${WTARGET}/%: %
+	cp $< $@
 
+${WTARGET}/cgi-bin/%.cgi: %.cgi
+	@mkdir -p $(@D)
+	cp $< $@
+
+
+${B_INST_PYS}: ${BTARGET}/%: %
+	cp $< $@
 
 tgz: ${TGZ}
 ${TGZ} : ${SRCS}

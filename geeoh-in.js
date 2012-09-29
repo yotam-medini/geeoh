@@ -1,8 +1,6 @@
 (function () {
     "use strict";
 
-    var debug_win;
-
     // flags
     var FLAG_HIDE = 0x1;
     var FLAG_HIDE_LABEL = 0x2;
@@ -21,31 +19,8 @@
     color_entity_name[color_enum.near] = "near";
     color_entity_name[color_enum.active] = "active";
     
-    function debug_log0(message) {}
-
-    function debug_log_dummy(message) {}
-
-    function debug_log_real(message) {
-        var c, html, entry;
-        if (!debug_win) {
-            debug_win = window.open("about:blank", "GeeOH-Debug",
-                "width=300,height=300,scrollbars=1,resizable=1");
-            html = "<html><head><title>GeeOH Debug</title></head><body>" +
-                '<div id="debug">Hello1<br></div>' +
-                "</body></html>";
-            debug_win.document.open();
-            debug_win.document.write(html);
-            debug_win.document.close();
-        }
-        c = debug_win.document.getElementById("debug");
-        if (c) {
-            entry = document.createElement("div");
-            entry.appendChild(document.createTextNode(message));
-            c.appendChild(entry);
-        }
-    }
-
-    function debug_log(message) { DEBUG_LOG_CHOOSE(message) }
+    function debug_log(message) { $.debug_log(message) }
+    function debug_log0(message) { $.debug_log0(message) }
 
     function findPos(obj) { // Donated by `lwburk` on StackOverflow
         var curleft = 0, curtop = 0;
