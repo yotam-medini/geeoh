@@ -59,16 +59,16 @@ function set_temporary_confirm($signin_conf, $name, $to, $user_pw, $fdbg=null) {
         $pw = $gen_pw = generate_random_string(8);
     }
     $pw_encypted = sha1($pw);
-    if ($fdbg) {
-        fprintf($fdbg, "stc: pw_encypted=$pw_encypted\n");
-    }
+    if ($fdbg) { fprintf($fdbg, "stc: pw_encypted=$pw_encypted\n"); }
     $confirm_code = md5(uniqid(rand()));
     $now = time();
     $tbl = $signin_conf['tbl-temp'];
+if ($fdbg) { fprintf($fdbg, "stc: 1, tbl=$tbl\n"); }
     $sql = "INSERT INTO $tbl " .
         "(confirm_code, name, email, password, time)" .
-        "VALUES('$confirm_code', '$name', '$email', '$pw_encypted', $now)";
+        "VALUES('$confirm_code', '$name', '$to', '$pw_encypted', $now)";
     $result = mysql_query($sql);
+if ($fdbg) { fprintf($fdbg, "stc: 2: result=$result\n"); }
     if ($result) {
         if (email_send($signin_conf, $to, $confirm_code, $gen_pw)) {
             echo "reset sent"; // gen_pw=$gen_pw";
@@ -78,6 +78,8 @@ function set_temporary_confirm($signin_conf, $name, $to, $user_pw, $fdbg=null) {
     } else {
         echo "error: Failed to insert confirmatiom code";
     }
+$e = error_get_last();
+if ($fdbg) { fprintf($fdbg, "stc: 3, error=$e\n"); }
 }
 
 $action = mysql_real_escape_string(post_value('action'));
@@ -86,7 +88,8 @@ $email = mysql_real_escape_string(post_value('email'));
 $user_pw = post_value('pw');
 
 $fdbg = fopen("/tmp/signin-php.log", "a");
-fprintf($fdbg, "action=$action, user_pw=$user_pw\n");
+$now = date("Y-m-d H:i:s");
+fprintf($fdbg, "\n$now\naction=$action, user_pw=$user_pw\n");
 
 if ($action === "signin") {
     $pw_encypted = sha1($user_pw);
@@ -121,7 +124,7 @@ if ($action === "signin") {
     if ($result) {
 	$count = mysql_num_rows($result);
         if ($count == 0) {
-            set_temporary_confirm($$signin_conf, $name, $email, $user_pw,
+            set_temporary_confirm($signin_conf, $name, $email, $user_pw,
                 $fdbg);
         } else {
             echo "error: name or e-mail already registered"; 
@@ -129,6 +132,7 @@ if ($action === "signin") {
     } else {
         echo "error: SQL query failed"; 
     }
+ if ($fdbg) { fprintf($fdbg, "signup END: 2\n"); }
 } else if ($action === "reset") {
     // echo "reset: email=$email";
     $_SESSION['login'] = false;
@@ -174,6 +178,11 @@ if ($action === "signin") {
     $_SESSION['login'] = false;
     $_SESSION['name'] = null;
     echo "error: Bad action: $action"; 
+}
+
+if ($fdbg) {
+    $now = date("Y-m-d H:i:s");
+    fprintf($fdbg, "$now Exit\n");
 }
 
 ?>

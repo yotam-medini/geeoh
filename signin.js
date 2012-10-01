@@ -1,12 +1,6 @@
 (function () {
     "use strict";
 
-    function debug_log(message) {
-        $("#debug").append("<br>" + message).show();
-    }
-
-    debug_log("Begin1");
-
     var user_signed = null;
     var user_signing = null;
 
@@ -19,7 +13,7 @@
         function update_status () {
             var tr = $("#tr-signin-status");
             tr.empty();
-            debug_log("update_status: user_signed="+user_signed);
+            $.debug_log("update_status: user_signed="+user_signed);
             if (user_signed) {
                 tr.append($("<td>")
                     .append($('<button" title=' + 
@@ -36,7 +30,7 @@
                     .append($('<button title="signin">')
                         .button({ label: "Sign In" })
                             .click(function () {
-                                debug_log("Signin");
+                                $.debug_log("Signin");
                                 dlg_signin.dialog("open");
                             })))
                 .append($("<td>")
@@ -50,12 +44,12 @@
         update_status();
 
         function signin_cb(data) {
-            debug_log("signin_cb: data="+data);
+            $.debug_log("signin_cb: data="+data);
             if (data.substr(0, 7) == "error: ") {
                 $.error_message(data.substr(7));
                 user_signed = null;
             } else {
-                debug_log("signin SUCCESS");
+                $.debug_log("signin SUCCESS");
                 user_signed = user_signing;
             }
             update_status();
@@ -69,13 +63,13 @@
             modal: true,
             buttons: {
                 "OK": function () {
-                    debug_log("okdbg");
+                    $.debug_log("okdbg");
                     user_signing = $("#signin-name").val();
-                    debug_log("okdbg: name="+user_signing);
+                    $.debug_log("okdbg: name="+user_signing);
                     var vpw = $("#signin-pw").val();
-                    debug_log("okdbg: pw="+vpw);
+                    $.debug_log("okdbg: pw="+vpw);
                     $(this).dialog("close");
-                    debug_log("okdbg: closed=");
+                    $.debug_log("okdbg: closed=");
                     $.post("signin.php", // "cgi-bin/signin.php",
                         {
                             "action": "signin",
@@ -83,7 +77,7 @@
                             "pw": vpw
                         },
                         signin_cb);
-                    debug_log("okdbg: after post");
+                    $.debug_log("okdbg: after post");
                  },
                 "Cancel": function () { $(this).dialog("close"); }
             }
@@ -101,7 +95,7 @@
 		    var pw2 = $("#signup-pw2").val();
 		    if (pw === pw2) {
                         $(this).dialog("close");
-                        debug_log("signup: pw="+pw+".");
+                        $.debug_log("signup: pw="+pw+".");
                         $.post("signin.php",
                             {
                                 "action": "signup",
@@ -110,11 +104,11 @@
                                 "pw": pw
                             },
                             function (data) {
-                                debug_log("reset callback: data="+data);
+                                $.debug_log("reset callback: data="+data);
                                 if (data.substr(0, 7) == "error: ") {
                                     $.error_message(data.substr(7));
                                 } else {
-                                    debug_log("signin SUCCESS");
+                                    $.debug_log("signin SUCCESS");
                                     $.info_message("Confirmation mail sent");
                                 }
                                 user_signed = null;
@@ -136,17 +130,17 @@
             modal: true,
             buttons: {
                 "OK": function () {
-                    debug_log("dlg_reset: ok"); 
+                    $.debug_log("dlg_reset: ok"); 
                     $(this).dialog("close");
                     var e_address = $("#reset-email").val();
-		    debug_log("reset: e_address="+e_address);
+		    $.debug_log("reset: e_address="+e_address);
                     $.post("signin.php", // "cgi-bin/signin.php",
                         {
                             "action": "reset",
                             "email": e_address
                         },
                         function (data) {
-                            debug_log("reset callback: data="+
+                            $.debug_log("reset callback: data="+
 				      data.substr(0, 20));
                             if (data.substr(0, 7) == "error: ") {
                                 $.error_message(data.substr(7));
@@ -172,7 +166,7 @@
 		    var pw2 = $("#uctl-pw2").val();
 		    if (pw === pw2) {
                         $(this).dialog("close");
-                        debug_log("Change pw="+pw);
+                        $.debug_log("Change pw="+pw);
                         $.post("signin.php",
                             {
                                 "action": "pwnew",
@@ -180,11 +174,11 @@
                                 "pw": pw
                             },
                             function (data) {
-                                debug_log("reset callback: data="+data);
+                                $.debug_log("reset callback: data="+data);
                                 if (data.substr(0, 7) == "error: ") {
                                     $.error_message(data.substr(7));
                                 } else {
-                                    debug_log("signin SUCCESS");
+                                    $.debug_log("signin SUCCESS");
                                     $.info_message("New password set");
                                 }
                             });
@@ -202,21 +196,21 @@
         });
 
         $("#logout").click(function () {
-            debug_log("Logout");
+            $.debug_log("Logout");
             $(dlg_uctl).dialog("close");
             $.post("signin.php",
                 {
                     "action": "signout",
                 },
                 function (data) {
-                    debug_log("signout cb: data="+data);
+                    $.debug_log("signout cb: data="+data);
                     user_signed = null;
                     update_status();
                 })
         });
 
         $("#uremove").click(function () {
-            debug_log("User Remove ");
+            $.debug_log("User Remove ");
             $(dlg_uctl).dialog("close");
             $.confirm_message("Are you sure you want to remove account?" +
                  "<br>Note that your data may be erased as well",
@@ -227,7 +221,7 @@
                             name: user_signed
                         },
                         function (data) {
-                            debug_log("uremove cb: data="+data);
+                            $.debug_log("uremove cb: data="+data);
                             user_signed = null;
                             update_status();
                         });

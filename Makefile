@@ -76,6 +76,7 @@ install: \
 	${WTARGET}/jquery.keypad.min.js \
 	${WTARGET}/jquery.keypad.css \
 	${WTARGET}/cgi-bin/geeoh-io.cgi \
+	${WTARGET}/signin.php \
 	${B_INST_PYS} \
 
 lgeeoh.html: Makefile geeoh.html
@@ -136,6 +137,10 @@ ${W_INST_KEYPAD}: ${WTARGET}/%: %
 	cp $< $@
 
 ${WTARGET}/cgi-bin/%.cgi: %.cgi
+	@mkdir -p $(@D)
+	cp $< $@
+
+${WTARGET}/%.php: %.php
 	@mkdir -p $(@D)
 	cp $< $@
 
