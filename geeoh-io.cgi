@@ -55,5 +55,6 @@ then
   exit 1
 fi
 
-echo exec ${cgigeeohio} -portfn ${vardir}/geeohio.port >> ${flog}
-exec ${cgigeeohio} -portfn ${vardir}/geeohio.port
+echo exec ${cgigeeohio} -portfn ${vardir}/geeohio.port $@ >> ${flog}
+exec ${cgigeeohio} -portfn ${vardir}/geeohio.port $@
+

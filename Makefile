@@ -28,7 +28,7 @@ SRCS = \
 	signin.js \
 	signin.php \
 	confirm.php \
-	config.php \
+	config-template.php
 
 SRCS += fslocal.html fslocal.js
 
@@ -77,26 +77,13 @@ install: \
 	${WTARGET}/jquery.keypad.css \
 	${WTARGET}/cgi-bin/geeoh-io.cgi \
 	${WTARGET}/signin.php \
+	${WTARGET}/confirm.php \
+	${WTARGET}/config.php \
 	${B_INST_PYS} \
-
-lgeeoh.html: Makefile geeoh.html
-	sed \
-	  -e 's=http://ajax.googleapis.com/ajax/libs/=jq/=g' \
-	  -e 's=geeoh.js=lgeeoh.js=' \
-	  < geeoh.html > $@
-
-lgeeoh.js: geeoh-in.js Makefile
-	sed \
-	 -e 's=yyymmdd-HHMMSS=${now}=' \
-	 -e 's=DEBUG_LOG_CHOOSE=debug_log_real=' \
-	  < $< > $@
-
-local: lgeeoh.html lgeeoh.js
 
 geeoh-0.js: geeoh-in.js Makefile
 	sed \
 	 -e 's=yyymmdd-HHMMSS=${now}=' \
-	 -e 's=DEBUG_LOG_CHOOSE=debug_log_dummy=' \
 	  < $< > $@
 
 ${WTARGET}/geeoh.html: geeoh.html Makefile

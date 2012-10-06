@@ -27,6 +27,7 @@ Usage:                   # [Default]
   [-h | -help | --help]  # This message
   -portfn <fn>           # file with listening port
   -user <name>           # User signed in (or guest)
+  -mkdir <path>          # directory to open, must belong to user.
   -noheader              # Suppress response header 
 """[1:] % self.argv[0])
         
@@ -37,6 +38,7 @@ Usage:                   # [Default]
         self.log("")
         self.portfn = None
         self.user = "guest"
+        self.dir2make = None
         self.output_header = True
         ai = 1
         while ai < len(argv) and self.mayrun():
@@ -48,6 +50,8 @@ Usage:                   # [Default]
                 self.portfn = argv[ai]; ai += 1;
             elif opt == '-user':
                 self.user = argv[ai]; ai += 1;
+            elif opt == '-mkdir':
+                self.dir2make = argv[ai]; ai += 1;
             elif opt == '-noheader':
                 self.output_header = False
             else:
@@ -60,14 +64,29 @@ Usage:                   # [Default]
 
     def run(self):
         self.log("")
-        self.get_cgi_env()
-        if self.method == "POST":
-            self.post_handle()
+        self.result = {}
+        self.csocket = None
+        if self.dir2make:
+            self.run_non_post()
         else:
-            self.error("CGI-Method: '%s' not supported" % self.method)
+            self.get_cgi_env()
+            if self.method == "POST":
+                self.post_handle()
+            else:
+                self.error("CGI-Method: '%s' not supported" % self.method)
+        if self.csocket:
+            self.csocket.close()
         self.log("end")
 
         
+    def run_non_post(self):
+        self.get_connect_socket()
+        if self.dir2make:
+            self.mkdir_path(self.dir2make)
+        else:
+            self.error("No non-post action")
+
+
     def post_handle(self):
         self.log("")
         self.get_connect_socket()
@@ -77,7 +96,6 @@ Usage:                   # [Default]
             self.log("  item: %s" % str(item))
         action = form.getfirst("action", "")
         self.log("action=%s" % action)
-        self.result = {}
         if action == "refresh":
             self.refresh();
         elif action == "fput":
@@ -146,10 +164,20 @@ Usage:                   # [Default]
         upath = self.form.getfirst("path", "")
         bdn = self.form.getfirst("dn", "")
         dn = "%s/%s" % (upath, bdn) if upath else bdn
-        self.log("dn='%s" % (dn))
-        self.csend_data("mkdir")
-        self.csend_data(dn)
-        err = self.recv_data(self.csocket)
+        self.mkdir_path(dn)
+
+
+    def mkdir_path(self, dn):
+        self.log("")
+        err = None
+        self.log("dn='%s'" % (dn))
+        if dn == self.user or dn.startswith(self.user + "/"):
+            self.csend_data("mkdir")
+            self.csend_data(dn)
+            err = self.recv_data(self.csocket)
+        else:
+            err = "Unauthorized: mkdir %s for %s" % (dn, self.user)
+        self.log("err=%s" % err)
         if err:
             self.result['error'] = "Error %s" % err
 
