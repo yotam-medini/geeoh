@@ -158,3 +158,12 @@ table
   height: 90%;
   // padding: 12px;
 }
+
+#data-tree {
+  background: #e0dfdf;
+}
+
+#tbody-data  td {
+  padding-left: 6px;
+  padding-right: 6px;
+}
