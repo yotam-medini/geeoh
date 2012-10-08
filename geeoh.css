@@ -110,3 +110,7 @@ table
 {
   font-size:small;
 }
+
+// .ui-tabs-nav li { font-size: 8pt; }
+// .my-tab { font-size: 8pt; }
+.my-tab li { font-size: 80%; }
