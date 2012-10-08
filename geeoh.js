@@ -236,9 +236,9 @@
         var pointer = $("#pointer").draggable();
         // $("#tool-box").draggable();
         $("#elements-box").draggable({
-	    containment: "#canvas-center"m scroll: false});
+	    containment: "#canvas-center", scroll: false});
         $("#expressions-box").draggable({
-	    containment: "#canvas-center"m scroll: false});
+	    containment: "#canvas-center", scroll: false});
         $("#elements-toggle").click(function () {
              $("#elements").slideToggle();
         });

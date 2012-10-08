@@ -22,7 +22,7 @@ SRCS = \
 	debug.js \
 	geeoh.html \
 	geeoh.css \
-	geeoh-in.js \
+	geeoh.js \
 	geeoh-io.js \
 	message.js \
 	signin.js \
@@ -83,7 +83,7 @@ install: \
 	${WTARGET}/config.php \
 	${B_INST_PYS} \
 
-geeoh-0.js: geeoh-in.js Makefile
+geeoh-0.js: geeoh.js Makefile
 	sed \
 	 -e 's=yyymmdd-HHMMSS=${now}=' \
 	  < $< > $@
