@@ -198,29 +198,43 @@
 	    </table>
 	  </div>
 	  <div id="tab-server">
-	    <table id="tbl-signin-status">
-	      <tr id="tr-signin-status">
-	      </tr>
-	    </table>
-	    <div id="div-text">
-	      <button id="tree-refresh">Refresh</button>
-	      <div id="data-tree">
-		<table id="table-data-tree">
-		  <thead>
-		    <tr><th id="th-path" colspan="4"></th></tr>
-		    <tr>
-		      <th></th>
-		      <th>Name</th>
-		      <th>Size</th><th>Modified</th>
-		    </tr>
-		  </thead>
-		  <tbody id="tbody-data"></tbody>
-		</table>
-	      </div>
-	      <input type="text" id="filename" name="lastname" />
-	      <button id="save">Save</button>
-	      <button id="mkdir" title="Make Sub-Directory">MkDir</button>
-	    </div>
+            <table>
+              <tr>
+                <td>
+                  <div id="signin-status"></div>
+                  <br>
+                  <button id="tree-refresh"
+title="Get the current server contents
+of the path">
+                    Refresh
+                  </button>
+                </td>
+                <td>
+                  <div id="div-text">
+                    <div id="data-tree">
+                      <table id="table-data-tree">
+                        <thead>
+                          <tr>
+                            <th id="th-path" colspan="4"
+                            title="Current Path">
+                            </th>
+                          </tr>
+                          <tr>
+                            <th></th>
+                            <th>Name</th>
+                            <th>Size</th><th>Modified</th>
+                          </tr>
+                        </thead>
+                        <tbody id="tbody-data"></tbody>
+                      </table>
+                    </div>
+                    <input type="text" id="filename" name="lastname" />
+                    <button id="save">Save</button>
+                    <button id="mkdir" title="Make Sub-Directory">MkDir</button>
+                  </div>
+                </td>
+              </tr>
+            </table>
 	  </div>
 	</div>
       </div>

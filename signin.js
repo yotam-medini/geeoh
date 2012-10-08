@@ -17,37 +17,35 @@
         var dlg_uctl = $("#dlg-user-control");
 
         function update_status () {
-            var tr = $("#tr-signin-status");
-            tr.empty();
+            var e = $("#signin-status");
+            e.empty();
             $.debug_log("update_status: user_signed="+user_signed+". L="+
                  (user_signed.length));
             if (user_signed != "") {
                 $.debug_log("user_signed: non-empty");
-                tr.append($("<td>")
-                    .append($('<button" title=' + 
+                e.append(
+                    $('<button" title=' + 
                         '"User logged in.\nLogin/Update/Remove...">')
                         .button({label: user_signed})
                             .css({"color": "green",
                                 "background-color": "#eee"})
                             .click(function () { dlg_uctl.dialog("open"); })
-                        )
                     );
             } else {
                 $.debug_log("user_signed: EMPTY");
-                tr
-                .append($("<td>")
-                    .append($('<button title="signin">')
-                        .button({ label: "Sign In" })
-                            .click(function () {
-                                $.debug_log("Signin");
-                                dlg_signin.dialog("open");
-                            })))
-                .append($("<td>")
-                    .append($('<button title="signup">')
-                        .button({ label: "Sign Up" })
-                            .click(function () {
-                                dlg_signup.dialog("open");
-                            })));
+                e
+                .append($('<button title="signin">')
+                    .button({ label: "Sign In" })
+                        .click(function () {
+                            $.debug_log("Signin");
+                            dlg_signin.dialog("open");
+                        }))
+                .append($('<br>'))
+                .append($('<button title="signup">')
+                    .button({ label: "Sign Up" })
+                        .click(function () {
+                            dlg_signup.dialog("open");
+                        }));
              }
         }
         update_status();

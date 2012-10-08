@@ -322,6 +322,7 @@
         debug_log("io.cgi="+ioui.cgi_url);
         ioui.init("tbody-data", "tree-refresh", 
             "filename", "save", "mkdir", "json-text");
+	// init.dir_refresh();
       if (false) {
         $("#tree-refresh").click(function() { ioui.ui_dir_get(); });
         $("#save").click(function() {
