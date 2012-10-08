@@ -217,6 +217,8 @@
         debug_log("my geeoh ready begin");
         $("#version").html("β yyymmdd-HHMMSS");
         $("#toolbar").tabs({collapsible: true});
+        $("#tabs-local-server").tabs({collapsible: true});
+        $("#tabs-local-server li");
 
         $("#check-axes").prop("checked", true);
 

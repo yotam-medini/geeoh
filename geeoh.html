@@ -170,9 +170,14 @@
         </table>
       </div>
       <div id="tab-io">
-        <table width="100%" border="1" cellspacing="6">
-          <tr>
-            <td>
+
+        <div id="tabs-local-server">
+	  <ul>
+	    <li><a href="#tab-local"><span>Local</span></a></li>
+	    <li><a href="#tab-server"><span>Server</span></a></li>
+	  </ul>
+	  <div id="tab-local">
+
               <table>
                 <tr>
                   <td>
@@ -192,8 +197,9 @@
                   <td><textarea id="json-text" col="50"></textarea></td>
                 </tr>
               </table>
-            </td>
-            <td>
+	  </div>
+	  <div id="tab-server">
+
               <table id="tbl-signin-status">
                 <tr id="tr-signin-status">
                 </tr>
@@ -217,10 +223,10 @@
                 <button id="save">Save</button>
                 <button id="mkdir" title="Make Sub-Directory">MkDir</button>
               </div>
-            </td>
-          </tr>
-        </table>
+	  </div>
+	</div>
       </div>
+
       <div id="tab-help">
         Help is on its way
         <a href="geeoh-help.html" target="_blank">See more…</a>.

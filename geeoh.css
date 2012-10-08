@@ -114,3 +114,35 @@ table
 // .ui-tabs-nav li { font-size: 8pt; }
 // .my-tab { font-size: 8pt; }
 .my-tab li { font-size: 80%; }
+
+#tabs-local-server {
+  position: relative;
+  padding-left: 6.5em;
+}
+#tabs-local-server .ui-tabs-nav {
+  position: absolute;
+  left: 0.25em;
+  top: 0.25em;
+  bottom: 0.25em;
+  width: 6em;
+  padding: 0.2em 0 0.2em 0.2em;
+}
+#tabs-local-server .ui-tabs-nav li {
+  font-size: 80%;
+  right: 1px;
+  width: 100%;
+  border-right: none;
+  border-bottom-width: 1px !important;
+  // -moz-border-radius: 4px 0px 0px 4px;
+  // -webkit-border-radius: 4px 0px 0px 4px;
+  border-radius: 4px 0px 0px 4px;
+  overflow: hidden;
+}
+#tabs-local-server .ui-tabs-nav li.ui-tabs-selected {
+  border-right: 1px solid transparent;
+}
+#tabs-local-server li a {
+  float: right;
+  width: 100%;
+  text-align: right;
+}
