@@ -40,6 +40,7 @@ INSTALLED_JSS = \
 
 INSTALLED_CSSS = \
 	geeoh.css \
+	geeoh-io.css \
 
 INSTALLED_JSS_CSSS = $(INSTALLED_JSS) $(INSTALLED_CSSS)
 W_INST_JSS_CSSS = $(foreach f, $(INSTALLED_JSS_CSSS), $(WTARGET)/$(f))
@@ -68,7 +69,8 @@ default:
 	@false
 
 install: \
-	${WTARGET}/geeoh.html \
+	${WTARGET}/geeoh.php \
+	${WTARGET}/index.php \
 	${WTARGET}/geeoh.js \
 	${WTARGET}/debug.js \
 	${W_INST_JSS_CSSS} \
@@ -86,7 +88,7 @@ geeoh-0.js: geeoh-in.js Makefile
 	 -e 's=yyymmdd-HHMMSS=${now}=' \
 	  < $< > $@
 
-${WTARGET}/geeoh.html: geeoh.html Makefile
+${WTARGET}/geeoh.php: geeoh.html Makefile
 ifeq ($(LOCAL),1)
 	sed \
 	  -e 's=http://ajax.googleapis.com/ajax/libs/=../jq/=g' \
@@ -94,6 +96,11 @@ ifeq ($(LOCAL),1)
 else
 	cp $< @$
 endif
+
+${WTARGET}/index.php: Makefile
+	rm -f $@
+	ln -s geeoh.php $@
+
 
 
 ifeq ($(LOCAL),1)

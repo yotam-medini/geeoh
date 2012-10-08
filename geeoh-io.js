@@ -157,6 +157,7 @@
         id_mkdir: "",
         id_json_text: "",
         
+	user: "guest", // logged in user
         curr_path: "", // user data
         cgi_url: "cgi-bin/geeoh-io.cgi",
         dir_get_consume: function (dlist, flist) {
@@ -184,7 +185,7 @@
                                     };
                                 }(e)))
                     .append($("<td>")
-                        .text(e))
+                        .text(e).addClass("mydir"))
                     .append($("<td>")
                         .append($('<button title="Delete">')
                             .button({

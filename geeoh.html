@@ -1,7 +1,17 @@
+<!DOCTYPE html>
+<?php
+  session_start();
+  $user_signed = "";
+  if (isset($_SESSION['login']) && $_SESSION['login'] &&
+    isset($_SESSION['name'])) {
+    $user_signed = $_SESSION['name'];
+  }
+?>
 <html>
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Gee Oh!</title>
+    <link rel="stylesheet" type="text/css" href="geeoh-io.css"/>
     <link rel="stylesheet" type="text/css" href="geeoh.css"/>
     <link rel="stylesheet"
         href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/base/jquery-ui.css" />
@@ -15,6 +25,9 @@
     <script type="text/javascript" src="jquery.keypad.min.js"></script>
     <script type="text/javascript" src="debug.js"></script>
     <script type="text/javascript" src="message.js"></script>
+    <script language="javascript">
+      var session_user_signed = "<?php echo $user_signed; ?>";
+    </script>
     <script type="text/javascript" src="signin.js"></script>
     <script type="text/javascript" src="geeoh-io.js"></script>
     <script type="text/javascript" src="geeoh.js"></script>
@@ -56,14 +69,14 @@
                 <col width="20%" />
                 <col width="80%" />
                 <tr class="tr-pref">
-                  <td class="td-pref" class="td-pref-left">
+                  <td class="td-pref td-pref-left">
                     <input id="check-axes" type="checkbox"
                       title="Draw axes?"/>
                   </td>
                   <td class="td-pref">Axes</td>
                 </tr>
                 <tr class="tr-pref">
-                  <td class="td-pref" class="td-pref-left">
+                  <td class="td-pref d-pref-left">
                     <input id="check-expjs" type="checkbox"
                       title="Show Javascript translation&#013of expressions"/>
                   </td>
@@ -84,12 +97,12 @@
             <td class="td-pref-sub">
               <table class="tab-pref" border="0">
                 <tr class="tr-pref">
-                  <td class="td-pref" class="td-pref-left">
+                  <td class="td-pref td-pref-left">
                     <button id="b-limits">Limits…</button>
                   </td>
                 </tr>
                 <tr>
-                  <td class="td-pref" class="td-pref-left">Precision</td>
+                  <td class="td-pref td-pref-left">Precision</td>
                   <td class="td-pref">
                     <select id="select-precision">
                       <option value="0">0</option>
@@ -110,10 +123,10 @@
                 <tr class="tr-pref">
                   <td>Background</td>
                   <td>
-                    <input 
-                      id="color-background" 
-                      type="text" 
-                      value="#dddddd" 
+                    <input
+                      id="color-background"
+                      type="text"
+                      value="#dddddd"
                       maxlength="7" size="7"
                       />
                   </td>
@@ -121,9 +134,9 @@
                 <tr class="tr-pref">
                   <td>Points</td>
                   <td>
-                    <input 
+                    <input
                       id="color-points"
-                      type="text" 
+                      type="text"
                       value="#338833"
                       maxlength="7" size="7"
                       />
@@ -132,9 +145,9 @@
                 <tr class="tr-pref">
                   <td>Near</td>
                   <td>
-                    <input 
-                      id="color-near" 
-                      type="text" 
+                    <input
+                      id="color-near"
+                      type="text"
                       value="#eedd00"
                       maxlength="7" size="7"
                       />
@@ -143,9 +156,9 @@
                 <tr class="tr-pref">
                   <td>Active</td>
                   <td>
-                    <input 
-                      id="color-active" 
-                      type="text" 
+                    <input
+                      id="color-active"
+                      type="text"
                       value="#ee1111"
                       maxlength="7" size="7"
                       />

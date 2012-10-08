@@ -71,7 +71,7 @@ if ($fdbg) { fprintf($fdbg, "stc: 1, tbl=$tbl\n"); }
 if ($fdbg) { fprintf($fdbg, "stc: 2: result=$result\n"); }
     if ($result) {
         if (email_send($signin_conf, $to, $confirm_code, $gen_pw)) {
-            echo "reset sent"; // gen_pw=$gen_pw";
+            echo "reset sent"; // gen_pw=$gen_pw;
         } else {
             echo "error: Email sending failed";
         }
@@ -103,6 +103,7 @@ if ($action === "signin") {
 	if ($count == 1) {
 	    $_SESSION['login'] = 1;
 	    $_SESSION['name'] = $name;
+	    var_dump($_SESSION);
 	    echo "ok";
 	} else {
 	    echo "error: Signing in failed";

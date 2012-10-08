@@ -1,8 +1,14 @@
 (function () {
     "use strict";
 
-    var user_signed = null;
-    var user_signing = null;
+    var user_signed = "";
+    if (typeof(session_user_signed) != "undefined" &&
+        session_user_signed != "") {
+        user_signed = session_user_signed;
+    }
+    $.debug_log("session_user_signed="+session_user_signed + ".");
+    $.debug_log("user_signed="+user_signed + ".");
+    var user_signing = "";
 
     $(document).ready(function () {
         var dlg_signin = $("#dlg-signin");
@@ -13,8 +19,10 @@
         function update_status () {
             var tr = $("#tr-signin-status");
             tr.empty();
-            $.debug_log("update_status: user_signed="+user_signed);
-            if (user_signed) {
+            $.debug_log("update_status: user_signed="+user_signed+". L="+
+                 (user_signed.length));
+            if (user_signed != "") {
+                $.debug_log("user_signed: non-empty");
                 tr.append($("<td>")
                     .append($('<button" title=' + 
                         '"User logged in.\nLogin/Update/Remove...">')
@@ -25,6 +33,7 @@
                         )
                     );
             } else {
+                $.debug_log("user_signed: EMPTY");
                 tr
                 .append($("<td>")
                     .append($('<button title="signin">')
@@ -47,7 +56,7 @@
             $.debug_log("signin_cb: data="+data);
             if (data.substr(0, 7) == "error: ") {
                 $.error_message(data.substr(7));
-                user_signed = null;
+                user_signed = "";
             } else {
                 $.debug_log("signin SUCCESS");
                 user_signed = user_signing;
@@ -111,7 +120,7 @@
                                     $.debug_log("signin SUCCESS");
                                     $.info_message("Confirmation mail sent");
                                 }
-                                user_signed = null;
+                                user_signed = "";
                                 update_status();
                             });
 		    } else {
@@ -204,7 +213,7 @@
                 },
                 function (data) {
                     $.debug_log("signout cb: data="+data);
-                    user_signed = null;
+                    user_signed = "";
                     update_status();
                 })
         });
@@ -222,7 +231,7 @@
                         },
                         function (data) {
                             $.debug_log("uremove cb: data="+data);
-                            user_signed = null;
+                            user_signed = "";
                             update_status();
                         });
                  });
