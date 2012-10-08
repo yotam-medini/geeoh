@@ -10,6 +10,8 @@
     $.debug_log("user_signed="+user_signed + ".");
     var user_signing = "";
 
+    jQuery.user_signed_get = function () { return user_signed; };
+
     $(document).ready(function () {
         var dlg_signin = $("#dlg-signin");
         var dlg_signup = $("#dlg-signup");

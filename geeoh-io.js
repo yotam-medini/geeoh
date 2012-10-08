@@ -5,39 +5,29 @@
     var cgi_url = "cgi-bin/geeoh-io.cgi";
     // var user_data_current_path = "";
 
-    function debug_log(message) {
-        $("#debug").append("<br>" + message).show();
-    }
-
-    debug_log("Begin1");
-    $("#debug-clear").click(function () {
-        $("#debug").empty();
-        debug_log("cleared");
-    });
-
     var io = {
         cgi_url: "cgi-bin/geeoh-io.cgi",
         id_table: "",
         error: function (msg) {
-            debug_log(cb_name + ": err="+err);
+            $.debug_log(cb_name + ": err="+err);
         },
         cb_json_get: function(cb_name, data) {
-            debug_log("cb_json_get: cb="+cb_name);
+            $.debug_log("cb_json_get: cb="+cb_name);
             var err = "", edata = "";
             try { edata = JSON.parse(data); }
             catch(ex) { err = ex; edata = null;}
-            debug_log("data="+data + ", edata="+edata);
+            $.debug_log("data="+data + ", edata="+edata);
             if (err) {
                this.error(cb_name + ": err="+err);
             }
             return edata;
         },
         dir_get_consume: function (dlist, flist) { 
-            debug_log("dir_get_consume: abstract");
+            $.debug_log("dir_get_consume: abstract");
         },
         dir_get_cb: function (vthis) { 
             return function (data) {
-                debug_log("dir_get_cb=");
+                $.debug_log("dir_get_cb=");
                 var edata = vthis.cb_json_get("dir_get_cb", data);
                 if (edata) {
                     vthis.dir_get_consume(edata["dlist"], edata["flist"]);
@@ -45,7 +35,7 @@
             }
         },
         dir_get: function (subdir) {
-            debug_log("dir_get-refresh: cgi="+this.cgi_url);
+            $.debug_log("dir_get-refresh: cgi="+this.cgi_url);
             $.post(this.cgi_url,
                 {
                     "action": "refresh",
@@ -61,7 +51,7 @@
             }
         },
         fput: function (path, fn, text) {
-            debug_log("fput: fn="+fn + ", text="+text);
+            $.debug_log("fput: fn="+fn + ", text="+text);
             $.post(this.cgi_url,
                 {
                     "action": "fput",
@@ -74,17 +64,17 @@
         fget_consume: function (text) { },
         fget_cb: function (vthis) { 
             return function (data) {
-                debug_log("fget_cb");
+                $.debug_log("fget_cb");
                 var edata = vthis.cb_json_get("fget_cb", data);
                 if (edata) {
                    var text = edata['text'];
-                   debug_log("fget_cb: text="+text);
+                   $.debug_log("fget_cb: text="+text);
                    vthis.fget_consume(text);
                 }
             }
         },
         fget: function (path, fn) {
-            debug_log("fget: path="+this.curr_path + ", fn="+fn);
+            $.debug_log("fget: path="+this.curr_path + ", fn="+fn);
             $.post(this.cgi_url,
                 {
                     "action": "fget",
@@ -96,13 +86,13 @@
         mkdir_done: function () { },
         mkdir_cb: function (vthis) {
             return function (data) {
-                debug_log("mkdir_cb");
+                $.debug_log("mkdir_cb");
                 var edata = vthis.cb_json_get("mkdir_cb", data);
                 vthis.mkdir_done();
             }
         },
         mkdir: function (path, dn) {
-            debug_log("mkdir: path="+this.curr_path + ", dn="+dn);
+            $.debug_log("mkdir: path="+this.curr_path + ", dn="+dn);
             $.post(this.cgi_url,
                 {
                     "action": "mkdir",
@@ -114,13 +104,13 @@
         del_done: function (vthis) { },
         del_cb: function (vthis) {
             return function (data) {
-                debug_log("del_cb");
+                $.debug_log("del_cb");
                 vthis.cb_json_get("del_cb", data);
                 vthis.del_done(vthis);
             }
         },
         del: function (t, path, e) {
-            debug_log("del: "+t+ " path="+path + ", e="+e);
+            $.debug_log("del: "+t+ " path="+path + ", e="+e);
             $.post(this.cgi_url,
                 {
                     "action": "del",
@@ -156,20 +146,27 @@
         id_save: "",
         id_mkdir: "",
         id_json_text: "",
-        
-	user: "guest", // logged in user
+
+	// user: "guest", // logged in user
         curr_path: "", // user data
         cgi_url: "cgi-bin/geeoh-io.cgi",
         dir_get_consume: function (dlist, flist) {
-            debug_log("ioui.dir_get_consume");
+	    var user = $.user_signed_get();
+            $.debug_log("ioui.dir_get_consume, user="+user);
             var tbody = $("#"+this.id_table_tbody);
             tbody.empty();
             var udcp = this.curr_path;
             if (udcp === "") { udcp = "/"; }
             $("#th-path").empty().html(udcp);
             var vthis = this;
+	    var mypath = (udcp == 'guest') || (udcp == user) ||
+	        (udcp.substr(0, 5+1) == 'guest/') ||
+	        (udcp.substr(0, user.length+1) == (user + '/'));
             for (var i = 0; i < dlist.length; i++) {
                 var e = dlist[i];
+		var clsdir = ((mypath || 
+		    (udcp === '/') && ((e == 'guest') || (e == user)))
+		    ? 'mydir' : 'herdir');
                 tbody.append($("<tr>")
                     .append($("<td>")
                         .append($('<button title="Folder">')
@@ -180,12 +177,12 @@
                                 }}))
                                 .click(function (ve) {
                                     return function (ei) {
-                                       debug_log("folder-open: "+ve);
+                                       $.debug_log("folder-open: "+ve);
                                        vthis.cdir(ve);
                                     };
                                 }(e)))
                     .append($("<td>")
-                        .text(e).addClass("mydir"))
+                        .text(e).addClass(clsdir))
                     .append($("<td>")
                         .append($('<button title="Delete">')
                             .button({
@@ -195,7 +192,7 @@
                                 }}))
                                 .click(function (ve) {
                                     return function (ei) {
-                                       debug_log("delete: "+ve);
+                                       $.debug_log("delete: "+ve);
                                        vthis.ui_del("d", ve);
                                     };
                                 }(e))));
@@ -212,7 +209,7 @@
                                 }}))
                                 .click(function (iot, ve) {
                                     return function (ei) { 
-                                        debug_log("Play path=" +
+                                        $.debug_log("Play path=" +
                                             iot.curr_path + 
                                             ", fn="+ve[0]);
                                         iot.ui_fget(ve[0]);
@@ -233,7 +230,7 @@
                                 }}))
                                 .click(function (ve) {
                                     return function (ei) {
-                                       debug_log("delete: "+ve[0]);
+                                       $.debug_log("delete: "+ve[0]);
                                        vthis.ui_del("f", ve[0]);
                                     };
                                 }(e))));
@@ -252,7 +249,7 @@
             } else {
                 this.curr_path += "/" + subdir;
             }
-            debug_log("subdir="+subdir + 
+            $.debug_log("subdir="+subdir + 
                 ", udcp="+this.curr_path);
             $("#" + this.id_filename).val("");
             $("#" + this.id_json_text).val("");
@@ -265,11 +262,11 @@
             this.fput(this.curr_path, fn, text);
         },
         fget_consume: function (text) { 
-            debug_log("fget_consume");
+            $.debug_log("fget_consume");
             $("#" + this.id_json_text).val(text);
         },
         ui_fget: function (fn) {
-            debug_log("ui_fget: fn="+fn);
+            $.debug_log("ui_fget: fn="+fn);
             this.fget(this.curr_path, fn);
             $("#" + this.id_filename).val(fn);
         },
@@ -277,14 +274,14 @@
             vthis.dir_refresh();
         },
         ui_mkdir: function (dn) {
-            debug_log("ui_mkdir: path="+this.curr_path + ", dn="+dn);
+            $.debug_log("ui_mkdir: path="+this.curr_path + ", dn="+dn);
             this.mkdir(this.curr_path, dn);
         },
         del_done: function (vthis) {
             vthis.dir_refresh();
         },
         ui_del: function (t, e) {
-            debug_log("ui_del: "+t+ " path="+this.curr_path + ", e="+e);
+            $.debug_log("ui_del: "+t+ " path="+this.curr_path + ", e="+e);
             this.del(t, this.curr_path, e);
         },
         dir_refresh: function () {
@@ -319,7 +316,7 @@
 
     $(document).ready(function () {
 
-        debug_log("io.cgi="+ioui.cgi_url);
+        $.debug_log("io.cgi="+ioui.cgi_url);
         ioui.init("tbody-data", "tree-refresh", 
             "filename", "save", "mkdir", "json-text");
 	// init.dir_refresh();
