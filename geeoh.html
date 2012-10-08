@@ -170,63 +170,60 @@
         </table>
       </div>
       <div id="tab-io">
-
         <div id="tabs-local-server">
 	  <ul>
 	    <li><a href="#tab-local"><span>Local</span></a></li>
 	    <li><a href="#tab-server"><span>Server</span></a></li>
 	  </ul>
 	  <div id="tab-local">
-
-              <table>
-                <tr>
-                  <td>
-                    <table>
-                      <tr>
-                        <td>
-                           <button id="json-in" type="button">JSON in</button>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          <button id="json-out" type="button">JSON out</button>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                  <td><textarea id="json-text" col="50"></textarea></td>
-                </tr>
-              </table>
+	    <table>
+	      <tr id="tr-local">
+		<td>
+		  <table id="table-local">
+		      <td>
+			 <button id="json-in" type="button">JSON in</button>
+		      </td>
+		    </tr>
+		    <tr>
+		      <td>
+			<button id="json-out" type="button">JSON out</button>
+		      </td>
+		    </tr>
+		  </table>
+		</td>
+		<td id="td-json-text">
+		  <textarea id="json-text"></textarea>
+		</td>
+	      </tr>
+	    </table>
 	  </div>
 	  <div id="tab-server">
-
-              <table id="tbl-signin-status">
-                <tr id="tr-signin-status">
-                </tr>
-              </table>
-              <div id="div-text">
-                <button id="tree-refresh">Refresh</button>
-                <div id="data-tree">
-                  <table id="table-data-tree">
-                    <thead>
-                      <tr><th id="th-path" colspan="4"></th></tr>
-                      <tr>
-                        <th></th>
-                        <th>Name</th>
-                        <th>Size</th><th>Modified</th>
-                      </tr>
-                    </thead>
-                    <tbody id="tbody-data"></tbody>
-                  </table>
-                </div>
-                <input type="text" id="filename" name="lastname" />
-                <button id="save">Save</button>
-                <button id="mkdir" title="Make Sub-Directory">MkDir</button>
-              </div>
+	    <table id="tbl-signin-status">
+	      <tr id="tr-signin-status">
+	      </tr>
+	    </table>
+	    <div id="div-text">
+	      <button id="tree-refresh">Refresh</button>
+	      <div id="data-tree">
+		<table id="table-data-tree">
+		  <thead>
+		    <tr><th id="th-path" colspan="4"></th></tr>
+		    <tr>
+		      <th></th>
+		      <th>Name</th>
+		      <th>Size</th><th>Modified</th>
+		    </tr>
+		  </thead>
+		  <tbody id="tbody-data"></tbody>
+		</table>
+	      </div>
+	      <input type="text" id="filename" name="lastname" />
+	      <button id="save">Save</button>
+	      <button id="mkdir" title="Make Sub-Directory">MkDir</button>
+	    </div>
 	  </div>
 	</div>
       </div>
-
       <div id="tab-help">
         Help is on its way
         <a href="geeoh-help.html" target="_blank">See more…</a>.
