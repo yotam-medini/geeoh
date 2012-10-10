@@ -263,7 +263,7 @@
         },
         fget_consume: function (text) { 
             $.debug_log("fget_consume");
-            $("#" + this.id_json_text).val(text);
+            // $("#" + this.id_json_text).val(text);
         },
         ui_fget: function (fn) {
             $.debug_log("ui_fget: fn="+fn);
@@ -308,9 +308,7 @@
             $("#"+v_id_save).click( function (vthis) {
                 return function () {
                     ioui.ui_fput($("#" + v_id_filename).val(),
-                        vthis.save_data_get()
-                        // $("#" + v_id_json_text).val()
-                        );
+                        vthis.save_data_get());
                 }
             }(this));
             $("#" + v_id_mkdir).click(function() {

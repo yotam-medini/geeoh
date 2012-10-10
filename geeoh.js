@@ -1174,33 +1174,36 @@
             redraw();
         };
 
+        var json_in = function (text) {
+            debug_log("json_in");
+            var es_json;
+            try {
+                es_json = JSON.parse(text);
+            } catch(ex) {
+                debug_log("ex="+ex);
+                es_json = [];
+            }
+            elements = [];
+            var json_elements = es_json['elements'];
+            for (var i = 0; i < json_elements.length; i++) {
+                var e = json_element_create(json_elements[i]);
+                if (e !== null) {
+                    elements.push(e);
+                }
+            }
+            expressions = [];
+            var json_expressions = es_json['expressions'];
+            for (var i = 0; i < json_expressions.length; i++) {
+                var e = $.extend(true, {}, expression)
+                    .set(json_expressions[i]);
+                expressions.push(e);
+            }
+            redraw();
+        };
+
         $("#json-in").click(function () {
-                // debug_log("json-in");
-                var es_json;
-                try {
-                    es_json = JSON.parse($("#json-text")[0].value);
-                } catch(ex) {
-                    debug_log("ex="+ex);
-                    es_json = [];
-                }
-                elements = [];
-                var json_elements = es_json['elements'];
-                // debug_log("|e|="+es_json.length);
-                for (var i = 0; i < json_elements.length; i++) {
-                    var e = json_element_create(json_elements[i]);
-                    if (e !== null) {
-                        elements.push(e);
-                    }
-                }
-                expressions = [];
-                var json_expressions = es_json['expressions'];
-                for (var i = 0; i < json_expressions.length; i++) {
-                    var e = $.extend(true, {}, expression)
-                        .set(json_expressions[i]);
-                    expressions.push(e);
-                }
-                redraw();
-            });
+            json_in($("#json-text")[0].value);
+        });
 
         var json_out = function () {
             var d = {
@@ -1218,6 +1221,7 @@
 
 	var ioui = $.geeoh_ioui();
         ioui.save_data_get = json_out;
+        ioui.fget_consume = json_in;
 
         var enames = function () {
             return elements.map(function (e) { return e.name; })
