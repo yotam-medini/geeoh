@@ -287,6 +287,8 @@
         dir_refresh: function () {
             this.dir_get(this.curr_path);
         },
+	save_data_get: function () { return ""; },
+	load_data_put: function (text) { },
         init: function (
             v_id_table_tbody,
             v_id_dirget,
@@ -302,17 +304,23 @@
             this.id_mkdir = v_id_mkdir;
             this.id_json_text = v_id_json_text;
 
-            $("#"+v_id_dirget).click(function() { ioui.ui_dir_get(); });
-            $("#"+v_id_save).click(function() {
-                ioui.ui_fput($("#" + v_id_filename).val(),
-                    $("#" + v_id_json_text).val());
-            });
+            $("#"+v_id_dirget).click(function () { ioui.ui_dir_get(); });
+            $("#"+v_id_save).click( function (vthis) {
+                return function () {
+                    ioui.ui_fput($("#" + v_id_filename).val(),
+                        vthis.save_data_get()
+                        // $("#" + v_id_json_text).val()
+                        );
+                }
+            }(this));
             $("#" + v_id_mkdir).click(function() {
                 ioui.ui_mkdir($("#" + v_id_filename).val());
             });
         }
 
     });
+
+    jQuery.geeoh_ioui = function () { return ioui; };
 
     $(document).ready(function () {
 

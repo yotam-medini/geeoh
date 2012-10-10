@@ -1201,16 +1201,24 @@
                 }
                 redraw();
             });
+
+        var json_out = function () {
+            var d = {
+                'elements': elements,
+                'expressions': expressions,
+            };
+            return JSON.stringify(d);
+        };
+
         $("#json-out").click(function () {
-                debug_log("json-out");
-                var t = $("#json-text")[0];
-                // t.value = JSON.stringify(elements);
-                var d = {
-                    'elements': elements,
-                    'expressions': expressions,
-                };
-                t.value = JSON.stringify(d);
-            });
+            debug_log("json-out");
+            var t = $("#json-text")[0];
+            t.value = json_out();
+        });
+
+	var ioui = $.geeoh_ioui();
+        ioui.save_data_get = json_out;
+
         var enames = function () {
             return elements.map(function (e) { return e.name; })
         };
