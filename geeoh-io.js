@@ -7,9 +7,10 @@
 
     var io = {
         cgi_url: "cgi-bin/geeoh-io.cgi",
+        cgi_auth_url: "cgi-bin/geeoh-io.cgi", // to be modified (signin.php)
         id_table: "",
         error: function (msg) {
-            $.debug_log(cb_name + ": err="+err);
+            $.debug_log("io.error: "+msg);
         },
         cb_json_get: function(cb_name, data) {
             $.debug_log("cb_json_get: cb="+cb_name);
@@ -52,7 +53,7 @@
         },
         fput: function (path, fn, text) {
             $.debug_log("fput: fn="+fn + ", text="+text);
-            $.post(this.cgi_url,
+            $.post(this.cgi_auth_url,
                 {
                     "action": "fput",
                     "path": path,
@@ -93,7 +94,7 @@
         },
         mkdir: function (path, dn) {
             $.debug_log("mkdir: path="+this.curr_path + ", dn="+dn);
-            $.post(this.cgi_url,
+            $.post(this.cgi_auth_url,
                 {
                     "action": "mkdir",
                     "path": path,
@@ -111,7 +112,7 @@
         },
         del: function (t, path, e) {
             $.debug_log("del: "+t+ " path="+path + ", e="+e);
-            $.post(this.cgi_url,
+            $.post(this.cgi_auth_url,
                 {
                     "action": "del",
                     "t": t,

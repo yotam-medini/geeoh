@@ -2,6 +2,8 @@
 session_start();
 include('config.php');
 
+$rc = 0;
+
 function post_value($key) {
     $ret = "";
     if (isset($_POST[$key])) {
@@ -175,15 +177,38 @@ if ($action === "signin") {
         $sql = "DELETE FROM $tbl_registered WHERE binary name ='$name'";
         $result = mysql_query($sql);
     }
+} else if (($action === "fput") || ($action == "mkdir") || ($action == "del")) {
+    $name = "guest"; // default
+    if (isset($_SESSION['name'])) { $name = $_SESSION['name']; }
+    $postmap = "";
+    $sep = "";
+    foreach ($_POST as $key => $value) {
+        $postmap .= $sep . $key . ":" . $value;
+        $sep = ","
+    }
+    $cgiio = $signin_conf['cgi-dir'] .
+        "/geeoh-io.cgi -postmap $postmap -user $name";
+    var_dump($_SERVER);
+    if ($fdbg) { fprintf($fdbg, "cgiio=$cgiio\n"); }
+    exec($cgiio, $output, $rc);
+    foreach ($output as $line) { echo "$line\n"; } // echo "... rc=$rc\n";
+    // if ($rc == 0) {}
+    if ($fdbg) {
+        foreach ($output as $line) { fprintf($fdbg, "$line\n"); }
+	fprintf($fdbg, "rc=$rc\n");
+    }
 } else {
     $_SESSION['login'] = false;
     $_SESSION['name'] = null;
     echo "error: Bad action: $action"; 
+    $rc = 1;
 }
 
 if ($fdbg) {
     $now = date("Y-m-d H:i:s");
     fprintf($fdbg, "$now Exit\n");
 }
+
+exit($rc);
 
 ?>

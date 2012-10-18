@@ -1222,6 +1222,7 @@
 	var ioui = $.geeoh_ioui();
         ioui.save_data_get = json_out;
         ioui.fget_consume = json_in;
+        // ioui.cgi_auth_url = "signin.php";
 
         var enames = function () {
             return elements.map(function (e) { return e.name; })

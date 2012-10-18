@@ -39,6 +39,7 @@ Usage:                   # [Default]
         self.portfn = None
         self.user = "guest"
         self.dir2make = None
+        self.postmap = None
         self.output_header = True
         ai = 1
         while ai < len(argv) and self.mayrun():
@@ -48,6 +49,10 @@ Usage:                   # [Default]
                 self.usage()
             elif opt == '-portfn':
                 self.portfn = argv[ai]; ai += 1;
+            elif opt == '-postmap':
+                v_postmap = argv[ai]; ai += 1;
+                self.postmap = dict(
+                    map(lambda kv: kv.split(":"), v_postmap.split(",")))
             elif opt == '-user':
                 self.user = argv[ai]; ai += 1;
             elif opt == '-mkdir':
@@ -64,9 +69,10 @@ Usage:                   # [Default]
 
     def run(self):
         self.log("")
+        os.system("/home/yotam/src/geeoh/session-dump.php");
         self.result = {}
         self.csocket = None
-        if self.dir2make:
+        if self.dir2make or self.postmap is not None:
             self.run_non_post()
         else:
             self.get_cgi_env()
@@ -84,7 +90,7 @@ Usage:                   # [Default]
         if self.dir2make:
             self.mkdir_path(self.dir2make)
         else:
-            self.error("No non-post action")
+            self.act()
 
 
     def post_handle(self):
@@ -95,6 +101,23 @@ Usage:                   # [Default]
         for item in form.getlist("item"):
             self.log("  item: %s" % str(item))
         action = form.getfirst("action", "")
+        self.act()
+        if not self.result is None:
+            response = self.jse.encode(self.result)
+            self.log("  type(response): %s, len=%d %s [?...]" %
+                     (type(response), len(response), response[:20]))
+            self.cgi_response(response)
+            
+
+    def post_value(self, key, defval=""):
+        v = (self.form.getfirst(key, defval) 
+             if self.postmap is None else
+             self.postmap.get(key, defval))
+        return v
+
+
+    def act(self):
+        action = self.post_value("action")
         self.log("action=%s" % action)
         if action == "refresh":
             self.refresh();
@@ -109,16 +132,10 @@ Usage:                   # [Default]
         else:
             self.log("Unsupported action: '%s'" % action)
             self.result = {'error': "Bad action: %s" % action}
-        if not self.result is None:
-            response = self.jse.encode(self.result)
-            self.log("  type(response): %s, len=%d %s [?...]" %
-                     (type(response), len(response), response[:20]))
-            self.cgi_response(response)
-            
 
     def refresh(self):
         self.log("")
-        upath = self.form.getfirst("path", "")
+        upath = self.post_value("path")
         self.log("upath='%s'" % upath)
         self.csend_data("dir")
         self.csend_data(upath)
@@ -130,9 +147,9 @@ Usage:                   # [Default]
 
     def fput(self):
         self.log("")
-        upath = self.form.getfirst("path", "")
-        bfn = self.form.getfirst("fn", "")
-        text = self.form.getfirst("text", "")
+        upath = self.post_value("path")
+        bfn = self.post_value("fn")
+        text = self.post_value("text")
         fn = "%s/%s" % (upath, bfn)
         self.log("fn='%s', text[%d]=%s ..." % (fn, len(text), text[:0x10]))
         self.csend_data("fput")
@@ -145,8 +162,8 @@ Usage:                   # [Default]
 
     def fget(self):
         self.log("")
-        upath = self.form.getfirst("path", "")
-        bfn = self.form.getfirst("fn", "")
+        upath = self.post_value("path")
+        bfn = self.post_value("fn")
         fn = "%s/%s" % (upath, bfn) if upath else bfn
         self.log("fn='%s'" % fn)
         self.csend_data("fget")
@@ -161,8 +178,8 @@ Usage:                   # [Default]
 
     def mkdir(self):
         self.log("")
-        upath = self.form.getfirst("path", "")
-        bdn = self.form.getfirst("dn", "")
+        upath = self.post_value("path")
+        bdn = self.post_value("dn")
         dn = "%s/%s" % (upath, bdn) if upath else bdn
         self.mkdir_path(dn)
 
@@ -184,9 +201,9 @@ Usage:                   # [Default]
 
     def edel(self):
         self.log("")
-        upath = self.form.getfirst("path", "")
-        t = self.form.getfirst("t", "")
-        e = self.form.getfirst("e", "")
+        upath = self.post_value("path")
+        t = self.post_value("t")
+        e = self.post_value("e")
         ae = "%s/%s" % (upath, e) if upath else e
         self.log("t=%s, ae='%s" % (t, ae))
         self.csend_data("del")
