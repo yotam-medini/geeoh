@@ -10,6 +10,7 @@ import os
 import pickle
 import simplejson
 import socket
+import string # for debug?
 import sys
 
 # local
@@ -26,9 +27,11 @@ Usage:                   # [Default]
   %s
   [-h | -help | --help]  # This message
   -portfn <fn>           # file with listening port
-  -user <name>           # User signed in (or guest)
-  -mkdir <path>          # directory to open, must belong to user.
-  -noheader              # Suppress response header 
+  [-user <name>]         # User signed in (or guest)
+  [-mkdir <path>]        # directory to open, must belong to user.
+  [-postmap <key:val,]   # command separated key:value pairs
+  [-text <str>]          # str of (JSON) string
+  [-noheader]            # Suppress response header 
 """[1:] % self.argv[0])
         
         
@@ -36,10 +39,12 @@ Usage:                   # [Default]
         cs.CSBase.__init__(self, argv, logfn)
         self.sprelog = "(%d) " % os.getpid()
         self.log("")
+        self.log("argv=%s" % string.join(argv))
         self.portfn = None
         self.user = "guest"
         self.dir2make = None
         self.postmap = None
+        self.text = None
         self.output_header = True
         ai = 1
         while ai < len(argv) and self.mayrun():
@@ -51,8 +56,11 @@ Usage:                   # [Default]
                 self.portfn = argv[ai]; ai += 1;
             elif opt == '-postmap':
                 v_postmap = argv[ai]; ai += 1;
+                self.log("v_postmap=%s" % v_postmap)
                 self.postmap = dict(
                     map(lambda kv: kv.split(":"), v_postmap.split(",")))
+            elif opt == '-text':
+                self.text = argv[ai]; ai += 1;
             elif opt == '-user':
                 self.user = argv[ai]; ai += 1;
             elif opt == '-mkdir':
@@ -88,14 +96,14 @@ Usage:                   # [Default]
     def non_direct_post(self):
         self.get_connect_socket()
         if self.dir2make:
-            self.mkdir_path(self.dir2make)
+            err = self.mkdir_path(self.dir2make)
         else:
             self.act()
             err = self.result.get('error', None)
-            if err:
-                sys.stderr.write("%s\n" % err)
-                sys.stdout.write("%s\n" % err) # for php's exec()
-                self.error()
+        if err:
+            sys.stderr.write("%s\n" % err)
+            sys.stdout.write("%s\n" % err) # for php's exec()
+            self.error()
 
 
     def post_handle(self):
@@ -154,13 +162,22 @@ Usage:                   # [Default]
         self.log("")
         upath = self.post_value("path")
         bfn = self.post_value("fn")
-        text = self.post_value("text")
         fn = "%s/%s" % (upath, bfn)
-        self.log("fn='%s', text[%d]=%s ..." % (fn, len(text), text[:0x10]))
-        self.csend_data("fput")
-        self.csend_data(fn)
-        self.csend_data(text)
-        err = self.recv_data(self.csocket)
+        self.log("fn='%s'" % fn)
+        slash_at = fn.find("/")
+        if slash_at == -1 or slash_at == len(fn) - 1:
+            err = "Cannot save file in top directory"
+        elif fn[:slash_at] != self.user:
+            err = "Cannot save within other user data"
+        else:
+            text = self.post_value("text")
+            if text == "":
+                text = sys.stdin.read();
+            self.log("text[%d]=%s ..." % (len(text), text[:0x10]))
+            self.csend_data("fput")
+            self.csend_data(fn)
+            self.csend_data(text)
+            err = self.recv_data(self.csocket)
         if err:
             self.result['error'] = "Error %s" % err
 
@@ -183,10 +200,20 @@ Usage:                   # [Default]
 
     def mkdir(self):
         self.log("")
+        err = None
         upath = self.post_value("path")
         bdn = self.post_value("dn")
         dn = "%s/%s" % (upath, bdn) if upath else bdn
-        self.mkdir_path(dn)
+        self.log("t=%s, ae='%s" % (t, ae))
+        slash_at = dn.find("/")
+        if slash_at == -1 or slash_at == len(dn) - 1:
+            err = "Cannot mkdir top directory"
+        elif dn[:slash_at] != self.user:
+            err = "Cannot mkdir within other user data"
+        else:
+            err = self.mkdir_path(dn)
+        if err:
+            self.result['error'] = "Error %s" % err
 
 
     def mkdir_path(self, dn):
@@ -200,8 +227,7 @@ Usage:                   # [Default]
         else:
             err = "Unauthorized: mkdir %s for %s" % (dn, self.user)
         self.log("err=%s" % err)
-        if err:
-            self.result['error'] = "Error %s" % err
+        return err
 
 
     def edel(self):
@@ -211,13 +237,13 @@ Usage:                   # [Default]
         t = self.post_value("t")
         e = self.post_value("e")
         ae = "%s/%s" % (upath, e) if upath else e
+        self.log("t=%s, ae='%s" % (t, ae))
         slash_at = ae.find("/")
         if slash_at == -1 or slash_at == len(ae) - 1:
             err = "Cannot delete top directory"
         elif ae[:slash_at] != self.user:
             err = "Cannot delete other user data"
         else:
-            self.log("t=%s, ae='%s" % (t, ae))
             self.csend_data("del")
             self.csend_data(t)
             self.csend_data(ae)

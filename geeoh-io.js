@@ -47,9 +47,8 @@
         fput_done: function (vthis) { },
         fput_cb: function (vthis) { 
             return function (data) {
-                vthis.cb_json_get("fput_cb", data);
-                // $.debug_log("");
-                // if (data.length() > 0) { $.error(data); }
+                $.debug_log("fput_cb: data="+data);
+                if (data.length > 0) { $.error_message(data); }
                 vthis.fput_done(vthis);
             }
         },
@@ -90,7 +89,7 @@
         mkdir_cb: function (vthis) {
             return function (data) {
                 $.debug_log("mkdir_cb");
-                var edata = vthis.cb_json_get("mkdir_cb", data);
+                if (data.length > 0) { $.error_message(data); }
                 vthis.mkdir_done();
             }
         },
@@ -330,15 +329,6 @@
         ioui.init("tbody-data", "tree-refresh", 
             "filename", "save", "mkdir", "json-text");
 	ioui.dir_refresh();
-      if (false) {
-        $("#tree-refresh").click(function() { ioui.ui_dir_get(); });
-        $("#save").click(function() {
-            ioui.ui_fput($("#filename").val(), $("#json-text").val());
-        });
-        $("#mkdir").click(function() {
-            ioui.ui_mkdir($("#filename").val());
-        });
-      }
     });
 
 })();

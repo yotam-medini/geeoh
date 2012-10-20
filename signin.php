@@ -84,6 +84,32 @@ $e = error_get_last();
 if ($fdbg) { fprintf($fdbg, "stc: 3, error=$e\n"); }
 }
 
+function procio($cmd, $indata, &$outdata, &$errdata) {
+
+    $descriptors = array(
+	0 => array("pipe", "r"),
+	1 => array("pipe", "w"),
+	2 => array("pipe", "w")
+    );
+
+    $process = proc_open($cmd, $descriptors, $pipes);
+    fwrite($pipes[0], $indata);
+    fclose($pipes[0]);
+    for ($i = 1; $i <= 2; $i++) {
+        $data = "";
+	while (!feof($pipes[$i])) {
+	    $line = fgets($pipes[$i]);
+	    $data .= $line;
+	}
+	if ($i == 1) { $outdata = $data; } else { $errdata = $data; }
+    }
+    $status = proc_get_status($process);
+    $rc = proc_close($process);
+    $running = $status["running"];
+    $arc = ($running ? $rc : $status["exitcode"] );
+    return $arc;
+}
+
 $action = mysql_real_escape_string(post_value('action'));
 $name = mysql_real_escape_string(post_value('name'));
 $email = mysql_real_escape_string(post_value('email'));
@@ -180,20 +206,31 @@ if ($action === "signin") {
 } else if (($action === "fput") || ($action == "mkdir") || ($action == "del")) {
     $name = "guest"; // default
     if (isset($_SESSION['name'])) { $name = $_SESSION['name']; }
+    // Collect post parameters into comma separated key:value string.
+    // But treat 'text' key (for fput) separately since it contains
+    // commas and colos itself.
     $postmap = "";
     $sep = "";
+    $text = "";
     foreach ($_POST as $key => $value) {
-        $postmap .= $sep . $key . ":" . $value;
-        $sep = ",";
+        if ($key == "text") {
+	    $text = $value;
+	} else {
+	    $postmap .= $sep . $key . ":" . $value;
+	    $sep = ",";
+	}
     }
     $cgiio = $signin_conf['cgi-dir'] .
         "/geeoh-io.cgi -postmap $postmap -user $name";
-    if ($fdbg) { fprintf($fdbg, "cgiio=$cgiio\n"); }
+    if ($fdbg) { 
+        fprintf($fdbg, "cgiio=$cgiio\n |text|=%d\n", strlen($text)); 
+    }
     exec($cgiio, $output, $rc);
-    foreach ($output as $line) { echo "$line\n"; } // echo "... rc=$rc\n";
+    $rc = procio($cgiio, $text, $output, $errput);
+    echo $output;
     if ($fdbg) {
-        foreach ($output as $line) { fprintf($fdbg, "$line\n"); }
-	fprintf($fdbg, "rc=$rc\n");
+        fprintf($fdbg, "StdOut:\n%s\nStdErr:\n%s\nrc=%d=0x%x\n",
+	     $output, $errput, $rc, $rc);
     }
 } else {
     $_SESSION['login'] = false;
