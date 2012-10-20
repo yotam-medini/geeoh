@@ -49,11 +49,15 @@ INST_KEYPAD = \
 	jquery.keypad.css
 W_INST_KEYPAD = $(foreach f, $(INST_KEYPAD), $(WTARGET)/$(f))
 
-INSTALLED_PYS = \
-	cs.py \
-	geeoh-io-cgi.py \
+INSTALLED_PY_PKGS = \
+	cs.py
+INSTALLED_PY_EXECS = \
+	geeoh-io-client.py \
 	geeoh-io-server.py
-B_INST_PYS = $(foreach f, $(INSTALLED_PYS), $(BTARGET)/$(f))
+INSTALLED_PYS = ${INSTALLED_PY_PKGS} ${INSTALLED_PY_EXECS}
+B_INST_PY_PKGS = $(foreach f, $(INSTALLED_PY_PKGS), $(BTARGET)/$(f))
+B_INST_PY_EXECS = $(foreach f, $(INSTALLED_PY_EXECS), $(BTARGET)/$(f))
+B_INST_PYS = ${B_INST_PY_PKGS} ${B_INST_PY_EXECS}
 
 RELFILES = \
 	geeoh.html \
@@ -139,8 +143,12 @@ ${WTARGET}/%.php: %.php
 	cp $< $@
 
 
-${B_INST_PYS}: ${BTARGET}/%: %
+${B_INST_PY_PKGS}: ${BTARGET}/%: %
 	cp $< $@
+
+${B_INST_PY_EXECS}: ${BTARGET}/%: %
+	cp $< $@
+	chmod +x $@
 
 tgz: ${TGZ}
 ${TGZ} : ${SRCS}

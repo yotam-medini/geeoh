@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# geeoh IO - CGI
+# geeoh IO - Client
 # Author:  Yotam Medini  yotam.medini@gmail.com -- Created: 2011/July/04
 
 import Cookie
@@ -73,7 +73,7 @@ Usage:                   # [Default]
         self.result = {}
         self.csocket = None
         if self.dir2make or self.postmap is not None:
-            self.run_non_post()
+            self.non_direct_post()
         else:
             self.get_cgi_env()
             if self.method == "POST":
@@ -85,12 +85,17 @@ Usage:                   # [Default]
         self.log("end")
 
         
-    def run_non_post(self):
+    def non_direct_post(self):
         self.get_connect_socket()
         if self.dir2make:
             self.mkdir_path(self.dir2make)
         else:
             self.act()
+            err = self.result.get('error', None)
+            if err:
+                sys.stderr.write("%s\n" % err)
+                sys.stdout.write("%s\n" % err) # for php's exec()
+                self.error()
 
 
     def post_handle(self):
@@ -201,15 +206,22 @@ Usage:                   # [Default]
 
     def edel(self):
         self.log("")
+        err = None
         upath = self.post_value("path")
         t = self.post_value("t")
         e = self.post_value("e")
         ae = "%s/%s" % (upath, e) if upath else e
-        self.log("t=%s, ae='%s" % (t, ae))
-        self.csend_data("del")
-        self.csend_data(t)
-        self.csend_data(ae)
-        err = self.recv_data(self.csocket)
+        slash_at = ae.find("/")
+        if slash_at == -1 or slash_at == len(ae) - 1:
+            err = "Cannot delete top directory"
+        elif ae[:slash_at] != self.user:
+            err = "Cannot delete other user data"
+        else:
+            self.log("t=%s, ae='%s" % (t, ae))
+            self.csend_data("del")
+            self.csend_data(t)
+            self.csend_data(ae)
+            err = self.recv_data(self.csocket)
         if err:
             self.result['error'] = "Error %s" % err
 

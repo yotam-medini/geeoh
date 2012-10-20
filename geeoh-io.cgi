@@ -47,14 +47,14 @@ logdir=${rootgeeohiodir}/log
 
 debuglog=${logdir}/geeohio-cgi.log
 
-cgigeeohio=${bindir}/geeoh-io-cgi.py
-if [ ! -x ${cgigeeohio} ]
+cgeeohio=${bindir}/geeoh-io-client.py
+if [ ! -x ${cgeeohio} ]
 then
-  echo No executable ${cgigeeohio} >> ${flog}
-  echo No executable ${cgigeeohio} 1>&2
+  echo No executable ${cgeeohio} >> ${flog}
+  echo No executable ${cgeeohio} 1>&2
   exit 1
 fi
 
-echo exec ${cgigeeohio} -portfn ${vardir}/geeohio.port $@ >> ${flog}
-exec ${cgigeeohio} -portfn ${vardir}/geeohio.port $@
+echo exec ${cgeeohio} -portfn ${vardir}/geeohio.port $@ >> ${flog}
+exec ${cgeeohio} -portfn ${vardir}/geeohio.port $@
 

@@ -184,15 +184,13 @@ if ($action === "signin") {
     $sep = "";
     foreach ($_POST as $key => $value) {
         $postmap .= $sep . $key . ":" . $value;
-        $sep = ","
+        $sep = ",";
     }
     $cgiio = $signin_conf['cgi-dir'] .
         "/geeoh-io.cgi -postmap $postmap -user $name";
-    var_dump($_SERVER);
     if ($fdbg) { fprintf($fdbg, "cgiio=$cgiio\n"); }
     exec($cgiio, $output, $rc);
     foreach ($output as $line) { echo "$line\n"; } // echo "... rc=$rc\n";
-    // if ($rc == 0) {}
     if ($fdbg) {
         foreach ($output as $line) { fprintf($fdbg, "$line\n"); }
 	fprintf($fdbg, "rc=$rc\n");

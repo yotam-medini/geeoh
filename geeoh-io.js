@@ -48,6 +48,8 @@
         fput_cb: function (vthis) { 
             return function (data) {
                 vthis.cb_json_get("fput_cb", data);
+                // $.debug_log("");
+                // if (data.length() > 0) { $.error(data); }
                 vthis.fput_done(vthis);
             }
         },
@@ -105,8 +107,9 @@
         del_done: function (vthis) { },
         del_cb: function (vthis) {
             return function (data) {
-                $.debug_log("del_cb");
-                vthis.cb_json_get("del_cb", data);
+                $.debug_log("del_cb: data="+data);
+                if (data.length > 0) { $.error_message(data); }
+                // vthis.cb_json_get("del_cb", data);
                 vthis.del_done(vthis);
             }
         },
