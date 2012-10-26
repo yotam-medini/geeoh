@@ -77,6 +77,13 @@
                 </tr>
                 <tr class="tr-pref">
                   <td class="td-pref td-pref-left">
+                    <input id="check-comment" type="checkbox"
+                      title="Show comment text? "/>
+                  </td>
+                  <td class="td-pref">Comment</td>
+                </tr>
+                <tr class="tr-pref">
+                  <td class="td-pref td-pref-left">
                     <input id="check-elements" type="checkbox"
                       title="Show Elements Table?"/>
                   </td>
@@ -90,7 +97,7 @@
                   <td class="td-pref">Expressions</td>
                 </tr>
                 <tr class="tr-pref">
-                  <td class="td-pref d-pref-left">
+                  <td class="td-pref td-pref-left">
                     <input id="check-expjs" type="checkbox"
                       title="Show Javascript translation&#013of expressions"/>
                   </td>
@@ -439,11 +446,7 @@ of the path">
     <table id="elements-box" class="draggable-box">
       <thead>
         <tr>
-          <th colspan="2">
-            <button id="elements-toggle" title="Elements Expand/Collapse">E
-            </button>
-            Elements
-          </th>
+          <th colspan="2">Elements</th>
         </tr>
       </thead>
       <tbody>
@@ -471,12 +474,7 @@ of the path">
     <table id="expressions-box" class="draggable-box">
       <thead>
         <tr>
-          <th colspan="2">
-            <button id="expressions-toggle"
-              title="Expressions Expand/Collapse">E
-            </button>
-            Expressions
-          </th>
+          <th colspan="2">Expressions</th>
         </tr>
       </thead>
       <tbody>

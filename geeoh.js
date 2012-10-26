@@ -241,12 +241,6 @@
 	    containment: "#canvas-center", scroll: false});
         $("#expressions-box").draggable({
 	    containment: "#canvas-center", scroll: false});
-        $("#elements-toggle").click(function () {
-             $("#elements").slideToggle();
-        });
-        $("#expressions-toggle").click(function () {
-             $("#expressions").slideToggle();
-        });
 
         var dlg_point = $("#dlg-point");
         var add_pt_tabs = $("#add-pt-tabs");
