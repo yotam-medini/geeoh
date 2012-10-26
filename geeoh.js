@@ -1703,6 +1703,25 @@
         }();
 
         $("#check-axes").click(function () { canvas.redraw(); });
+        var es = ["elements", "expressions"];
+        for (var i = 0; i < es.length; i++) {
+            var s = es[i];
+            var check = $("#check-" + s);
+            debug_log("i="+i + ", s="+s);
+            check
+                .prop("checked", true)
+                .click(function (vcheck, vs) {
+                    var e = $("#" + vs + "-box");
+                    return function () {
+                        if (vcheck.prop("checked")) {
+                            e.show(); 
+                        } else { 
+                            e.hide(); 
+                        } 
+                    }
+                }(check, s));
+        }
+           
 
         canvas.redraw();
         ec.mousemove(function (e) {
