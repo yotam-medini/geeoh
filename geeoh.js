@@ -1204,7 +1204,7 @@
                 'elements': elements,
                 'expressions': expressions,
             };
-            return JSON.stringify(d);
+            return JSON.stringify(d, null, 2);
         };
 
         $("#json-out").click(function () {
