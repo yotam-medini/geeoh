@@ -237,14 +237,6 @@
 
         var pointer = $("#pointer").draggable();
         // $("#tool-box").draggable();
-if (false) {
-        es = ["elements", "expressions", "comment"];
-        for (var i = 0; i < es.length; i++) {
-            var s = es[i];
-            $("#" + es[i] + "-box").draggable({
-	        containment: "#canvas-center", scroll: false});
-        }
-}
 
         var dlg_point = $("#dlg-point");
         var add_pt_tabs = $("#add-pt-tabs");
@@ -1746,24 +1738,6 @@ if (false) {
                     best_fixed(xy[1])+")";
 
                 pointer.text(xyfmt);
-if (false) {
-                pointer.text(xyfmt +
-                   ", cx="+cx.toFixed(2) + ", cy="+cy.toFixed(2) +
-                   ", pageX="+e.pageX.toFixed(2) +
-                   ", pageY="+e.pageY.toFixed(2) +
-                   ", position: L="+position.left.toFixed(2) +
-                   ", T="+position.top.toFixed(2) +
-                   ", offset: L="+offset.left.toFixed(2) +
-                   ", T="+offset.top.toFixed(2) +
-                   ", Eoffset: L="+ec[0].offsetLeft.toFixed(2) +
-                   ", T="+ec[0].offsetTop.toFixed(2) +
-                   ", scroll: left="+$(window).scrollLeft() +
-                   ",  top="+$(window).scrollTop()
-                 );
-                 var bb = ec[0].getBoundingClientRect();
-                 var mx = (e.clientX - bb.left);
-                 var my = (e.clientY - bb.top);
-}
 
             }, 200);
         });
@@ -2283,24 +2257,6 @@ if (false) {
                             jst = jst + tail;
                         }
                     }
-                  if (false) {
-                    if (p >= 0) {
-                        pend = p + s.length;
-                        tail = jst.substr(pend);
-                        if ((tail === "") ||
-                            (tail.substr(0, 1).search(/\d/) < 0)) {
-                            jst = jst.substr(0, p) + v;
-                            tail_start = jst.length;
-                            jst = jst + tail;
-                        }
-                    }
-                  }
-                }
-                if (false) { // Standard Javascript RegExp fails with greek:(
-                    var sre = "\\b(" + s + ")\\b";
-                    var re = new RegExp(sre, "g");
-                    debug_log("name2value: jst="+jst + ", s="+s + ", v="+v);
-                    jst = jst.replace(re, v);
                 }
                 debug_log("name2value: return jst="+jst);
                 return jst;
@@ -2405,24 +2361,6 @@ if (false) {
             }
         }();
 
-if (false) {
-        // $("#canvas-center").draggable();
-        $("#canvas-center").resize(function () {
-            debug_log("canvas-center resized");
-        });
-        // $("#geeoh-canvas").resizable();
-        $("#geeoh-canvas").resize(function () {
-            debug_log("geeoh-canvas resized");
-            if (redraw_timeout_handler !== undefined) {
-                debug_log("clear redraw timeout");
-                clearTimeout(redraw_timeout_handler);
-            }
-	    redraw_timeout_handler = setTimeout(function () {
-                debug_log("resized: TO --> redraw");
-                canvas.redraw();
-            }, 200);
-        });
-}
         // $("#geeoh-canvas").resizable({handles: "nw, ne, sw, se"});
         $(window).resize(function () {
             debug_log("window resized");
