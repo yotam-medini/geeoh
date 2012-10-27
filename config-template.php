@@ -22,5 +22,6 @@ $signin_conf['tbl-reg'] = $tbl_registered;
 $signin_conf['tbl-temp'] = $tbl_temporary;
 $signin_conf['cgi-dir'] = "/XXX/cgi-bin";
 $signin_conf['user-data'] = "/XXXX/geeoh/users";
+$signin_conf['geeoh-bindir'] = "/XXXX/geeoh/bin";
 
 ?>

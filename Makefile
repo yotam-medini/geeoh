@@ -38,12 +38,23 @@ INSTALLED_JSS = \
 	message.js \
 	signin.js \
 
+INSTALLED_JSS_SPECIAL = \
+	geeoh.js \
+	debug.js
+
 INSTALLED_CSSS = \
 	geeoh.css \
 	geeoh-io.css \
 
 INSTALLED_JSS_CSSS = $(INSTALLED_JSS) $(INSTALLED_CSSS)
+INSTALLED_JSS_CSSS_ALL = $(INSTALLED_JSS_CSSS) $(INSTALLED_JSS_SPECIAL)
+
+COMPRESSED_JSS_CSSS = \
+    $(foreach f, $(INSTALLED_JSS_CSSS), compressed/$(f))
+COMPRESSED_JSS_CSSS_ALL = \
+    $(foreach f, $(INSTALLED_JSS_CSSS_ALL), compressed/$(f))
 W_INST_JSS_CSSS = $(foreach f, $(INSTALLED_JSS_CSSS), $(WTARGET)/$(f))
+W_INST_JSS_CSSS_ALL = $(foreach f, $(INSTALLED_JSS_CSSS_ALL), $(WTARGET)/$(f))
 INST_KEYPAD = \
 	jquery.keypad.min.js \
 	jquery.keypad.css
@@ -60,9 +71,15 @@ B_INST_PY_EXECS = $(foreach f, $(INSTALLED_PY_EXECS), $(BTARGET)/$(f))
 B_INST_PYS = ${B_INST_PY_PKGS} ${B_INST_PY_EXECS}
 
 RELFILES = \
+	Makefile \
 	geeoh.html \
-	geeoh.css \
-	geeoh.js \
+	${INSTALLED_JSS_CSSS_ALL} \
+	geeoh-io.cgi \
+	${INSTALLED_PYS} \
+	${COMPRESSED_JSS_CSSS_ALL} \
+	${INST_KEYPAD} \
+	confirm.php \
+	signin.php
 
 TGZDIR = /tmp
 TGZ = ${TGZDIR}/geeoh.tgz
@@ -87,24 +104,19 @@ install: \
 	${WTARGET}/config.php \
 	${B_INST_PYS} \
 
-geeoh-0.js: geeoh.js Makefile
-	sed \
-	 -e 's=yyymmdd-HHMMSS=${now}=' \
-	  < $< > $@
-
 ${WTARGET}/geeoh.php: geeoh.html Makefile
+	@mkdir -p $(@D)
 ifeq ($(LOCAL),1)
 	sed \
 	  -e 's=http://ajax.googleapis.com/ajax/libs/=../jq/=g' \
 	  < $< > $@
 else
-	cp $< @$
+	cp $< $@
 endif
 
 ${WTARGET}/index.php: Makefile
 	rm -f $@
 	ln -s geeoh.php $@
-
 
 
 ifeq ($(LOCAL),1)
@@ -117,13 +129,26 @@ else
  endef
 endif
 
-${W_INST_JSS_CSSS}: ${WTARGET}/%: %
+${W_INST_JSS_CSSS_ALL}: ${WTARGET}/%: compressed/%
+	@mkdir -p $(@D)
+	cp $< $@
+
+${COMPRESSED_JSS_CSSS}: compressed/%: %
+	@mkdir -p $(@D)
 	$(call YUI_CP,$<,$@)
 
-$(WTARGET)/geeoh.js: geeoh-0.js
+compressed/geeoh.js: geeoh.js
+	@mkdir -p $(@D)
+ifeq ($(LOCAL),1)
+	sed -e 's=yyymmdd-HHMMSS=${now}=' < $< > $@
+else
+	sed -e 's=yyymmdd-HHMMSS=${now}=' < $< | \
+	yui-compressor --preserve-semi --type js > $@
+endif
 	$(call YUI_CP,$<,$@)
 
-$(WTARGET)/debug.js: debug.js Makefile
+compressed/debug.js: debug.js Makefile
+	@mkdir -p $(@D)
 ifeq ($(LOCAL),1)
 	sed -e 's=DEBUG_LOG_CHOOSE=debug_log_real='  < $< > $@
 else
@@ -137,6 +162,7 @@ ${W_INST_KEYPAD}: ${WTARGET}/%: %
 ${WTARGET}/cgi-bin/%.cgi: %.cgi
 	@mkdir -p $(@D)
 	cp $< $@
+	chmod +x $@
 
 ${WTARGET}/%.php: %.php
 	@mkdir -p $(@D)
