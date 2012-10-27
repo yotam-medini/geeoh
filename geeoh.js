@@ -1188,6 +1188,9 @@
                     .set(json_expressions[i]);
                 expressions.push(e);
             }
+            var comment  = es_json['comment'];
+            if (comment == undefined) { comment = ""; }
+            $("#comment-text").val(comment);
             redraw();
         };
 
@@ -1197,6 +1200,7 @@
 
         var json_out = function () {
             var d = {
+                'comment': $("#comment-text").val(),
                 'elements': elements,
                 'expressions': expressions,
             };
