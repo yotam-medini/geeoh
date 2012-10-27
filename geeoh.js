@@ -18,7 +18,7 @@
     color_entity_name[color_enum.points] = "points";
     color_entity_name[color_enum.near] = "near";
     color_entity_name[color_enum.active] = "active";
-    
+
     function debug_log(message) { $.debug_log(message) }
     function debug_log0(message) { $.debug_log0(message) }
 
@@ -237,10 +237,14 @@
 
         var pointer = $("#pointer").draggable();
         // $("#tool-box").draggable();
-        $("#elements-box").draggable({
-	    containment: "#canvas-center", scroll: false});
-        $("#expressions-box").draggable({
-	    containment: "#canvas-center", scroll: false});
+if (false) {
+        es = ["elements", "expressions", "comment"];
+        for (var i = 0; i < es.length; i++) {
+            var s = es[i];
+            $("#" + es[i] + "-box").draggable({
+	        containment: "#canvas-center", scroll: false});
+        }
+}
 
         var dlg_point = $("#dlg-point");
         var add_pt_tabs = $("#add-pt-tabs");
@@ -277,7 +281,7 @@
                     if (e.near) { old_near = i; }
                     if (e.active) { old_active = i; }
                     d2 = e.distance2_to(xy);
-                    debug_log("e[i="+i + "]: d2="+d2 + 
+                    debug_log("e[i="+i + "]: d2="+d2 +
                          ", near="+e.near);
                     if (d2near > d2) {
                        d2near = d2;
@@ -405,9 +409,9 @@
                     $("#" + sxy[i] + "-input").val(this.xy[i]);
                 }
             },
-            str: function () { 
+            str: function () {
                 var xy = this.xy;
-                return "•" + "(" + best_fixed(xy[0]) + ", " + 
+                return "•" + "(" + best_fixed(xy[0]) + ", " +
                     best_fixed(xy[1]) + ")";
             },
             toJSON: function () {
@@ -421,11 +425,11 @@
             },
             color: function () { return $("#color-points").val(); },
             draw: function (canvas, ctx) {
-                if (this.valid) { 
+                if (this.valid) {
                     if (ctx === undefined) {
                         ctx = canvas.getContext("2d");
                     }
-                    canvas.point_draw_color(ctx, this, this.color()); 
+                    canvas.point_draw_color(ctx, this, this.color());
                 }
             },
             distance2_to: function (xy) {
@@ -447,8 +451,8 @@
             active: false,
             is_absolute: function () { return true; },
             color: function () {
-                return $("#color-" + (this.active ? "active" : 
-                    (this.near ? "near" : "points"))).val(); 
+                return $("#color-" + (this.active ? "active" :
+                    (this.near ? "near" : "points"))).val();
             },
         });
 
@@ -631,7 +635,7 @@
                 var dx = B[0] - A[0];
                 var dy = B[1] - A[1];
                 var d2 = dx*dx + dy*dy;
-                this.length = Math.sqrt(d2);                
+                this.length = Math.sqrt(d2);
                 // debug_log("line_segment.update 1");
                 this.super_update();
                 debug_log("line_segment.update 2, |expressions|="+
@@ -646,7 +650,7 @@
             draw: function (canvas, ctx) {
                 canvas.segment_draw(ctx, this.depon[0], this.depon[1]);
             },
-            scalar: function () { 
+            scalar: function () {
                 return this.length;
             },
             candidate_label_points: function (rect, delta) {
@@ -786,7 +790,7 @@
             },
             str: function () {
                return "⊙(" + digits_sub(this.depon[0].name) + ", [" +
-                   digits_sub(this.depon[1].name) + ", " + 
+                   digits_sub(this.depon[1].name) + ", " +
                    digits_sub(this.depon[2].name) + "])";
             },
             toJSON: function () {
@@ -1322,9 +1326,9 @@
                                 .prop("checked", (e.flags & FLAG_HIDE) == 0)
                                 .click(function (ei) {
                                     return function() {
-                                        var flag = 
+                                        var flag =
                                             elements[ei].flags & FLAG_HIDE;
-                                        var mflags = 
+                                        var mflags =
                                             FLAG_HIDE | FLAG_HIDE_LABEL;
                                         debug_log("ei="+ei+", f="+flag);
                                         if (flag == 0) {
@@ -1346,10 +1350,10 @@
                                             FLAG_HIDE_LABEL
                                         debug_log("ei="+ei+", f="+flag);
                                         if (flag == 0) {
-                                            elements[ei].flags |= 
+                                            elements[ei].flags |=
                                                 FLAG_HIDE_LABEL;
                                         } else {
-                                            elements[ei].flags &= 
+                                            elements[ei].flags &=
                                                 ~FLAG_HIDE_LABEL;
                                         }
                                         redraw();
@@ -1396,19 +1400,19 @@
                 point_moving: false,
 		saved_image: document.createElement("canvas"),
                 color_get: function(ci) { return this.colors[ci]; },
-                color_set: function(ci, v) { 
-                    this.colors[ci] = v;  
-                    this.redraw(); 
+                color_set: function(ci, v) {
+                    this.colors[ci] = v;
+                    this.redraw();
                 },
                 // background_get: function() { return background; },
-                background_get: function() { 
+                background_get: function() {
                     return this.colors[color_enum.background];
                 },
-                background_set: function(v) { 
+                background_set: function(v) {
                     this.color_set(color_enum.background, v);
                 },
-                background_setOLD: function(v) { 
-                    background = v; 
+                background_setOLD: function(v) {
+                    background = v;
                     this.redraw();
                 },
                 rect_get: function () { return rect_required; },
@@ -1452,7 +1456,7 @@
                                     ctx.font = "italic 12pt sans-serif";
                                     ctx.textAlign = "center";
                                     ctx.strokeText(digits_sub(e.name),
-                                        this.x2canvas(p[0]), 
+                                        this.x2canvas(p[0]),
                                         this.y2canvas(p[1]));
                                 }
                             }
@@ -1491,7 +1495,7 @@
                         if (inear != -1) {
                             e = elements[inear];
                             debug_log("inear="+inear + ", e="+e +
-                             ", this="+this + 
+                             ", this="+this +
                              ", (c==?)="+(this === canvas));
                             e.near = true;
                             if (this.iactive != -1) {
@@ -1521,7 +1525,7 @@
                         // this.pt_cdraw(ctx, this.last_drag_xy);
 			cx = this.last_drag_xy[0];
 			cy = this.last_drag_xy[1];
-                        debug_log0("drag_active_point: ctx="+ctx + 
+                        debug_log0("drag_active_point: ctx="+ctx +
 				  ", si="+this.saved_image +
                            ", cx="+cx + ", cy="+cy + ", pt_rad="+pt_rad);
                         ctx.drawImage(this.saved_image, 0, 0);
@@ -1697,10 +1701,12 @@
         }();
 
         $("#check-axes").click(function () { canvas.redraw(); });
-        var es = ["elements", "expressions"];
+        var es = ["elements", "expressions", "comment"];
         for (var i = 0; i < es.length; i++) {
             var s = es[i];
             var check = $("#check-" + s);
+            $("#" + es[i] + "-box").draggable({
+	        containment: "#canvas-center", scroll: false});
             debug_log("i="+i + ", s="+s);
             check
                 .prop("checked", true)
@@ -1708,14 +1714,14 @@
                     var e = $("#" + vs + "-box");
                     return function () {
                         if (vcheck.prop("checked")) {
-                            e.show(); 
-                        } else { 
-                            e.hide(); 
-                        } 
+                            e.show();
+                        } else {
+                            e.hide();
+                        }
                     }
                 }(check, s));
         }
-           
+
 
         canvas.redraw();
         ec.mousemove(function (e) {
@@ -1736,20 +1742,20 @@
                     canvas.draw_near_active_point(xy);
                 }
 
-                var xyfmt = "("+best_fixed(xy[0]) + ", " + 
+                var xyfmt = "("+best_fixed(xy[0]) + ", " +
                     best_fixed(xy[1])+")";
 
                 pointer.text(xyfmt);
 if (false) {
                 pointer.text(xyfmt +
                    ", cx="+cx.toFixed(2) + ", cy="+cy.toFixed(2) +
-                   ", pageX="+e.pageX.toFixed(2) + 
+                   ", pageX="+e.pageX.toFixed(2) +
                    ", pageY="+e.pageY.toFixed(2) +
-                   ", position: L="+position.left.toFixed(2) + 
+                   ", position: L="+position.left.toFixed(2) +
                    ", T="+position.top.toFixed(2) +
-                   ", offset: L="+offset.left.toFixed(2) + 
+                   ", offset: L="+offset.left.toFixed(2) +
                    ", T="+offset.top.toFixed(2) +
-                   ", Eoffset: L="+ec[0].offsetLeft.toFixed(2) + 
+                   ", Eoffset: L="+ec[0].offsetLeft.toFixed(2) +
                    ", T="+ec[0].offsetTop.toFixed(2) +
                    ", scroll: left="+$(window).scrollLeft() +
                    ",  top="+$(window).scrollTop()
@@ -1758,7 +1764,7 @@ if (false) {
                  var mx = (e.clientX - bb.left);
                  var my = (e.clientY - bb.top);
 }
-             
+
             }, 200);
         });
 
@@ -1799,7 +1805,7 @@ if (false) {
                 return function () {
                    $("#" + name_xy[k] + "-error").css('display', 'none');
                 }}(i));
-                
+
         }
 
         add_pt_tabs.tabs();
@@ -2142,9 +2148,9 @@ if (false) {
             }
         });
 
-        $("#b-limits").click(function () { 
+        $("#b-limits").click(function () {
             debug_log("b-limits");
-            dlg_limits.dialog("open"); 
+            dlg_limits.dialog("open");
         });
 
         $(".add").click(function () {
@@ -2250,8 +2256,8 @@ if (false) {
                    for (ei = 0; ei < elements.length; ei++) {
                        e = elements[ei];
                        v = e.scalar();
-                       if (v !== null) { 
-                           jst = this.name2value(jst, e.name, v); 
+                       if (v !== null) {
+                           jst = this.name2value(jst, e.name, v);
                        }
                        debug_log("ei="+ei + ", name="+e.name + ", jst="+jst);
                    }
@@ -2281,7 +2287,7 @@ if (false) {
                     if (p >= 0) {
                         pend = p + s.length;
                         tail = jst.substr(pend);
-                        if ((tail === "") || 
+                        if ((tail === "") ||
                             (tail.substr(0, 1).search(/\d/) < 0)) {
                             jst = jst.substr(0, p) + v;
                             tail_start = jst.length;
@@ -2368,7 +2374,7 @@ if (false) {
                                             debug_log("exp-remove out");
                                             return function () {
                                                 debug_log("exp-remove in #="
-                                                  + expressions.length + 
+                                                  + expressions.length +
                                                   "ei="+ei);
                                                 expressions = $.merge(
                                                     expressions.slice(0, ei),
@@ -2475,7 +2481,7 @@ if (false) {
             }
 
         });
-        
+
 
         redraw();
 

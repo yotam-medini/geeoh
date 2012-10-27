@@ -51,7 +51,12 @@ table
 #expressions-box,
 #expressions-box table,
 #expressions-box tr,
-#expressions-box td
+#expressions-box td,
+#comment-box,
+#comment-box table,
+#comment-box th
+#comment-box tr
+#comment-box td
 {
   border: 2px solid black;
 }
@@ -79,7 +84,7 @@ table
 {
   /* float:left; */
   position:absolute;
-  top:50%;
+  top:60%;
   left:10%;
 }
 
@@ -87,8 +92,16 @@ table
 {
   /* float:left; */
   position:absolute;
-  top:70%;
+  top:80%;
   left:10%;
+}
+
+#comment-box
+{
+  /* float:left; */
+  position:absolute;
+  top:40%;
+  left:30%;
 }
 
 #canvas-center
