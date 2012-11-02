@@ -28,7 +28,7 @@ echo dn=${dn} >> ${flog}
 if [ -d /home/medini ]
 then
   # We are in unlimitedgb.com
-  export PYTHONPATH=/home/medini/lib/python2.4/site-packages
+  # export PYTHONPATH=/home/medini/lib/python2.4/site-packages
   home=/home/medini
 elif [ -d /home/yotamm ]
 then
@@ -37,6 +37,11 @@ then
 else
   # We are in my real local home
   home=/home/yotam
+fi
+
+if [ -d ${home}/swpub ]
+then
+  export PATH=${home}/swpub/bin:${PATH}
 fi
 
 rootgeeohiodir=${home}/geeoh
@@ -55,6 +60,6 @@ then
   exit 1
 fi
 
-echo exec ${cgeeohio} -portfn ${vardir}/geeohio.port $@ >> ${flog}
-exec ${cgeeohio} -portfn ${vardir}/geeohio.port $@
+echo exec python ${cgeeohio} -portfn ${vardir}/geeohio.port $@ >> ${flog}
+exec python ${cgeeohio} -portfn ${vardir}/geeohio.port $@
 

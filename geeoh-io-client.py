@@ -204,7 +204,7 @@ Usage:                   # [Default]
         upath = self.post_value("path")
         bdn = self.post_value("dn")
         dn = "%s/%s" % (upath, bdn) if upath else bdn
-        self.log("t=%s, ae='%s" % (t, ae))
+        self.log("upath=%s, bdn=%s, dn=%s" % (upath, bdn, dn))
         slash_at = dn.find("/")
         if slash_at == -1 or slash_at == len(dn) - 1:
             err = "Cannot mkdir top directory"

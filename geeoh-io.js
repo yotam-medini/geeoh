@@ -85,12 +85,12 @@
                 },
                 this.fget_cb(this));
         },
-        mkdir_done: function () { },
+        mkdir_done: function (vthis) { },
         mkdir_cb: function (vthis) {
             return function (data) {
                 $.debug_log("mkdir_cb");
                 if (data.length > 0) { $.error_message(data); }
-                vthis.mkdir_done();
+                vthis.mkdir_done(vthis);
             }
         },
         mkdir: function (path, dn) {

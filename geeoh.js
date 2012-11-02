@@ -2249,18 +2249,22 @@
             },
             name2value: function (jst, s, v) {
                 var tail_start = 0, p, pend, tail, c2;
+                debug_log("name2value: jst="+jst + ", s="+s +", v="+v);
                 while (tail_start >= 0) {
                     p = jst.substr(tail_start).search(s);
-                    tail_start = -1; // pessimistic
+		    if (p >= 0) { p += tail_start; }
+		    tail_start = -1; // pessimistic
                     if (p >= 0) {
                         c2 = jst.charAt(p - 1) + jst.charAt(p + s.length);
+                        debug_log("p="+p + ", c2="+c2);
                         if (c2.search(/[0-9a-zA-Z]/) < 0) {
                             tail = jst.substr(p + s.length);
                             jst = jst.substr(0, p) + v;
                             tail_start = jst.length;
+                            debug_log("jst="+jst + ", tail_start="+tail_start);
                             jst = jst + tail;
                         }
-                    }
+		    }
                 }
                 debug_log("name2value: return jst="+jst);
                 return jst;

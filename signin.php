@@ -117,7 +117,10 @@ $user_pw = post_value('pw');
 
 $fdbg = fopen("/tmp/signin-php.log", "a");
 $now = date("Y-m-d H:i:s");
-fprintf($fdbg, "\n$now\naction=$action, user_pw=$user_pw\n");
+$session_name = "guest"; // default
+if (isset($_SESSION['name'])) { $session_name = $_SESSION['name']; }
+fprintf($fdbg, "\n$now\naction=$action, name=$name, user_pw=$user_pw" .
+    ", session_name=$session_name\n");
 
 if ($action === "signin") {
     $pw_encypted = sha1($user_pw);
@@ -225,7 +228,7 @@ if ($action === "signin") {
     if ($fdbg) { 
         fprintf($fdbg, "cgiio=$cgiio\n |text|=%d\n", strlen($text)); 
     }
-    exec($cgiio, $output, $rc);
+    // exec($cgiio, $output, $rc);
     $rc = procio($cgiio, $text, $output, $errput);
     echo $output;
     if ($fdbg) {

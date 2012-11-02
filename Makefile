@@ -104,6 +104,17 @@ install: \
 	${WTARGET}/config.php \
 	${B_INST_PYS} \
 
+ifeq ($(LOCAL),1)
+ DEBUG=1
+ define YUI_CP
+  cp $(1) $(2)
+ endef
+else
+ define YUI_CP
+  yui-compressor --preserve-semi -o $(2) $(1)
+ endef
+endif
+
 ${WTARGET}/geeoh.php: geeoh.html Makefile
 	@mkdir -p $(@D)
 ifeq ($(LOCAL),1)
@@ -119,16 +130,6 @@ ${WTARGET}/index.php: Makefile
 	ln -s geeoh.php $@
 
 
-ifeq ($(LOCAL),1)
- define YUI_CP
-  cp $(1) $(2)
- endef
-else
- define YUI_CP
-  yui-compressor --preserve-semi -o $(2) $(1)
- endef
-endif
-
 ${W_INST_JSS_CSSS_ALL}: ${WTARGET}/%: compressed/%
 	@mkdir -p $(@D)
 	cp $< $@
@@ -137,7 +138,7 @@ ${COMPRESSED_JSS_CSSS}: compressed/%: %
 	@mkdir -p $(@D)
 	$(call YUI_CP,$<,$@)
 
-compressed/geeoh.js: geeoh.js
+compressed/geeoh.js: geeoh.js Makefile
 	@mkdir -p $(@D)
 ifeq ($(LOCAL),1)
 	sed -e 's=yyymmdd-HHMMSS=${now}=' < $< > $@
@@ -145,11 +146,10 @@ else
 	sed -e 's=yyymmdd-HHMMSS=${now}=' < $< | \
 	yui-compressor --preserve-semi --type js > $@
 endif
-	$(call YUI_CP,$<,$@)
 
 compressed/debug.js: debug.js Makefile
 	@mkdir -p $(@D)
-ifeq ($(LOCAL),1)
+ifeq ($(DEBUG),1)
 	sed -e 's=DEBUG_LOG_CHOOSE=debug_log_real='  < $< > $@
 else
 	sed -e 's=DEBUG_LOG_CHOOSE=debug_log_dummy='  < $< | \
@@ -170,9 +170,11 @@ ${WTARGET}/%.php: %.php
 
 
 ${B_INST_PY_PKGS}: ${BTARGET}/%: %
+	@mkdir -p $(@D)
 	cp $< $@
 
 ${B_INST_PY_EXECS}: ${BTARGET}/%: %
+	@mkdir -p $(@D)
 	cp $< $@
 	chmod +x $@
 
