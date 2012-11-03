@@ -12,6 +12,14 @@ function post_value($key) {
     return $ret;
 }
 
+function session_value($key, $defval) {
+    $ret = $defval;
+    if (isset($_SESSION[$key])) {
+        $ret = $_SESSION[$key]; 
+    }
+    return $ret;
+}
+
 function generate_random_string($len) {
     // Python's: string.letters + string.digits
     $chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -115,16 +123,20 @@ $name = mysql_real_escape_string(post_value('name'));
 $email = mysql_real_escape_string(post_value('email'));
 $user_pw = post_value('pw');
 
-$fdbg = fopen("/tmp/signin-php.log", "a");
-$now = date("Y-m-d H:i:s");
-$session_name = "guest"; // default
-if (isset($_SESSION['name'])) { $session_name = $_SESSION['name']; }
-fprintf($fdbg, "\n$now\naction=$action, name=$name, user_pw=$user_pw" .
-    ", session_name=$session_name\n");
-
+$fdbg = null;
+if (file_exists("/tmp/geeoh-io.debug")) {
+    $fdbg = fopen("/tmp/signin-php.log", "a");
+    $now = date("Y-m-d H:i:s");
+    $session_name = session_value("name", "guest");
+    $session_expire = session_value("expire", "expire");
+    fprintf($fdbg, "\n$now\naction=$action, name=$name, user_pw=$user_pw" .
+	", session_name=$session_name\n");
+    $sce = session_cache_expire();
+    fprintf($fdbg, "session_cache_expire=$sce\n");
+}
 if ($action === "signin") {
     $pw_encypted = sha1($user_pw);
-    fprintf($fdbg, "pw_encypted=$pw_encypted\n");
+    if ($fdbg) { fprintf($fdbg, "pw_encypted=$pw_encypted\n"); }
     $sql = "SELECT * FROM $tbl_registered "
        . "WHERE binary name = '$name' AND  binary password = '$pw_encypted'";
     $result = mysql_query($sql);
@@ -132,8 +144,8 @@ if ($action === "signin") {
     if ($result) {
 	$count = mysql_num_rows($result);
 	if ($count == 1) {
-	    $_SESSION['login'] = 1;
-	    $_SESSION['name'] = $name;
+	    $_SESSION["login"] = 1;
+	    $_SESSION["name"] = $name;
 	    var_dump($_SESSION);
 	    echo "ok";
 	} else {
@@ -143,12 +155,12 @@ if ($action === "signin") {
 	echo "error: SQL query failed";
     }
 } else if ($action === "signout") {
-    $_SESSION['login'] = false;
-    $_SESSION['name'] = null;
+    $_SESSION["login"] = false;
+    $_SESSION["name"] = null;
     echo "login := false"; 
 } else if ($action === "signup") {
-    $_SESSION['login'] = false;
-    $_SESSION['name'] = null;
+    $_SESSION["login"] = false;
+    $_SESSION["name"] = null;
     $sql = "SELECT * FROM $tbl_registered WHERE binary name ='$name'" .
         " or email = '$email'";
     $result = mysql_query($sql);
@@ -167,8 +179,8 @@ if ($action === "signin") {
  if ($fdbg) { fprintf($fdbg, "signup END: 2\n"); }
 } else if ($action === "reset") {
     // echo "reset: email=$email";
-    $_SESSION['login'] = false;
-    $_SESSION['name'] = null;
+    $_SESSION["login"] = false;
+    $_SESSION["name"] = null;
     $sql = "SELECT * FROM $tbl_registered WHERE email = '$email'";
     $result = mysql_query($sql);
     $count = -1;
@@ -177,8 +189,8 @@ if ($action === "signin") {
         // echo "count=$count, result=$result";
         if ($count == 1) {
             $rows = mysql_fetch_array($result);
-            $name = $rows['name'];
-            $email = $rows['email'];
+            $name = $rows["name"];
+            $email = $rows["email"];
             set_temporary_confirm($signin_conf, $name, $email, null);
         } else {
             echo "error: E-mail address not found"; 
@@ -188,7 +200,7 @@ if ($action === "signin") {
     }
 } else if ($action === "pwnew") {
     if ($fdbg) { fprintf($fdbg, "pwnew: \n"); }
-    if ($name === $_SESSION['name']) {
+    if ($name === $_SESSION["name"]) {
         email_by_name($signin_conf, $name,
             "Your password for account '$name' is changed as requested");
         $pw_encypted = sha1($user_pw);
@@ -200,7 +212,7 @@ if ($action === "signin") {
         echo "error: logged user differ";
     }
 } else if ($action === "remove") {
-    if ($name === $_SESSION['name']) {
+    if ($name === $_SESSION["name"]) {
         email_by_name($signin_conf, $name, 
             "Your account '$name' is removed as requested");
         $sql = "DELETE FROM $tbl_registered WHERE binary name ='$name'";
@@ -208,7 +220,7 @@ if ($action === "signin") {
     }
 } else if (($action === "fput") || ($action == "mkdir") || ($action == "del")) {
     $name = "guest"; // default
-    if (isset($_SESSION['name'])) { $name = $_SESSION['name']; }
+    if (isset($_SESSION["name"])) { $name = $_SESSION["name"]; }
     // Collect post parameters into comma separated key:value string.
     // But treat 'text' key (for fput) separately since it contains
     // commas and colos itself.
@@ -223,7 +235,7 @@ if ($action === "signin") {
 	    $sep = ",";
 	}
     }
-    $cgiio = $signin_conf['cgi-dir'] .
+    $cgiio = $signin_conf["cgi-dir"] .
         "/geeoh-io.cgi -postmap $postmap -user $name";
     if ($fdbg) { 
         fprintf($fdbg, "cgiio=$cgiio\n |text|=%d\n", strlen($text)); 
@@ -236,8 +248,8 @@ if ($action === "signin") {
 	     $output, $errput, $rc, $rc);
     }
 } else {
-    $_SESSION['login'] = false;
-    $_SESSION['name'] = null;
+    $_SESSION["login"] = false;
+    $_SESSION["name"] = null;
     echo "error: Bad action: $action"; 
     $rc = 1;
 }

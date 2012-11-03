@@ -266,6 +266,68 @@ of the path">
     </div>
     <center id="canvas-center" width="90%" height="50%">
       <canvas id="geeoh-canvas" width="90%" height="50%"></canvas>
+      <table id="elements-box" class="draggable-box">
+        <thead>
+          <tr>
+            <th colspan="2">Elements</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <table id="elements">
+                <thead>
+                  <tr>
+                    <th>Name</th><th>Value</th><th>Actions</th>
+                    <th title="View">
+                      <span id="th-show" class="ui-icon-gear">V</span>
+                    </th>
+                    <th title="Label">
+                      <span id="th-show" class="ui-icon-gear">L</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="elements-tbody">
+                </tbody>
+              </table>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <table id="expressions-box" class="draggable-box">
+        <thead>
+          <tr>
+            <th colspan="2">Expressions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <table id="expressions">
+                <thead>
+                  <tr><th>Math/JS</th><th>Value</th></tr>
+                </thead>
+                <tbody id="expressions-tbody">
+                </tbody>
+              </table>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <table id="comment-box" class="draggable-box">
+        <thead>
+          <tr>
+            <th>Comment</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <textarea id="comment-text"></textarea>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </center>
     <div id="pointer"></div>
     <div id="dlg-point">
@@ -443,68 +505,6 @@ of the path">
         </tr>
       </table>
     </div>
-    <table id="elements-box" class="draggable-box">
-      <thead>
-        <tr>
-          <th colspan="2">Elements</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>
-            <table id="elements">
-              <thead>
-                <tr>
-                  <th>Name</th><th>Value</th><th>Actions</th>
-                  <th title="View">
-                    <span id="th-show" class="ui-icon-gear">V</span>
-                  </th>
-                  <th title="Label">
-                    <span id="th-show" class="ui-icon-gear">L</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody id="elements-tbody">
-              </tbody>
-            </table>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <table id="expressions-box" class="draggable-box">
-      <thead>
-        <tr>
-          <th colspan="2">Expressions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>
-            <table id="expressions">
-              <thead>
-                <tr><th>Math/JS</th><th>Value</th></tr>
-              </thead>
-              <tbody id="expressions-tbody">
-              </tbody>
-            </table>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <table id="comment-box" class="draggable-box">
-      <thead>
-        <tr>
-          <th>Comment</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>
-            <textarea id="comment-text"></textarea>
-          </td>
-        </tr>
-      </tbody>
-    </table>
     <div style="display:none" id="div-dialog-error">
       <p>
         <span class="ui-icon ui-icon-alert"

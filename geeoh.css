@@ -20,7 +20,7 @@ table
 .draggable-box
 {
   background: white;
-  opacity: 0.6;
+  opacity: 0.8;
 }
 
 .tab-pref, .tr-pref, .td-pref
@@ -80,11 +80,19 @@ table
   background: #4f4;
 }
 
+#comment-box
+{
+  /* float:left; */
+  position:absolute;
+  top:5%;
+  left:5%;
+}
+
 #elements-box
 {
   /* float:left; */
   position:absolute;
-  top:60%;
+  top:30%;
   left:10%;
 }
 
@@ -92,20 +100,13 @@ table
 {
   /* float:left; */
   position:absolute;
-  top:80%;
+  top:70%;
   left:10%;
-}
-
-#comment-box
-{
-  /* float:left; */
-  position:absolute;
-  top:40%;
-  left:30%;
 }
 
 #canvas-center
 {
+  position: relative;
   /* float:left; */
   // width: 100%;
   // height: 70%;

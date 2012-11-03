@@ -64,7 +64,8 @@ INSTALLED_PY_PKGS = \
 	cs.py
 INSTALLED_PY_EXECS = \
 	geeoh-io-client.py \
-	geeoh-io-server.py
+	geeoh-io-server.py \
+	watchdog.py
 INSTALLED_PYS = ${INSTALLED_PY_PKGS} ${INSTALLED_PY_EXECS}
 B_INST_PY_PKGS = $(foreach f, $(INSTALLED_PY_PKGS), $(BTARGET)/$(f))
 B_INST_PY_EXECS = $(foreach f, $(INSTALLED_PY_EXECS), $(BTARGET)/$(f))
