@@ -5,6 +5,7 @@
 
 import Cookie
 import StringIO
+import base64
 import cgi
 import os
 import pickle
@@ -173,10 +174,12 @@ Usage:                   # [Default]
             text = self.post_value("text")
             if text == "":
                 text = sys.stdin.read();
-            self.log("text[%d]=%s ..." % (len(text), text[:0x10]))
+            dtext = base64.b64decode(text)
+            self.log("text[%d]=%s ..., dtext[%d]=%s ..." % 
+                     (len(text), text[:0x10], len(dtext), dtext[:0x10]))
             self.csend_data("fput")
             self.csend_data(fn)
-            self.csend_data(text)
+            self.csend_data(dtext)
             err = self.recv_data(self.csocket)
         if err:
             self.result['error'] = "Error %s" % err

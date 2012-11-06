@@ -58,7 +58,9 @@ W_INST_JSS_CSSS_ALL = $(foreach f, $(INSTALLED_JSS_CSSS_ALL), $(WTARGET)/$(f))
 INST_KEYPAD = \
 	jquery.keypad.min.js \
 	jquery.keypad.css
-W_INST_KEYPAD = $(foreach f, $(INST_KEYPAD), $(WTARGET)/$(f))
+INST_BASE64 = jquery.base64.min.js
+INST_ASIS = ${INST_KEYPAD} ${INST_BASE64}
+W_INST_ASIS = $(foreach f, $(INST_ASIS), $(WTARGET)/$(f))
 
 INSTALLED_PY_PKGS = \
 	cs.py
@@ -96,7 +98,7 @@ install: \
 	${WTARGET}/geeoh.js \
 	${WTARGET}/debug.js \
 	${W_INST_JSS_CSSS} \
-	${W_INST_KEYPAD} \
+	${W_INST_ASIS} \
 	${WTARGET}/jquery.keypad.min.js \
 	${WTARGET}/jquery.keypad.css \
 	${WTARGET}/cgi-bin/geeoh-io.cgi \
@@ -157,7 +159,7 @@ else
 	yui-compressor --preserve-semi --type js > $@
 endif
 
-${W_INST_KEYPAD}: ${WTARGET}/%: %
+${W_INST_ASIS}: ${WTARGET}/%: %
 	cp $< $@
 
 ${WTARGET}/cgi-bin/%.cgi: %.cgi

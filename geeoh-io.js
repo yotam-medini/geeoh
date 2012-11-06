@@ -59,7 +59,7 @@
                     "action": "fput",
                     "path": path,
                     "fn": fn,
-                    "text": text
+                    "text": $.base64.encode(text)
                 },
                 this.fput_cb(this));
         },
