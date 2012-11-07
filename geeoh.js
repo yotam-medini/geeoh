@@ -1174,7 +1174,7 @@
                 es_json = [];
             }
             elements = [];
-            var json_elements = es_json['elements'];
+            var json_elements = $.aget(es_json, 'elements', []);
             for (var i = 0; i < json_elements.length; i++) {
                 var e = json_element_create(json_elements[i]);
                 if (e !== null) {
@@ -1182,14 +1182,14 @@
                 }
             }
             expressions = [];
-            var json_expressions = es_json['expressions'];
+            var json_expressions = $.aget(es_json, 'expressions', []);
             for (var i = 0; i < json_expressions.length; i++) {
                 var e = $.extend(true, {}, expression)
                     .set(json_expressions[i]);
                 expressions.push(e);
             }
-            var comment  = es_json['comment'];
-            if (comment == undefined) { comment = ""; }
+            var comment  = $.aget(es_json, 'comment', "");
+            $.debug_log("comment="+comment);
             $("#comment-text").val(comment);
             redraw();
         };

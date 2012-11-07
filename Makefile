@@ -34,6 +34,7 @@ SRCS += fslocal.html fslocal.js
 
 # geeoh.js debug.js - are exceptions
 INSTALLED_JSS = \
+	jquery.ymutil.js \
 	geeoh-io.js \
 	message.js \
 	signin.js \
@@ -80,7 +81,7 @@ RELFILES = \
 	geeoh-io.cgi \
 	${INSTALLED_PYS} \
 	${COMPRESSED_JSS_CSSS_ALL} \
-	${INST_KEYPAD} \
+	${INST_ASIS} \
 	confirm.php \
 	signin.php
 
@@ -109,6 +110,9 @@ install: \
 
 ifeq ($(LOCAL),1)
  DEBUG=1
+endif
+
+ifeq ($(DEBUG),1)
  define YUI_CP
   cp $(1) $(2)
  endef
@@ -143,7 +147,7 @@ ${COMPRESSED_JSS_CSSS}: compressed/%: %
 
 compressed/geeoh.js: geeoh.js Makefile
 	@mkdir -p $(@D)
-ifeq ($(LOCAL),1)
+ifeq ($(DEBUG),1)
 	sed -e 's=yyymmdd-HHMMSS=${now}=' < $< > $@
 else
 	sed -e 's=yyymmdd-HHMMSS=${now}=' < $< | \
