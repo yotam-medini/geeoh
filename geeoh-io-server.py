@@ -156,11 +156,14 @@ Usage:                   # [Default]
         adn = "%s/%s" % (self.udir, dn);
         self.log("adn=%s" % adn)
         err = ""
-        try:
-            os.mkdir(adn, 0755)
-        except Exception, why:
-            self.log("dn=%s, why: %s" % (adn, why))
-            err = "Failed to mkdir %s" % dn
+        if os.path.isdir(adn):
+            self.log("Directory already exists: %s" % adn)
+        else:
+            try:
+                os.mkdir(adn, 0755)
+            except Exception, why:
+                self.log("dn=%s, why: %s" % (adn, why))
+                err = "Failed to mkdir %s" % dn
         self.send_data(client, err)
 
 
