@@ -201,3 +201,6 @@ hg-tbz: ${TBZ2}
 ${TBZ2}:
 	hg archive $@
 	tar tvjf $@; ls -lG $@
+
+clean:
+	rm -rf compressed

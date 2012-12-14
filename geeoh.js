@@ -2390,6 +2390,15 @@
         };
         $("#redraw").click(redraw);
 
+	var clear = function () {
+	    debug_log("clear");
+            $("#comment-text").val("");
+	    elements = [];
+	    expressions = [];
+	    redraw();
+	};
+
+        $("#clear").click(clear);
 
         $("input[name='radio-drag']").change(function () {
             var mode = $(this).val();
