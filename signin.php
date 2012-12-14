@@ -123,11 +123,12 @@ $name = mysql_real_escape_string(post_value('name'));
 $email = mysql_real_escape_string(post_value('email'));
 $user_pw = post_value('pw');
 
+$session_name = session_value("name", "guest");
+
 $fdbg = null;
 if (file_exists("/tmp/geeoh-io.debug")) {
     $fdbg = fopen("/tmp/signin-php.log", "a");
     $now = date("Y-m-d H:i:s");
-    $session_name = session_value("name", "guest");
     $session_expire = session_value("expire", "expire");
     fprintf($fdbg, "\n$now\naction=$action, name=$name, user_pw=$user_pw" .
 	", session_name=$session_name\n");
@@ -242,10 +243,13 @@ if ($action === "signin") {
     }
     // exec($cgiio, $output, $rc);
     $rc = procio($cgiio, $text, $output, $errput);
-    echo $output;
+    $result = array("out" => $output, "name" => $session_name);
+    $json_result = json_encode($result);
+    echo $json_result;
     if ($fdbg) {
-        fprintf($fdbg, "StdOut:\n%s\nStdErr:\n%s\nrc=%d=0x%x\n",
-	     $output, $errput, $rc, $rc);
+        fprintf($fdbg, "StdOut:\n%s\nStdErr:\n%s\nrc=%d=0x%x\nSN=%s\n",
+	     $output, $errput, $rc, $rc, $session_name);
+        fprintf($fdbg, "json_result: %s\n", $json_result);
     }
 } else {
     $_SESSION["login"] = false;

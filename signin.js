@@ -11,6 +11,11 @@
     var user_signing = "";
 
     jQuery.user_signed_get = function () { return user_signed; };
+    jQuery.user_signed_set = function (name) { 
+        if (user_signed != name) {
+            user_signed = name; 
+        }
+    };
 
     $(document).ready(function () {
         var dlg_signin = $("#dlg-signin");

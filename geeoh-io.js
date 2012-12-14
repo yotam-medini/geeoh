@@ -44,16 +44,20 @@
                 },
                 this.dir_get_cb(this));
         },
+        fs_auth_cb: function(data) {
+            $.debug_log("fput_cb: out="+data.out + ", name="+data.name);
+            if (data.out.length > 0) { $.error_message(data.out); }
+        },
         fput_done: function (vthis) { },
         fput_cb: function (vthis) { 
             return function (data) {
-                $.debug_log("fput_cb: data="+data);
-                if (data.length > 0) { $.error_message(data); }
+                vthis.fs_auth_cb(data);
                 vthis.fput_done(vthis);
             }
         },
         fput: function (path, fn, text) {
-            $.debug_log("fput: fn="+fn + ", text="+text);
+            $.debug_log("fput: cgi="+this.cgi_auth_url + 
+                ", fn="+fn + ", text="+text);
             $.post(this.cgi_auth_url,
                 {
                     "action": "fput",
@@ -61,7 +65,7 @@
                     "fn": fn,
                     "text": $.base64.encode(text)
                 },
-                this.fput_cb(this));
+                this.fput_cb(this), "json");
         },
         fget_consume: function (text) { },
         fget_cb: function (vthis) { 
@@ -88,8 +92,7 @@
         mkdir_done: function (vthis) { },
         mkdir_cb: function (vthis) {
             return function (data) {
-                $.debug_log("mkdir_cb");
-                if (data.length > 0) { $.error_message(data); }
+                vthis.fs_auth_cb(data);
                 vthis.mkdir_done(vthis);
             }
         },
@@ -101,14 +104,12 @@
                     "path": path,
                     "dn": dn,
                 },
-                this.mkdir_cb(this));
+                this.mkdir_cb(this), "json");
         },
         del_done: function (vthis) { },
         del_cb: function (vthis) {
             return function (data) {
-                $.debug_log("del_cb: data="+data);
-                if (data.length > 0) { $.error_message(data); }
-                // vthis.cb_json_get("del_cb", data);
+                vthis.fs_auth_cb(data);
                 vthis.del_done(vthis);
             }
         },
@@ -121,8 +122,9 @@
                     "path": path,
                     "e": e,
                 },
-                this.del_cb(this));
-        }
+                this.del_cb(this), "json");
+        },
+        cb_check_data: function (data) {},
     };
 
     function d2(n) {
