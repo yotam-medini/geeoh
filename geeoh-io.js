@@ -63,7 +63,7 @@
                     "action": "fput",
                     "path": path,
                     "fn": fn,
-                    "text": $.base64.encode(text)
+                    "text": Base64.encode(text)
                 },
                 this.fput_cb(this), "json");
         },

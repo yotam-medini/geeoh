@@ -34,6 +34,7 @@ SRCS += fslocal.html fslocal.js
 
 # geeoh.js debug.js - are exceptions
 INSTALLED_JSS = \
+	base64.js \
 	jquery.ymutil.js \
 	geeoh-io.js \
 	message.js \
@@ -59,7 +60,7 @@ W_INST_JSS_CSSS_ALL = $(foreach f, $(INSTALLED_JSS_CSSS_ALL), $(WTARGET)/$(f))
 INST_KEYPAD = \
 	jquery.keypad.min.js \
 	jquery.keypad.css
-INST_BASE64 = jquery.base64.min.js
+# INST_BASE64 = jquery.base64.min.js
 INST_ASIS = ${INST_KEYPAD} ${INST_BASE64}
 W_INST_ASIS = $(foreach f, $(INST_ASIS), $(WTARGET)/$(f))
 
