@@ -73,7 +73,6 @@
 	dialog_message.append($("<p>")
 	    .append(element_icon)
 	    .append(element_text_message));
-	// $("body").append(dialog_message);
 	dialog_message.dialog({autoOpen: false});
     });
 
