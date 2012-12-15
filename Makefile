@@ -60,8 +60,7 @@ W_INST_JSS_CSSS_ALL = $(foreach f, $(INSTALLED_JSS_CSSS_ALL), $(WTARGET)/$(f))
 INST_KEYPAD = \
 	jquery.keypad.min.js \
 	jquery.keypad.css
-# INST_BASE64 = jquery.base64.min.js
-INST_ASIS = ${INST_KEYPAD} ${INST_BASE64}
+INST_ASIS = ${INST_KEYPAD}
 W_INST_ASIS = $(foreach f, $(INST_ASIS), $(WTARGET)/$(f))
 
 INSTALLED_PY_PKGS = \
