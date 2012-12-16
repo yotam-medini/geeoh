@@ -344,6 +344,21 @@
                 return Math.sqrt(this.distance2_to(xy)); },
             distance2_to: function (xy) { return 1.; },
             candidate_label_points: function (rect, delta) { return []; },
+	    bound_box: function () { return null; },
+	    bound_box_by_box: function (bbox) { 
+                var bb = this.bound_box();
+                if (bb != null) {
+                    if (bbox == null) {
+                        bbox = bb;
+                    } else {
+                        bbox[0] = Math.min(bbox[0], bb[0]);
+                        bbox[1] = Math.max(bbox[1], bb[0]);
+                        bbox[2] = Math.min(bbox[2], bb[1]);
+                        bbox[3] = Math.max(bbox[3], bb[1]);
+                    }
+                }
+                return bbox;
+            },
             best_label_point: function (elements, rect, delta) { // max-min
                 debug_log("BLP: e="+this.name);
                 var candidates = this.candidate_label_points(rect, delta);
@@ -433,6 +448,17 @@
                 }
                 return d2;
             },
+	    bound_box: function (bbox) {
+		if (bbox == null) {
+		    bbox = [this.xy[0], this.xy[0], this.xy[1], this.xy[1]]
+		} else {
+		    bbox[0] = Math.min(bbox[0], this.xy[0]);
+		    bbox[1] = Math.max(bbox[1], this.xy[0]);
+		    bbox[2] = Math.min(bbox[3], this.xy[1]);
+		    bbox[3] = Math.max(bbox[4], this.xy[1]);
+		}
+		return bbox; 
+	    },
             candidate_label_points: function (rect, delta) {
                 return xy_points_around(this.xy[0], this.xy[1], delta);
             },
@@ -674,6 +700,16 @@
                 d2 = xy_xy_dist2(xy, m);
                 return d2;
             },
+            bound_box: function () {
+                var bb = [null, null, null, null];
+                for (var i = 0; i < 2; i++) {
+                    var imax = (this.depon[0].xy[i] < this.depon[1].xy[i]) ?
+                        1 : 0;
+                    bb[2*i + 0] = this.depon[1 - imax].xy[i];
+                    bb[2*i + 1] = this.depon[imax].xy[i];
+                }
+                return bb; 
+	    },
             typename: function () { return 'line_segment'; },
         });
 
@@ -745,6 +781,12 @@
             },
             distance_to: function (xy) {
                 return Math.abs(this.center.distance_to(xy) - this.radius);
+            },
+            bound_box: function () {
+                var x = this.center.xy[0];
+                var y = this.center.xy[1];
+                var r = this.radius;
+                return [x - r, x + r, y - r, y + r];
             },
             candidate_label_points: function (rect, delta) {
                 return xy_points_around(this.center.xy[0], this.center.xy[1],
@@ -1051,6 +1093,14 @@
                 return [[v1.xy[0] + cs[0]*delta, v1.xy[1] + cs[1]*delta]];
             },
         });
+
+        var elements_bbox = function () {
+            var bbox = null;
+            for (var ei = 0; ei < elements.length; ei++) {
+                bbox = elements[ei].bound_box_by_box(bbox);
+            }
+            return bbox;
+        };
 
         var json_element_create = function (ejson) {
             var e = null;
@@ -2124,6 +2174,11 @@
                 },
                 Cancel: function () { $(this).dialog("close"); }
             }
+        });
+        $("#bbox").click(function () {
+            debug_log("bbox");
+            var bb = elements_bbox();
+            debug_log("bb="+bb);
         });
 
         $("#b-limits").click(function () {
