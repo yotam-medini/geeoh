@@ -352,9 +352,9 @@
                         bbox = bb;
                     } else {
                         bbox[0] = Math.min(bbox[0], bb[0]);
-                        bbox[1] = Math.max(bbox[1], bb[0]);
-                        bbox[2] = Math.min(bbox[2], bb[1]);
-                        bbox[3] = Math.max(bbox[3], bb[1]);
+                        bbox[1] = Math.max(bbox[1], bb[1]);
+                        bbox[2] = Math.min(bbox[2], bb[2]);
+                        bbox[3] = Math.max(bbox[3], bb[3]);
                     }
                 }
                 return bbox;
@@ -1094,8 +1094,7 @@
             },
         });
 
-        var elements_bbox = function () {
-            var bbox = null;
+        var elements_bbox = function (bbox) {
             for (var ei = 0; ei < elements.length; ei++) {
                 bbox = elements[ei].bound_box_by_box(bbox);
             }
@@ -1241,6 +1240,10 @@
             var comment  = $.aget(es_json, 'comment', "");
             $.debug_log("comment="+comment);
             $("#comment-text").val(comment);
+            var bb = $.aget(es_json, 'bbox', undefined);
+            if (!(bb === undefined)) {
+                canvas.rect_set(bb);
+            }
             redraw();
         };
 
@@ -1253,6 +1256,7 @@
                 'comment': $("#comment-text").val(),
                 'elements': elements,
                 'expressions': expressions,
+                'bbox': canvas.rect_get(),
             };
             return JSON.stringify(d, null, 2);
         };
@@ -2177,8 +2181,15 @@
         });
         $("#bbox").click(function () {
             debug_log("bbox");
-            var bb = elements_bbox();
+            var bb = elements_bbox([0,0,0,0]); // Force origin in
             debug_log("bb="+bb);
+            if (bb != null) {
+                for (var i = 0; i < 2; i++) {
+                    var xymm = "xy".substr(i, 1)
+                    $("#" + xymm + "min").val(Math.floor(bb[2*i] - 1./2.));
+                    $("#" + xymm + "max").val(Math.ceil(bb[2*i + 1] + 1./2.));
+                }
+            }
         });
 
         $("#b-limits").click(function () {
@@ -2492,6 +2503,25 @@
 
         });
 
+        // ioui.fget("yotam/euclid", "b2-p011");
+        {
+            var lsearch = location.search.substr(1);
+            var key2val = {};
+            debug_log("lsearch="+lsearch);
+            var kvs = lsearch.split('&');
+            for (var i = 0; i < kvs.length; i++) {
+                var kv = kvs[i].split('=');
+                if (kv.length == 2) {
+                    key2val[kv[0]] = kv[1];
+                }
+            }
+            var path = $.aget(key2val, "path", undefined);
+            var fn = $.aget(key2val, "fn", undefined);
+            debug_log("path="+path + ", fn="+fn);
+            if (!((path === undefined) || (fn === undefined))) {
+                ioui.fget(path, fn);
+            }
+        }
 
         redraw();
 
