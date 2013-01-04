@@ -1421,7 +1421,10 @@
                         }
                         etable.redraw();
                     });
+                    $.tables_align_columns(
+                        [$("#elements-thead"), $("#elements-tbody")]);
                 }
+
             }
         }();
 
