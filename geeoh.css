@@ -97,6 +97,10 @@ table, th, td
   background: #4f4;
 }
 
+.waiting {
+  cursor: progress;
+}
+
 #comment-box
 {
   /* float:left; */

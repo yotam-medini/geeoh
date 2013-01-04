@@ -5,6 +5,9 @@
     var cgi_url = "cgi-bin/geeoh-io.cgi";
     // var user_data_current_path = "";
 
+    var waitOn = function () { $("*").addClass("waiting"); }
+    var waitOff = function () { $("*").removeClass("waiting"); }
+
     var io = {
         cgi_url: "cgi-bin/geeoh-io.cgi",
         cgi_auth_url: "cgi-bin/geeoh-io.cgi", // to be modified (signin.php)
@@ -33,10 +36,12 @@
                 if (edata) {
                     vthis.dir_get_consume(edata["dlist"], edata["flist"]);
                 }
+                waitOff();
             }
         },
         dir_get: function (subdir) {
             $.debug_log("dir_get-refresh: cgi="+this.cgi_url);
+            waitOn();
             $.post(this.cgi_url,
                 {
                     "action": "refresh",
@@ -53,11 +58,13 @@
             return function (data) {
                 vthis.fs_auth_cb(data);
                 vthis.fput_done(vthis);
+                waitOff();
             }
         },
         fput: function (path, fn, text) {
             $.debug_log("fput: cgi="+this.cgi_auth_url + 
                 ", fn="+fn + ", text="+text);
+            waitOn();
             $.post(this.cgi_auth_url,
                 {
                     "action": "fput",
@@ -77,10 +84,12 @@
                    $.debug_log("fget_cb: text="+text);
                    vthis.fget_consume(text);
                 }
+                waitOff();
             }
         },
         fget: function (path, fn) {
             $.debug_log("fget: path="+this.curr_path + ", fn="+fn);
+            waitOn();
             $.post(this.cgi_url,
                 {
                     "action": "fget",
@@ -94,10 +103,12 @@
             return function (data) {
                 vthis.fs_auth_cb(data);
                 vthis.mkdir_done(vthis);
+                waitOff();
             }
         },
         mkdir: function (path, dn) {
             $.debug_log("mkdir: path="+this.curr_path + ", dn="+dn);
+            waitOn();
             $.post(this.cgi_auth_url,
                 {
                     "action": "mkdir",
@@ -111,10 +122,12 @@
             return function (data) {
                 vthis.fs_auth_cb(data);
                 vthis.del_done(vthis);
+                waitOff();
             }
         },
         del: function (t, path, e) {
             $.debug_log("del: "+t+ " path="+path + ", e="+e);
+            waitOn();
             $.post(this.cgi_auth_url,
                 {
                     "action": "del",
