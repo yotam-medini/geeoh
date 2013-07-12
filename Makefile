@@ -19,6 +19,7 @@ now = ${tnow} utc
 
 SRCS = \
 	Makefile \
+	ifpass.py \
 	debug.js \
 	geeoh.html \
 	geeoh.css \
@@ -114,7 +115,7 @@ endif
 
 ifeq ($(DEBUG),1)
  define YUI_CP
-  cp $(1) $(2)
+  ./ifpass.py -q -DDEBUG $(1) $(2)
  endef
 else
  define YUI_CP
@@ -148,7 +149,7 @@ ${COMPRESSED_JSS_CSSS}: compressed/%: %
 compressed/geeoh.js: geeoh.js Makefile
 	@mkdir -p $(@D)
 ifeq ($(DEBUG),1)
-	sed -e 's=yyymmdd-HHMMSS=${now}=' < $< > $@
+	sed -e 's=yyymmdd-HHMMSS=${now}=' < $< | ./ifpass.py -q -DDEBUG > $@
 else
 	sed -e 's=yyymmdd-HHMMSS=${now}=' < $< | \
 	yui-compressor --preserve-semi --type js > $@

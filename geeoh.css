@@ -49,12 +49,14 @@ table, th, td
   border: 2px solid red;
 }
 
-#elements-thead
+#elements-thead,
+#expressions-thead
 {
   display: block;
 }
 
-#elements-tbody
+#elements-tbody,
+#expressions-tbody
 {
   display: block;
   max-height: 300px;

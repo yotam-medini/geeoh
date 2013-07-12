@@ -19,8 +19,8 @@
     color_entity_name[color_enum.near] = "near";
     color_entity_name[color_enum.active] = "active";
 
-    function debug_log(message) { $.debug_log(message) }
-    function debug_log0(message) { $.debug_log0(message) }
+    function debug_log(message) { $.debug_log(message); }
+    function debug_log0(message) { $.debug_log0(message); }
 
     function findPos(obj) { // Donated by `lwburk` on StackOverflow
         var curleft = 0, curtop = 0;
@@ -493,8 +493,6 @@
             },
             abc_get: function () { return this.abc; },
             abc_set: function (a, b, c) {
-                debug_log0("abc_set: a="+a.toFixed(3) + ", b="+b.toFixed(3) +
-                          ", c="+c.toFixed(3));
                 var d2 = a*a + b*b;
                 this.valid = (d2 > epsilon2);
                 if (!this.valid) {
@@ -583,7 +581,7 @@
         var line_2points = $.extend(true, {}, line, {
             depon: [null, null],
             points_set: function (pt0, pt1) {
-                debug_log0("L2Ps set: p0="+pt0.str() + ", pt1="+pt1.str());
+                // debug_log0("L2Ps set: p0="+pt0.str() + ", pt1="+pt1.str());
                 this.depon = [pt0, pt1];
                 return this.update();
             },
@@ -624,9 +622,6 @@
                 var low = p0.xy[j], high = p1.xy[j];
                 if (low > high) { var t = low; low = high; high = t; }
                 var inside = (low <= v) && (v <= high);
-                debug_log0("j="+j +", v="+v.toFixed(3) +
-                    ", low="+low.toFixed(3) + ", high="+high.toFixed(3) +
-                    ", inside="+inside);
                 return inside;
             },
             str: function () {
@@ -719,8 +714,6 @@
             other: false,
             color: function () { return "#111"; },
             curves_set: function (l0, l1, other) {
-                debug_log0("point_2curves.curves_set: l0="+l0.str() +
-                    ", l1="+l1.str());
                 this.depon = [l0, l1];
                 this.other = other;
                 this.update();
@@ -1070,8 +1063,6 @@
                     var v1 = this.depon[1];
                     var cs = this.label_pt_cs;
                     var dx = xy[0] - (v1.xy[0] + cs[0]*this.label_delta);
-                    debug_log0("dx="+dx+", xy="+xy2str(xy)+", cs="+xy2str(cs)+
-                        ", label_delta="+this.label_delta);
                     var dy = xy[1] - (v1.xy[1] + cs[0]*this.label_delta);
                     d2 = dx*dx + dy*dy;
                     // debug_log("A.d2to: d2="+d2.toFixed(2));
@@ -1190,8 +1181,6 @@
         var elements_at_add = function (at, e) {
             var head = elements.slice(0, at);
             var tail = elements.slice(at);
-            debug_log0("at="+at + ", |h|="+head.length + ", |t|="+tail.length
-                + ", |e|="+elements.length);
             elements = $.merge($.merge(head, [e]), tail);
             // debug_log("After: |e|="+elements.length);
         };
@@ -1424,7 +1413,6 @@
                     $.tables_align_columns(
                         [$("#elements-thead"), $("#elements-tbody")]);
                 }
-
             }
         }();
 
@@ -1578,9 +1566,6 @@
                         // this.pt_cdraw(ctx, this.last_drag_xy);
 			cx = this.last_drag_xy[0];
 			cy = this.last_drag_xy[1];
-                        debug_log0("drag_active_point: ctx="+ctx +
-				  ", si="+this.saved_image +
-                           ", cx="+cx + ", cy="+cy + ", pt_rad="+pt_rad);
                         ctx.drawImage(this.saved_image, 0, 0);
                         ctx.drawImage(this.saved_image, cx, cy, pt_rad, pt_rad,
                             cx, cy, pt_rad, pt_rad);
@@ -2014,9 +1999,6 @@
                             // debug_log("pt_name="+pt_name);
                             return elements.filter(function (e) {
                                 return e.name == pt_name; })[0]; });
-                        debug_log0("c="+c_pt01[0] +
-                            ", pt0="+c_pt01[1].str() +
-                            ", pt1="+c_pt01[2].str());
                         var circ = $.extend(true, {}, circle_center_segment)
                             .name_set(name)
                             .center_segment_set(c_pt01[0], c_pt01[1],
@@ -2386,6 +2368,7 @@
                                 .append(ujs))
                             .append($("<td>")
                                 .text(svalue))
+                            .append($("<td>")
                                 .append($('<button title="Edit">')
                                     .button({
                                         text: false,
@@ -2431,9 +2414,11 @@
                                                 extable.redraw();
                                             }
                                         }(i))
-                                    )
+                                    ))
                             );
                     }
+                    $.tables_align_columns(
+                        [$("#expressions-thead"), $("#expressions-tbody")]);
                 }
             }
         }();
