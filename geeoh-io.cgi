@@ -30,6 +30,11 @@ then
   # We are in unlimitedgb.com
   # export PYTHONPATH=/home/medini/lib/python2.4/site-packages
   home=/home/medini
+elif [ -d /home/medinior ]
+then
+  # We are in unlimitedgb.com
+  home=/home/medinior
+  export PYTHONPATH=${home}/pub/lib64/python
 elif [ -d /home/yotamm ]
 then
   # Somewhere

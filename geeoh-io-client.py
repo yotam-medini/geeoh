@@ -78,7 +78,7 @@ Usage:                   # [Default]
 
     def run(self):
         self.log("")
-        os.system("/home/yotam/src/geeoh/session-dump.php");
+        # os.system("/home/yotam/src/geeoh/session-dump.php");
         self.result = {}
         self.csocket = None
         if self.dir2make or self.postmap is not None:
