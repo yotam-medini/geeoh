@@ -3,7 +3,6 @@
 # Author:  Yotam Medini  yotam.medini@gmail.com -- Created: 2011/July/03
 
 
-import StringIO
 import os
 import pickle
 import random
@@ -120,7 +119,7 @@ Usage:                   # [Default]
         err = "";
         try:
             f = open(afn, "w");
-        except Exception, why:
+        except Exception as why:
             self.log("afn=%s, why: %s" % (afn, why))
             err = "Failed to open %s" % fn
             f = None
@@ -138,7 +137,7 @@ Usage:                   # [Default]
         err = "";
         try:
             f = open(afn, "r");
-        except Exception, why:
+        except Exception as why:
             self.log("afn=%s, why: %s" % (afn, why))
             err = "Failed to open %s" % fn
             f = None
@@ -160,8 +159,8 @@ Usage:                   # [Default]
             self.log("Directory already exists: %s" % adn)
         else:
             try:
-                os.mkdir(adn, 0755)
-            except Exception, why:
+                os.mkdir(adn, 0o0755)
+            except Exception as why:
                 self.log("dn=%s, why: %s" % (adn, why))
                 err = "Failed to mkdir %s" % dn
         self.send_data(client, err)
@@ -177,13 +176,13 @@ Usage:                   # [Default]
         if t == "d":
             try:
                 os.rmdir(ae)
-            except Exception, why:
+            except Exception as why:
                 self.log("ae=%s, why: %s" % (ae, why))
                 err = "Failed to delete directory %s" % e
         elif t == "f":
             try:
                 os.unlink(ae,)
-            except Exception, why:
+            except Exception as why:
                 self.log("dn=%s, why: %s" % (ae, why))
                 err = "Failed to delete directory %s" % e
         else:

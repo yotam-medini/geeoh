@@ -497,7 +497,8 @@
                 this.valid = (d2 > epsilon2);
                 if (!this.valid) {
                     debug_log("!valid: a="+a + ", b="+b);
-                    this.abc = null;
+                    // this.abc = null;
+		    // this.abc = [1., 0., 0.];
                 } else {
                     var d = Math.sqrt(d2);
                     this.abc[0] = a/d;  this.abc[1] = b/d;  this.abc[2] = c/d;

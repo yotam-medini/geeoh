@@ -3,8 +3,7 @@
 # geeoh IO - Client
 # Author:  Yotam Medini  yotam.medini@gmail.com -- Created: 2011/July/04
 
-import Cookie
-import StringIO
+from http import cookies
 import base64
 import cgi
 import os
@@ -40,7 +39,7 @@ Usage:                   # [Default]
         cs.CSBase.__init__(self, argv, logfn)
         self.sprelog = "(%d) " % os.getpid()
         self.log("")
-        self.log("argv=%s" % string.join(argv))
+        self.log("argv=%s" % (' '.join(argv)))
         self.portfn = None
         self.user = "guest"
         self.dir2make = None
@@ -274,8 +273,8 @@ Usage:                   # [Default]
         self.method = os.environ.get('REQUEST_METHOD', None)
         self.log("remote_eaddr=%s, method=%s" %
                     (self.remote_addr, self.method))
-        if os.environ.has_key('HTTP_COOKIE'):
-            cookie = Cookie.SimpleCookie()
+        if 'HTTP_COOKIE' in os.environ.keys():
+            cookie = cookies.SimpleCookie()
             cookie.load(os.environ['HTTP_COOKIE'])
             for item in cookie.items():
                 self.log("cookie[%s]=%s\n" % item)
@@ -286,7 +285,7 @@ Usage:                   # [Default]
         self.log("portfn=%s" % self.portfn)
         try:
             f = open(self.portfn)
-        except Exception, why:
+        except Exception as why:
             self.error("open(%s): %s" % (self.portfn, why))
             f = None
         if f:
@@ -305,10 +304,11 @@ Usage:                   # [Default]
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             try:
                 s.connect(('', self.port_server))
-            except Exception, why:
+            except Exception as why:
                 self.error("connect failed, why=%s" % str(why))
                 s.close()
                 s = None
+            self.log(f"get_connect_socket: s={s}")
         self.csocket = s
 
 
@@ -318,7 +318,7 @@ Usage:                   # [Default]
 dn_log = "/tmp/geeoh-ioc"
 try:
     os.mkdir(dn_log)
-    os.chmod(dn_log, 0777)
+    os.chmod(dn_log, 0o0777)
 except:
     pass
 # logfn = "%s/%d.log" % (dn_log, os.getpid())
