@@ -95,13 +95,14 @@ class CSBase:
 
     
     def send_data(self, s, data):
-        datalen = len(data)
+        bdata = bytes(data, "utf-8")
+        datalen = len(bdata)
         self.log("datalen=%d, data=%s" % (datalen, data[:16]))
         self.send_number(s, datalen)
         if datalen > 0:
             pad = (4 - (datalen % 4)) % 4
-            data += (pad * chr(0))
-            sent = s.send(bytes(data, "utf-8"))
+            bdata += bytes(pad * chr(0), "utf-8")
+            sent = s.send(bdata)
         else:
             sent = 0
         self.log("datalen=%d, sent=%d" % (datalen, sent))

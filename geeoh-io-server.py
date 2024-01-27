@@ -146,6 +146,7 @@ Usage:                   # [Default]
             f.close()
         self.send_data(client, err)
         if not err:
+            self.log(f"fn={fn}, #(text)={len(text)}")
             self.send_data(client, text)
             
 
