@@ -1526,7 +1526,7 @@
                     if ((inear != -1) && (d2near < delta_active)) {
                         this.iactive = inear;
                     }
-                    debug_log("old_near="+old_near + ", inear="+inear);
+                    // debug_log("old_near="+old_near + ", inear="+inear);
                     if ((inear != old_near) || (this.iactive != old_active)) {
                         if (old_near != -1) {
                             e = elements[old_near];
