@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 #
 
@@ -25,25 +25,7 @@ id  >> ${flog}
 dn=$(dirname ${0})
 echo dn=${dn} >> ${flog}
 
-if [ -d /home/medini ]
-then
-  # We are in unlimitedgb.com
-  # export PYTHONPATH=/home/medini/lib/python2.4/site-packages
-  home=/home/medini
-elif [ -d /home/medinior ]
-then
-  # We are in unlimitedgb.com
-  home=/home/medinior
-  export PYTHONPATH=${home}/pub/lib64/python
-elif [ -d /home/yotamm ]
-then
-  # Somewhere
-  home=/home/yotamm
-else
-  # We are in my real local home
-  home=/home/yotam
-fi
-
+home=${HOME}
 if [ -d ${home}/swpub ]
 then
   export PATH=${home}/swpub/bin:${PATH}
