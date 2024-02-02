@@ -96,13 +96,25 @@
         fget: function (path, fn) {
             $.debug_log("fget: path="+this.curr_path + ", fn="+fn);
             waitOn();
-            $.post(this.cgi_url,
-                {
+            var self = this;
+	    $.ajax({
+		url: this.cgi_url,
+		type: "POST",
+		data: {
                     "action": "fget",
                     "path": path,
                     "fn": fn,
+		},
+		success: function(response) {
+                    var edata = self.cb_json_get("fget_cb", response);
+                    var text = edata['text'];
+                    self.fget_consume(text);
+                    waitOff();
                 },
-                this.fget_cb(this));
+		error: function(jqXHR, textStatus, errorThrown) {
+		    console.error(textStatus + " " + errorThrown);
+		}
+	    });
         },
         mkdir_done: function (vthis) { },
         mkdir_cb: function (vthis) {
