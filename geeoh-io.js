@@ -40,14 +40,20 @@
             }
         },
         dir_get: function (subdir) {
-            $.debug_log("dir_get-refresh: cgi="+this.cgi_url);
+            $.debug_log("dir_get-refresh: via ajax cgi="+this.cgi_url);
             waitOn();
-            $.post(this.cgi_url,
-                {
+            $.ajax({
+                url: this.cgi_url,
+                type: "POST",
+                data: {
                     "action": "refresh",
                     "path": subdir
                 },
-                this.dir_get_cb(this));
+                success: this.dir_get_cb,
+                error: function(jqXHR, textStatus, errorThrown) {
+                   console.error(textStatus + " " + errorThrown);
+               }
+            });
         },
         fs_auth_cb: function(data) {
             $.debug_log("fput_cb: out="+data.out + ", name="+data.name);
