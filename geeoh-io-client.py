@@ -84,7 +84,7 @@ Usage:                   # [Default]
             self.non_direct_post()
         else:
             self.get_cgi_env()
-            if self.method == "POST":
+            if self.method in ("GET", "POST"):
                 self.post_handle()
             else:
                 self.error("CGI-Method: '%s' not supported" % self.method)
