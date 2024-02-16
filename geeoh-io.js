@@ -44,7 +44,7 @@
             waitOn();
             $.ajax({
                 url: this.cgi_url,
-                type: "POST",
+                type: "GET",
                 data: {
                     "action": "refresh",
                     "path": subdir
@@ -97,10 +97,10 @@
             $.debug_log("fget: path="+this.curr_path + ", fn="+fn);
             waitOn();
             var self = this;
-	    $.ajax({
-		url: this.cgi_url,
-		type: "POST",
-		data: {
+            $.ajax({
+                url: this.cgi_url,
+                type: "GET",
+                data: {
                     "action": "fget",
                     "path": path,
                     "fn": fn,
@@ -111,10 +111,18 @@
                     self.fget_consume(text);
                     waitOff();
                 },
-		error: function(jqXHR, textStatus, errorThrown) {
-		    console.error(textStatus + " " + errorThrown);
-		}
-	    });
+                success: function(response) {
+                    console.log("fget.success: response" +
+                                response.substring(0, 40));
+                    var edata = self.cb_json_get("fget_cb", response);
+                    var text = edata['text'];
+                    self.fget_consume(text);
+                    waitOff();
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error(textStatus + " " + errorThrown);
+                }
+            });
         },
         mkdir_done: function (vthis) { },
         mkdir_cb: function (vthis) {
@@ -183,11 +191,11 @@
         id_mkdir: "",
         id_json_text: "",
 
-	// user: "guest", // logged in user
+        // user: "guest", // logged in user
         curr_path: "", // user data
-        cgi_url: "cgi-bin/geeoh-io.cgi",
+        cgi_url: "/cgi-bin/geeoh-io.cgi",
         dir_get_consume: function (dlist, flist) {
-	    var user = $.user_signed_get();
+            var user = $.user_signed_get();
             $.debug_log("ioui.dir_get_consume, user="+user);
             var tbody = $("#"+this.id_table_tbody);
             tbody.empty();
@@ -195,14 +203,14 @@
             if (udcp === "") { udcp = "/"; }
             $("#th-path").empty().html(udcp);
             var vthis = this;
-	    var mypath = (udcp == 'guest') || (udcp == user) ||
-	        (udcp.substr(0, 5+1) == 'guest/') ||
-	        (udcp.substr(0, user.length+1) == (user + '/'));
+            var mypath = (udcp == 'guest') || (udcp == user) ||
+                (udcp.substr(0, 5+1) == 'guest/') ||
+                (udcp.substr(0, user.length+1) == (user + '/'));
             for (var i = 0; i < dlist.length; i++) {
                 var e = dlist[i];
-		var clsdir = ((mypath || 
-		    (udcp === '/') && ((e == 'guest') || (e == user)))
-		    ? 'mydir' : 'herdir');
+                var clsdir = ((mypath || 
+                    (udcp === '/') && ((e == 'guest') || (e == user)))
+                    ? 'mydir' : 'herdir');
                 tbody.append($("<tr>")
                     .append($("<td>")
                         .append($('<button title="Folder">')
@@ -323,8 +331,8 @@
         dir_refresh: function () {
             this.dir_get(this.curr_path);
         },
-	save_data_get: function () { return ""; },
-	load_data_put: function (text) { },
+        save_data_get: function () { return ""; },
+        load_data_put: function (text) { },
         init: function (
             v_id_table_tbody,
             v_id_dirget,
@@ -361,9 +369,7 @@
         $.debug_log("io.cgi="+ioui.cgi_url);
         ioui.init("tbody-data", "tree-refresh", 
             "filename", "save", "mkdir", "json-text");
-	ioui.dir_refresh();
+        ioui.dir_refresh();
     });
 
 })();
-
-
